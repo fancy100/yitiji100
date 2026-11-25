@@ -1,0 +1,12 @@
+{
+  "codeReview": {
+    "_comment_mode": "code-reviewer 门禁模式，三档。off=完全不审：门禁与提醒都静默，需要审时手动 /review 或直接要求起 code-reviewer。background=审但后台跑：不阻塞当前回合，agent 跑完以异步通知汇报结论，代价是通知会插进主对话打断阅读（默认）。blocking=当场审完才放行：不会打断对话，代价是每次交付前多等 agent 跑完的两三分钟。",
+    "mode": "background",
+
+    "_comment_smallDiffThreshold": "小改动免审阈值：本轮代码净变更行数（增+删）低于此值且未触碰敏感路径 → 免 review。50 的口径下几乎每轮都过线，连改三行文案都会被强拦；调高后常规改动免审，漏审风险转由人工承担。设 0 表示任何改动都要审。",
+    "smallDiffThreshold": 2000,
+
+    "_comment_sensitiveDiffThreshold": "敏感路径阈值：命中敏感路径（认证/权限/支付/schema/迁移/密钥/guard 等）的文件，其自身净变更达到此值即强制 review，不受 smallDiffThreshold 放行。设得低是有意的——这类改动即便只有十几行也值得看。",
+    "sensitiveDiffThreshold": 15
+  }
+}

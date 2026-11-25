@@ -1,0 +1,51 @@
+# ==================== 依赖 ====================
+node_modules/
+.pnpm-store/
+
+# ==================== 构建产物 ====================
+dist/
+dist-ssr/
+build/
+*.tsbuildinfo
+
+# ==================== 环境变量与密钥 ====================
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ==================== 日志 ====================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ==================== 后端运行时数据 ====================
+server/uploads/
+server/docker/data/
+docker/data/
+
+# ==================== Claude 本地运行状态 ====================
+.claude/run/
+.claude/settings.local.json
+
+# ==================== 编辑器与系统文件 ====================
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
+*.local
+
+# ==================== 测试覆盖率 ====================
+coverage/
+.nyc_output/

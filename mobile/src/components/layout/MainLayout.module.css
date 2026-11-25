@@ -1,0 +1,26 @@
+.layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tabbar {
+  flex-shrink: 0;
+  background: #fff;
+  border-top: 1px solid #F0F2F5;
+  box-shadow: 0 -4px 16px rgba(0,0,0,0.06);
+  /* 安全区域适配 */
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* TabBar 激活色 */
+.tabbar :global(.adm-tab-bar-item-active) {
+  color: #1677FF !important;
+}
