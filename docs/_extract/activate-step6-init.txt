@@ -1,0 +1,186 @@
+
+运维中心 · 初始化 · 系统初始化
+运维中心
+⌂功能入口
+Aadmin ⌄
+←初始化
+ 1网络信息配置
+ 2设备激活配置
+ 3基础服务配置
+ 4项目信息配置
+ 5可选服务配置
+ 6系统初始化
+ 上一步保存并开始系统初始化1
+ ☁
+ 系统初始化执行耗时：0秒，请您耐心等待
+0%
+2
+ 服务进展列表3启动服务：0/0
+ 序号服务名更新进度4执行耗时重启次数服务日志5
+ 系统初始化完成，所有业务已启动成功
+ 项目名称：项目名称6
+ 系统登录网址：
+ 应用平台：https://172.16.1.34:443⧉
+ 管理后台：https://172.16.1.34:443/lup-admin⧉
+ 运维中心地址：http://172.16.1.34:40001⧉
+ 设备上云：⧉7
+ MQTT服务地址：tcp://172.16.1.34:1883
+ MQTT用户名：admin
+ MQTT密码：M@75Xp3f
+ 组织码：ORG234679
+ 设备绑定码：D234679
+ 关闭
+✕
+ ✕
+ 关闭
+ PRD 标注
+ 演示：初始化失败重试 有服务重试全部一次成功
+ 速度 正常快进
+ 提示✕
+ 您当前的修改内容未重启、未激活，若返回则不会保存，是否继续返回？
+ 继续填写继续返回
+// ---------- 场景：激活流程（act） / 配置模块（cfg），由首页入口写入 ----------
+var INIT_CFG = (function () { try { var q = new URLSearchParams(location.search).get('mode'); if (q) sessionStorage.setItem('initMode', q); return sessionStorage.getItem('initMode') === 'cfg'; } catch (e) { return false; } })();
+var HOME_URL = INIT_CFG ? 'home.html?act=1' : 'home.html';
+if (INIT_CFG) {
+ document.querySelectorAll('.step').forEach(function (s) { var n = s.querySelector('.num'); if (n && n.textContent.trim() === '6') s.lastChild.textContent = '重启服务'; });
+ document.title = document.title.replace('· 初始化 ·', '· 配置 ·').replace('系统初始化', '重启服务');
+ var _h1 = document.querySelector('.titlebar h1'); if (_h1) _h1.textContent = '配置';
+}
+function $(id) { return document.getElementById(id); }
+function tbl(rows) { return '状态说明
+' + rows.map(function (r) { return '' + r[0] + '' + r[1] + '
+'; }).join('') + ''; }
+var NOTES = {
+ start: { title: '保存并开始系统初始化', items: [
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '从首页「配置」进入时，第 6 步名称为「重启服务」，按钮为「保存并重启服务」，执行过程、进度、服务进展列表、日志下载和完成后的系统信息与激活流程完全一致，提示文字中的「系统初始化」改为「重启服务」。' },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '第一步至第五步填写的配置均为暂存状态，点击「保存并开始系统初始化」后才真正保存，并按配置同时启动各服务。
+· 「上一步」返回第五步「可选服务配置」，暂存内容保留。
+· 初始化开始后不可返回上一步，页面切换为进度视图。' }
+ ]},
+ prog: { title: '初始化总进度', items: [
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '执行中提示「系统初始化执行耗时：X秒，请您耐心等待」，耗时实时累加；进度 = 已启动成功服务数 / 服务总数。
+全部成功后文字变为绿色「系统初始化完成，总耗时：X秒」。' }
+ ]},
+ list: { title: '服务进展列表', items: [
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '列出本次需要启动的全部服务：基础服务必启；可选服务只列出第五步中已启用的模块。右上角「启动服务：已成功数/总数」。所有服务同时启动，各服务启动快慢不同，完成先后不固定（同一时刻可能有的已成功、有的启动中、有的检测中）。' }
+ ]},
+ state: { title: '更新进度', items: [
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: tbl([['等待中', '服务已下发启动，尚未开始执行'], ['启动中', '服务正在启动'], ['检测中', '启动完成，正在检测服务是否可用'], ['重试中', '检测不通过，自动重启，重启次数 +1'], ['启动成功', '检测通过']]) }
+ ]},
+ log: { title: '服务日志', items: [
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '服务开始启动后可点「查看」，直接下载该服务的日志文件（.log）；等待中的服务显示「-」。
+日志内容：服务名称、开始时间、结束时间、执行耗时、重启次数、执行结果（成功 / 未完成），以及每一步的执行明细（启动、检测、重启）；执行不成功时写明具体问题。
+用途：初始化长时间未完成或卡在某个服务时，下载日志给开发人员排查。' }
+ ]},
+ done: { title: '初始化完成', items: [
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '全部服务启动成功后，进度和服务进展列表隐藏，页面切换为系统信息：项目名称（取第四步填写的项目名称）、系统登录网址（应用平台、管理后台、运维中心地址，可点击跳转、可复制）、设备上云信息（见标注 7）。
+底部「关闭」按钮：进入运维中心首页（已激活状态，原「激活」入口变为「配置」）。' }
+ ]},
+ cloud: { title: '设备上云', items: [
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '展示设备接入云端所需信息：MQTT服务地址、MQTT用户名、MQTT密码、组织码、设备绑定码，只读展示。标题「设备上云」旁的复制按钮：点击后一次性复制下方全部内容（MQTT服务地址、MQTT用户名、MQTT密码、组织码、设备绑定码，每项一行「名称：值」）。' }
+ ]}
+};
+var SVC = ['数据库服务', '缓存服务', '消息队列服务', '存储服务', '视频服务', '网关服务', '业务平台服务', 'AI识别服务', '二维建图服务', '三维建模服务', 'AI比对服务'];
+var ST = { wait: '等待中', run: '启动中', chk: '检测中', retry: '重试中', ok: '启动成功' };
+var list = [], timer = null, sec = 0, started = false;
+// 每个服务的 [开始延迟, 启动耗时, 检测耗时]（tick 数），模拟有快有慢
+var SPD = [[0,3,2],[0,2,1],[0,4,2],[1,3,1],[0,6,3],[1,2,2],[1,8,3],[0,9,3],[2,5,2],[1,11,4],[0,7,2]];
+function pad(n) { return (n ' + (i + 1) + '' + s.name + '' + ST[s.st] + '' +
+ (s.st === 'wait' ? '-' : s.t + '秒') + '' + s.retry + '' +
+ (s.st === 'wait' ? '-' : '查看') + '
+';
+ }).join('');
+ $('cnt').textContent = '启动服务：' + okN + '/' + list.length;
+ var pct = list.length ? Math.round(okN * 100 / list.length) : 0;
+ $('pFill').style.width = pct + '%'; $('pPct').textContent = pct + '%';
+ if (okN === list.length) {
+ $('pTxt').className = 'txt ok'; $('pTxt').textContent = (INIT_CFG ? '重启服务完成，总耗时：' : '系统初始化完成，总耗时：') + sec + '秒';
+ $('doneBox').style.display = 'block';
+ } else $('pTxt').textContent = (INIT_CFG ? '重启服务执行耗时：' : '系统初始化执行耗时：') + sec + '秒，请您耐心等待';
+}
+function adv(cur) {
+ if (cur.st === 'wait') { if (sec = cur.runT) { cur.st = 'chk'; cur.step = 0; lg(cur, '[INFO] 启动完成，检测服务可用性'); }
+ else if (cur.st === 'chk' && cur.step >= cur.chkT) {
+ if (cur.fail > 0) { cur.fail--; cur.retry++; cur.st = 'retry'; cur.step = 0; lg(cur, '[WARN] 检测不通过：服务健康检查超时，端口无响应；自动重启（第' + cur.retry + '次）'); }
+ else { cur.st = 'ok'; cur.end = now(); lg(cur, '[INFO] ' + cur.name + ' 启动成功'); }
+ } else if (cur.st === 'retry' && cur.step >= 2) { cur.st = 'run'; cur.step = 0; lg(cur, '[INFO] 重新启动 ' + cur.name); }
+}
+function tick() {
+ sec++;
+ var left = list.filter(function (s) { return s.st !== 'ok'; });
+ if (!left.length) { clearInterval(timer); timer = null; render(); showInfo(); return; }
+ left.forEach(adv);
+ render();
+}
+function showInfo() { var pn = ''; try { pn = localStorage.getItem('initProjName') || ''; } catch (e) {} $('iProj').textContent = pn || '演示项目'; $('vRun').style.display = 'none'; $('vInfo').style.display = 'block'; closePop(); }
+function startInit() {
+ var retry = $('selRetry').value === '1';
+ list = SVC.map(function (n, i) { return { name: n, st: 'wait', t: 0, retry: 0, step: 0, delay: SPD[i][0], runT: SPD[i][1], chkT: SPD[i][2], fail: retry && (i === 4 || i === 8) ? 1 : 0, log: [] }; });
+ sec = 0; started = true; $('vStart').style.display = 'none'; $('vRun').style.display = 'block'; $('doneBox').style.display = 'none';
+ render(); closePop();
+ timer = setInterval(tick, 1000 / Number($('selSpeed').value));
+}
+$('selSpeed').onchange = function () { if (timer) { clearInterval(timer); timer = setInterval(tick, 1000 / Number(this.value)); } };
+function toast(msg) { var t = $('toast'); t.textContent = msg; t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(function () { t.style.display = 'none'; }, 1800); }
+function modal(title, html) { $('mT').textContent = title; $('mB').innerHTML = html; $('mask').classList.add('open'); }
+function closeModal() { $('mask').classList.remove('open'); }
+$('mX').onclick = closeModal; $('mOk').onclick = closeModal;
+$('mask').addEventListener('click', function (e) { if (e.target === this) closeModal(); });
+$('tb').addEventListener('mousedown', function (e) {
+ if (e.button !== 0) return;
+ var l = e.target.closest('.lnk'); if (!l) return; var s = list[l.dataset.i];
+ var res = s.st === 'ok' ? '启动成功' : (s.st === 'retry' ? '检测不通过，重试中' : '未完成（' + ST[s.st] + '）');
+ var txt = ['服务名称：' + s.name, '开始时间：' + (s.begin || '-'), '结束时间：' + (s.end || '未结束'), '执行耗时：' + s.t + '秒',
+ '重启次数：' + s.retry, '执行结果：' + res, '', '---------- 执行明细 ----------'].concat(s.log).join('\r\n');
+ var a = document.createElement('a');
+ a.href = URL.createObjectURL(new Blob(['\ufeff' + txt], { type: 'text/plain;charset=utf-8' }));
+ a.download = s.name + '_服务日志_' + now().replace(/[-: ]/g, '') + '.log';
+ document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+ toast('已下载' + s.name + '日志');
+});
+$('btnStart').onclick = startInit;
+$('btnPrev').onclick = function () { location.href = 'activate-step5-optional.html'; };
+$('btnBack').onclick = function () { if (timer) { toast(INIT_CFG ? '重启服务进行中，请稍候' : '系统初始化进行中，请稍候'); return; } if (started) { location.href = 'home.html?act=1'; return; } openBack(); };
+$('btnClose').onclick = function () { location.href = 'home.html?act=1'; };
+if (INIT_CFG) { $('btnStart').textContent = '保存并重启服务'; $('doneTxt').textContent = '重启服务完成，所有业务已启动成功'; }
+document.addEventListener('click', function (e) {
+ var c = e.target.closest('.cp'); if (!c) return;
+ var t, tip;
+ if (c.classList.contains('cp-all')) {
+ t = [].map.call(c.closest('.info-sec').querySelectorAll('.info-grey .info-row'), function (r) { return r.querySelector('label').textContent + r.querySelector('.v').textContent; }).join('\r\n');
+ tip = '已复制设备上云信息';
+ } else { t = c.previousElementSibling.textContent; tip = '已复制：' + t; }
+ function fb() { var ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); var ok = false; try { ok = document.execCommand('copy'); } catch (er) {} ta.remove(); toast(ok ? tip : '复制失败，请手动复制'); }
+ if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(t).then(function () { toast(tip); }, fb); else fb();
+});
+// ---------- PRD 标注弹层 ----------
+var curDot = null;
+function closePop() { $('pop').classList.remove('show'); if (curDot) curDot.classList.remove('open'); curDot = null; }
+function openPop(btn) {
+ var n = NOTES[btn.dataset.note]; if (!n) return;
+ closePop(); curDot = btn; btn.classList.add('open');
+ $('popT').textContent = btn.textContent + '. ' + n.title;
+ $('popB').innerHTML = n.items.map(function (it) {
+ return '' + it.ver + '' + it.tag + '' + it.html + '
+';
+ }).join('');
+ var pop = $('pop'); pop.classList.add('show');
+ var r = btn.getBoundingClientRect(), sx = window.scrollX, sy = window.scrollY;
+ var vw = document.documentElement.clientWidth;
+ var left = r.right + sx + 10;
+ if (left + pop.offsetWidth > sx + vw - 12) left = Math.max(sx + 12, r.left + sx - pop.offsetWidth - 10);
+ pop.style.left = left + 'px'; pop.style.top = (r.top + sy) + 'px';
+}
+document.addEventListener('click', function (e) {
+ var d = e.target.closest('.dot');
+ if (d) { e.preventDefault(); e.stopPropagation(); curDot === d ? closePop() : openPop(d); return; }
+ if (!e.target.closest('#pop')) closePop();
+}, true);
+$('popX').onclick = closePop;
+$('swDots').onclick = function () { this.classList.toggle('off'); document.body.classList.toggle('hide-dots', this.classList.contains('off')); closePop(); };
+// ---------- 返回确认：不保存，返回首页 ----------
+function openBack() { document.getElementById('bkMask').classList.add('open'); }
+function closeBack() { document.getElementById('bkMask').classList.remove('open'); }
+document.getElementById('bkX').onclick = document.getElementById('bkStay').onclick = closeBack;
+document.getElementById('bkGo').onclick = function () { closeBack(); location.href = HOME_URL; };

@@ -1,0 +1,213 @@
+
+运维中心 · 初始化 · 网络信息配置
+ 运维中心
+ ⌂功能入口
+ Aadmin ▾
+ ←
+ 初始化
+ 1
+ 1网络信息配置
+ 2设备激活配置
+ 3基础服务配置
+ 4项目信息配置
+ 5可选服务配置
+ 6系统初始化
+ 提示：IP 或平台访问网址变更后，需要走到第六步「重启服务」并完成重启，修改才能生效。
+ *IP：
+ 获取IP
+ 2
+ *子网掩码：
+ *网关：
+ *DNS1：
+ DNS2：
+ *平台访问网址：
+ https://:
+ 3
+ 当您使用互联网模式时，需要您的路由开通对应的端口映射，查看端口清单
+ 域名SSL证书
+（公钥pem文件）：
+ 域名SSL证书
+（私钥key文件）：
+ 下一步
+✕
+ 提示✕
+ 您当前的修改内容未重启、未激活，若返回则不会保存，是否继续返回？
+ 继续填写继续返回
+ 端口清单✕
+ 内网端口映射
+尽量不使用 80/443 端口，避免与 http/https 服务冲突或被扫描攻击。
+ 互联网端口映射
+80/443 端口若要使用，需要完成网络备案。
+ 端口协议用途
+ 443tcp平台页面
+ 1883tcp无人机通讯接口
+ 9000tcp素材管理
+ 21935tcp直播数据推流
+ 18000rtc直播数据拉流（默认 18000，互联网模式下映射端口需与内部端口一致）
+ 11554rtsp直播数据拉流（单兵设备使用 AI 功能直播）
+ 8000tcp建图服务端口
+ 我知道了
+PRD 标注 
+ 必填验证 
+ 获取IP结果 成功失败
+ 重置演示
+// ---------- 场景：激活流程（act） / 配置模块（cfg），由首页入口写入 ----------
+var INIT_CFG = (function () { try { var q = new URLSearchParams(location.search).get('mode'); if (q) sessionStorage.setItem('initMode', q); return sessionStorage.getItem('initMode') === 'cfg'; } catch (e) { return false; } })();
+var HOME_URL = INIT_CFG ? 'home.html?act=1' : 'home.html';
+if (INIT_CFG) {
+ document.querySelectorAll('.step').forEach(function (s) { var n = s.querySelector('.num'); if (n && n.textContent.trim() === '6') s.lastChild.textContent = '重启服务'; });
+ document.title = document.title.replace('· 初始化 ·', '· 配置 ·').replace('系统初始化', '重启服务');
+ var _h1 = document.querySelector('.titlebar h1'); if (_h1) _h1.textContent = '配置';
+}
+// PRD 标注数据，来源：Axure 原型 B0.1.2 / B0.1.3 / B1.2.1
+// cls：rule=规则（亮黄） change=修改说明（浅黄） reason=设计原因（灰）
+var NOTES = {
+ back: { title: '返回', items: [
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '点击左上角【返回】时弹窗提示：
+「您当前的修改内容未重启、未激活，若返回则不会保存，是否继续返回？」' },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '弹窗提供两个按钮：
+· 继续返回：放弃本页修改，返回功能入口页；
+· 继续填写：关闭弹窗，停留在当前页，已填内容保留。' }
+ ]},
+ net: { title: 'IP / 子网掩码 / 网关 / DNS1 / DNS2', items: [
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '页面包含 IP、子网掩码、网关、DNS1、DNS2 五个输入框，进入页面时默认全部为空。' },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: 'IP、子网掩码、网关、DNS1 为必填；DNS2 为非必填，填写时校验格式。' },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: 'IP 后有【获取IP】按钮。手动点击后，自动获取并填入 IP、子网掩码、网关、DNS1。' },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '获取失败时提示：「当前无法获取对应的 IP、子网掩码、网关和 DNS1 数据，请手动填写」。' },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '获取到的数据支持编辑，编辑后按 IP 格式校验。' }
+ ]},
+ port: { title: '平台访问网址', items: [
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '配置模块提示：从首页「配置」进入时，页面顶部显示橙色提示「IP 或平台访问网址变更后，需要走到第六步「重启服务」并完成重启，修改才能生效。」激活流程中不显示。' },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '字段名为「平台访问网址」，由三个框组成：
+① 前缀 https://，置灰，不可编辑；
+② 访问地址输入框，用户填写，必填；
+③ 端口输入框，默认 443，支持修改，必填，范围 1–65535。' },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '下方提示：「当您使用互联网模式时，需要您的路由开通对应的端口映射，查看端口清单」。' },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '「查看端口清单」显示为蓝色，点击后弹窗展示端口清单（内网/互联网端口映射说明 + 端口、协议、用途对照表）。' }
+ ]},
+ cert: { title: '域名SSL证书', items: [
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '点击【+】选择文件后立即执行上传。' },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '点击文件后的【X】关闭文件，退回上传前的状态。' },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '可以修改证书内容，并新增提示语：若不上传，系统采用默认证书。' }
+ ]}
+};
+// ===== 标注点弹层 =====
+var pop = document.getElementById('pop'), curDot = null;
+function openNote(dot) {
+ if (curDot === dot) return closeNote();
+ closeNote();
+ var n = NOTES[dot.dataset.note];
+ document.getElementById('popTitle').textContent = n.title;
+ document.getElementById('popBody').innerHTML = n.items.map(function (it) {
+ return '' + it.tag + '' + it.ver + '' + it.html + '
+';
+ }).join('');
+ pop.classList.add('show');
+ var r = dot.getBoundingClientRect();
+ var left = r.right + 10 + window.scrollX, top = r.top - 10 + window.scrollY;
+ if (r.right + 400 > document.documentElement.clientWidth) left = r.left - 390 + window.scrollX;
+ pop.style.left = left + 'px'; pop.style.top = top + 'px';
+ dot.classList.add('open'); curDot = dot;
+}
+function closeNote() { pop.classList.remove('show'); if (curDot) curDot.classList.remove('open'); curDot = null; }
+document.addEventListener('click', function (e) {
+ var d = e.target.closest('.dot');
+ if (d) { e.stopPropagation(); openNote(d); return; }
+ if (!pop.contains(e.target)) closeNote();
+});
+document.getElementById('popClose').onclick = closeNote;
+document.getElementById('sw').onclick = function () { this.classList.toggle('off'); document.body.classList.toggle('hide-dots'); closeNote(); };
+function toast(t) { var el = document.getElementById('toast'); el.textContent = t; el.style.display = 'block'; clearTimeout(toast.h); toast.h = setTimeout(function () { el.style.display = 'none'; }, 2200); }
+// ===== 页面加载：默认全部为空（只回显本页「下一步」保存过的数据） =====
+var STORE = 'yw_step1';
+var FIELDS = ['f_ip', 'f_mask', 'f_gw', 'f_dns1', 'f_dns2', 'f_host', 'f_port'];
+var DHCP = { f_ip: '192.168.1.100', f_mask: '255.255.255.0', f_gw: '192.168.1.1', f_dns1: '114.114.114.114' };
+var saved = null;
+try { saved = JSON.parse(localStorage.getItem(STORE) || 'null'); } catch (e) { saved = null; }
+if (saved) FIELDS.forEach(function (id) { if (saved[id] != null) document.getElementById(id).value = saved[id]; });
+document.getElementById('reset').onclick = function () { localStorage.removeItem(STORE); location.reload(); };
+// ===== 获取IP：手动点击，演示面板可切换成功 / 失败 =====
+var ipOk = true;
+document.querySelectorAll('#segIp button').forEach(function (b) {
+ b.onclick = function () {
+ document.querySelectorAll('#segIp button').forEach(function (x) { x.classList.remove('on'); });
+ b.classList.add('on'); ipOk = b.dataset.v === '1';
+ };
+});
+document.getElementById('btnGetIp').onclick = function () {
+ var btn = this; btn.disabled = true; btn.textContent = '获取中…';
+ setTimeout(function () {
+ btn.disabled = false; btn.textContent = '获取IP';
+ if (!ipOk) return toast('当前无法获取对应的 IP、子网掩码、网关和 DNS1 数据，请手动填写');
+ Object.keys(DHCP).forEach(function (id) { var i = document.getElementById(id); i.value = DHCP[id]; check(i); });
+ toast('已获取 IP、子网掩码、网关和 DNS1，可直接修改');
+ }, 800);
+};
+// ===== 格式校验 =====
+var IPRE = /^((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)$/;
+var HOSTRE = /^[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?)*$/;
+function check(inp) {
+ var v = inp.value.trim(), t = inp.dataset.type, m = '';
+ if (!v) m = inp.dataset.opt ? '' : '此项为必填项';
+ else if (t === 'ip' && !IPRE.test(v)) m = '格式不正确，示例：192.168.1.100';
+ else if (t === 'host' && !HOSTRE.test(v)) m = '访问地址格式不正确，示例：ops.example.com 或 192.168.1.100';
+ else if (t === 'port' && !(/^\d+$/.test(v) && +v >= 1 && +v 4' : '';
+ if (!fname) {
+ box.innerHTML = '+' + dot + '若是不上传则会采用默认证书
+';
+ } else {
+ box.innerHTML = '📄 X' + dot + '上传成功
+';
+ box.querySelector('.fn').textContent = fname;
+ }
+}
+renderUpload('up_pem', '.pem,.crt', null);
+renderUpload('up_key', '.key', null);
+document.querySelector('.form').addEventListener('click', function (e) {
+ var d = e.target.dataset;
+ if (e.target.classList.contains('upload')) { target = { box: d.box, accept: d.accept }; picker.accept = d.accept; picker.value = ''; picker.click(); }
+ if (e.target.classList.contains('x')) renderUpload(d.box, d.accept, null);
+});
+picker.onchange = function () {
+ if (!picker.files.length || !target) return;
+ var name = picker.files[0].name, t = target, box = document.getElementById(t.box);
+ box.innerHTML = '📄 上传中…0%';
+ var p = 0, pr = box.querySelector('.progress');
+ var h = setInterval(function () { p += 25; pr.textContent = p + '%'; if (p >= 100) { clearInterval(h); renderUpload(t.box, t.accept, name); } }, 200);
+};
+// ---------- 演示：必填验证开关（开=校验，关=不校验直接下一步），各步骤共用 ----------
+function valOn() { try { return sessionStorage.getItem('demoVal') !== '0'; } catch (e) { return true; } }
+function initValSw(onChange) {
+ var sw = document.getElementById('swVal');
+ sw.classList.toggle('off', !valOn());
+ sw.onclick = function () {
+ var on = this.classList.toggle('off') === false;
+ try { sessionStorage.setItem('demoVal', on ? '1' : '0'); } catch (e) {}
+ if (onChange) onChange(on);
+ toast(on ? '必填验证已开启：点「下一步」会校验所有输入' : '必填验证已关闭：点「下一步」直接进入下一步');
+ };
+ if (onChange) onChange(valOn(), true);
+}
+initValSw();
+// ===== 下一步 =====
+document.getElementById('btnNext').onclick = function () {
+ var ok = true;
+ if (valOn()) document.querySelectorAll('.form input[type=text]').forEach(function (i) { if (!check(i)) ok = false; });
+ if (!ok) return toast('请检查标红字段');
+ var data = {};
+ // 保存全部字段（含 DNS2、访问地址、端口）
+ FIELDS.forEach(function (id) { data[id] = document.getElementById(id).value.trim(); });
+ localStorage.setItem(STORE, JSON.stringify(data));
+ // 保存后进入第二步「设备激活配置」
+ location.href = 'activate-step2-license.html';
+};
+// ---------- 从首页「ip变更提醒 → 获取最新ip」进入：自动填入最新 IP ----------
+(function () {
+ var nip = new URLSearchParams(location.search).get('newip');
+ if (!nip) return;
+ var el = document.getElementById('f_ip');
+ if (el) { el.value = nip; el.style.borderColor = '#1a6cfb'; }
+ toast('已获取最新IP：' + nip + '，请确认后点「下一步」，并在第六步重启服务后生效');
+})();
+// ---------- 配置模块：顶部显示「IP / 平台访问网址变更需重启服务后生效」提示 ----------
+if (INIT_CFG) document.getElementById('cfgTip').style.display = '';

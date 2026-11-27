@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>运维中心 · 初始化 · 项目信息配置</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; font-size: 14px; color: #333; background: #eef0f3; }
+  .topbar { height: 50px; background: #1a6cfb; color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; }
+  .topbar .logo { font-size: 18px; }
+  .topbar .right { display: flex; align-items: center; gap: 28px; }
+  .topbar .entry, .topbar .user { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+  .topbar .ico { width: 26px; height: 26px; border-radius: 50%; background: #fff; color: #1a6cfb; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; }
+  .titlebar { height: 42px; background: #fff; display: flex; align-items: center; padding: 0 22px; border-bottom: 1px solid #eee; }
+  .titlebar .back { font-size: 18px; margin-right: 18px; cursor: pointer; }
+  .titlebar h1 { font-size: 17px; font-weight: bold; }
+  .steps { background: #fff; display: flex; height: 56px; border-bottom: 1px solid #e6e6e6; }
+  .step { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; color: #999; position: relative; font-size: 15px; }
+  .step:not(:last-child)::after { content: "›"; position: absolute; right: 0; font-size: 22px; color: #bbb; }
+  .step .num { width: 30px; height: 30px; border-radius: 50%; background: #f0f0f0; color: #666; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+  .step.done { color: #333; }
+  .step.done .num, .step.active .num { background: #1a6cfb; color: #fff; }
+  .step.active { color: #333; border-bottom: 2px solid #1a6cfb; }
+  .card { max-width: 1320px; margin: 20px auto 30px; background: #fff; padding: 36px 0 40px; }
+  .wrap { width: 680px; margin: 0 auto; }
+  .row { display: flex; align-items: flex-start; margin-bottom: 20px; }
+  .row label.lb { width: 120px; text-align: right; padding: 7px 10px 0 0; flex-shrink: 0; }
+  .row label .req { color: #e4393c; margin-right: 3px; }
+  .row .ctrl { flex: 1; position: relative; max-width: 460px; }
+  .row .ro { padding-top: 7px; color: #555; }
+  .hint { color: #999; font-size: 12px; margin-top: 4px; line-height: 1.6; }
+  .warn { color: #e4393c; font-size: 12px; margin-top: 4px; line-height: 1.6; }
+  input[type=text], input[type=password] { width: 100%; height: 34px; border: 1px solid #d9d9d9; border-radius: 4px; padding: 0 10px; font-size: 14px; outline: none; }
+  input:focus { border-color: #1a6cfb; }
+  input.bad, .ms.bad, .map.bad { border-color: #e4393c !important; }
+  .err { color: #e4393c; font-size: 12px; margin-top: 4px; }
+  .pw { display: flex; gap: 8px; align-items: center; }
+  .pw .eye { cursor: pointer; color: #888; user-select: none; font-size: 13px; white-space: nowrap; }
+  /* 多选下拉框 */
+  .ms { min-height: 34px; border: 1px solid #d9d9d9; border-radius: 4px; padding: 3px 28px 3px 6px; display: flex; flex-wrap: wrap; gap: 4px; cursor: pointer; position: relative; background: #fff; }
+  .ms.open { border-color: #1a6cfb; }
+  .ms::after { content: "⌄"; position: absolute; right: 10px; top: 4px; color: #aaa; }
+  .ms .ph { color: #bbb; padding: 4px; font-size: 14px; }
+  .ms .tagx { background: #f0f2f5; border: 1px solid #e3e3e3; border-radius: 3px; padding: 1px 6px; font-size: 13px; display: inline-flex; align-items: center; gap: 4px; }
+  .ms .tagx i { font-style: normal; color: #999; cursor: pointer; }
+  .ms .tagx i:hover { color: #e4393c; }
+  .dd { position: absolute; left: 0; right: 0; top: 100%; margin-top: 4px; background: #fff; border-radius: 4px; box-shadow: 0 4px 16px rgba(0,0,0,.15); z-index: 30; display: none; padding: 4px 0; }
+  .dd.show { display: block; }
+  .dd div { padding: 7px 12px; cursor: pointer; display: flex; justify-content: space-between; }
+  .dd div:hover { background: #f5f7fa; }
+  .dd div.on { color: #1a6cfb; font-weight: bold; background: #eef4ff; }
+  .dd div.on::after { content: "✓"; }
+  /* 地图（示意） */
+  .map { height: 220px; border: 1px solid #d9d9d9; border-radius: 4px; position: relative; overflow: hidden; cursor: crosshair;
+    background: radial-gradient(circle at 30% 40%, #5f7d4f 0 18%, transparent 19%), radial-gradient(circle at 70% 65%, #6b8a58 0 22%, transparent 23%), linear-gradient(135deg, #47633d, #7b8f62 45%, #5a6f48); }
+  .map .river { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+  .map .pin { position: absolute; width: 18px; height: 18px; margin: -18px 0 0 -9px; background: #e4393c; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); box-shadow: 0 2px 4px rgba(0,0,0,.4); }
+  .map .city { position: absolute; color: #fff; font-size: 12px; text-shadow: 0 1px 2px #000; pointer-events: none; }
+  .map .lab { position: absolute; left: 8px; bottom: 6px; background: rgba(0,0,0,.55); color: #fff; font-size: 12px; padding: 2px 8px; border-radius: 3px; }
+  .btn { height: 36px; padding: 0 30px; border-radius: 4px; border: none; background: #1a6cfb; color: #fff; font-size: 14px; cursor: pointer; }
+  .btn:hover { background: #3d82ff; }
+  .btn.ghost { background: #fff; color: #333; border: 1px solid #d9d9d9; }
+  .btn.ghost:hover { color: #1a6cfb; border-color: #1a6cfb; background: #fff; }
+  .footer { margin-top: 30px; display: flex; justify-content: center; gap: 12px; align-items: center; }
+  /* PRD 标注点（同前几步） */
+  .dot { position: absolute; right: -32px; top: 8px; width: 20px; height: 20px; border-radius: 50%; background: #ff7a00; color: #fff; font-size: 11px; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 5; border: none; animation: pulse 1.8s infinite; }
+  .dot.inline { position: relative; right: auto; top: auto; display: inline-flex; margin-left: 10px; }
+  .dot.open { background: #1a6cfb; animation: none; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255,122,0,.55); } 70% { box-shadow: 0 0 0 9px rgba(255,122,0,0); } 100% { box-shadow: 0 0 0 0 rgba(255,122,0,0); } }
+  body.hide-dots .dot { display: none !important; }
+  .pop { position: absolute; width: 720px; max-width: calc(100vw - 24px); background: #fff; border-radius: 6px; box-shadow: 0 6px 24px rgba(0,0,0,.18); z-index: 50; font-size: 13px; line-height: 1.7; display: none; }
+  .pop.show { display: block; }
+  .pop .hd { padding: 10px 14px; border-bottom: 1px solid #eee; font-weight: bold; display: flex; justify-content: space-between; }
+  .pop .hd .close { cursor: pointer; color: #999; font-weight: normal; }
+  .pop .bd { padding: 10px 14px 12px; max-height: 460px; overflow: auto; }
+  .note { padding: 8px 10px; border-radius: 4px; margin-bottom: 8px; background: #fff6c2; border-left: 3px solid #ffdf25; }
+  .note:last-child { margin-bottom: 0; }
+  .note .tag { display: inline-block; font-size: 11px; padding: 0 6px; border-radius: 3px; margin-right: 6px; background: rgba(255,255,255,.75); }
+  .note .ver { float: right; font-size: 11px; color: #888; }
+  .note table { width: 100%; border-collapse: collapse; margin-top: 6px; background: #fff; font-size: 12px; line-height: 1.5; }
+  .note th, .note td { border: 1px solid #e3d98a; padding: 4px 6px; text-align: left; vertical-align: top; }
+  .note th { background: #fff1a8; white-space: nowrap; }
+  .note td:nth-child(2) { white-space: nowrap; }
+  .ctrl-panel { position: fixed; left: 20px; bottom: 20px; background: #fff; border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,.15); padding: 10px 14px; font-size: 13px; z-index: 60; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; max-width: 560px; }
+  .ctrl-panel a { color: #1a6cfb; cursor: pointer; }
+  .ctrl-panel select { height: 24px; font-size: 12px; }
+  .switch { position: relative; width: 36px; height: 20px; background: #1a6cfb; border-radius: 10px; cursor: pointer; transition: .2s; }
+  .switch::after { content: ""; position: absolute; left: 18px; top: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: .2s; }
+  .switch.off { background: #ccc; }
+  .switch.off::after { left: 2px; }
+  .toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,.78); color: #fff; padding: 10px 22px; border-radius: 4px; display: none; z-index: 99; max-width: 620px; text-align: center; }
+  .toast.bad { background: #fff1f0; color: #e4393c; border: 1px solid #ffa39e; }
+  .mask { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none; align-items: center; justify-content: center; z-index: 80; }
+  .mask.open { display: flex; }
+  .modal { background: #fff; border-radius: 6px; width: 420px; box-shadow: 0 8px 30px rgba(0,0,0,.25); }
+  .modal .mhd { padding: 14px 20px; border-bottom: 1px solid #eee; font-weight: bold; font-size: 15px; display: flex; justify-content: space-between; }
+  .modal .mhd .close { cursor: pointer; color: #999; font-weight: normal; }
+  .modal .mbd { padding: 18px 20px; line-height: 1.8; }
+  .modal .mft { padding: 10px 20px 16px; text-align: right; }
+  .modal .mft .btn { padding: 0 20px; margin-left: 10px; }
+  .bk-mask { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none; align-items: center; justify-content: center; z-index: 200; }
+  .bk-mask.open { display: flex; }
+  .bk-modal { width: 420px; background: #fff; border-radius: 6px; box-shadow: 0 6px 24px rgba(0,0,0,.2); color: #333; }
+  .bk-hd { padding: 14px 20px; border-bottom: 1px solid #eee; font-weight: bold; font-size: 15px; display: flex; justify-content: space-between; }
+  .bk-hd .bk-x { cursor: pointer; color: #999; font-weight: normal; }
+  .bk-bd { padding: 22px 20px; font-size: 14px; line-height: 1.7; }
+  .bk-ft { padding: 10px 20px 16px; text-align: right; }
+  .bk-ft button { min-width: 88px; height: 32px; margin-left: 10px; border-radius: 4px; cursor: pointer; font-size: 14px; }
+  .bk-ft .bk-ghost { background: #fff; border: 1px solid #d9d9d9; color: #333; }
+  .bk-ft .bk-ok { background: #1a6cfb; border: 1px solid #1a6cfb; color: #fff; }
+</style>
+</head>
+<body>
+<div class="topbar"><div class="logo">运维中心</div><div class="right"><div class="entry"><span class="ico">⌂</span>功能入口</div><div class="user"><span class="ico">A</span>admin ⌄</div></div></div>
+<div class="titlebar"><span class="back" onclick="openBack()" title="返回">←</span><h1>配置</h1></div>
+<div class="steps">
+  <div class="step done"><span class="num">1</span>网络信息配置</div>
+  <div class="step done"><span class="num">2</span>设备激活配置</div>
+  <div class="step done"><span class="num">3</span>基础服务配置</div>
+  <div class="step active"><span class="num">4</span>项目信息配置</div>
+  <div class="step"><span class="num">5</span>可选服务配置</div>
+  <div class="step"><span class="num">6</span>系统初始化</div>
+</div>
+
+<div class="card"><div class="wrap">
+  <div class="row" id="rowPid" style="display:none"><label class="lb">项目ID：</label>
+    <div class="ctrl"><div class="ro" id="pid">1925393995078152200</div><button class="dot" data-note="pid">1</button></div></div>
+
+  <div class="row"><label class="lb"><span class="req">*</span>项目名称：</label>
+    <div class="ctrl"><input type="text" id="pname" placeholder="请填写项目名称" maxlength="30"><div class="hint">用于应用平台的项目名称展示</div><div class="err"></div><button class="dot" data-note="pname">2</button></div></div>
+
+  <div class="row"><label class="lb"><span class="req">*</span>项目类型：</label>
+    <div class="ctrl"><div class="ms" id="ptype"></div><div class="dd" id="ptypeDd"></div><div class="err"></div><button class="dot" data-note="ptype">3</button></div></div>
+
+  <div class="row"><label class="lb"><span class="req">*</span>管理员账号：</label>
+    <div class="ctrl"><input type="text" id="acc" placeholder="请填写管理员账号" maxlength="16"><div class="warn" id="accWarn" style="display:none"></div><div class="hint">用于应用平台超级管理员账号，可在业务中台授权角色权限。新增账号，不超过16个字符</div><div class="err"></div><button class="dot" data-note="acc">4</button></div></div>
+
+  <div class="row"><label class="lb"><span class="req">*</span>管理员密码：</label>
+    <div class="ctrl"><div class="pw"><input type="password" id="pwd" placeholder="请填写管理员密码" maxlength="16"><span class="eye" id="eye">显示</span></div><div class="warn" id="pwdWarn" style="display:none"></div><div class="hint">密码 8–16 位，必须包含大写字母和小写字母</div><div class="err"></div><button class="dot" data-note="pwd">5</button></div></div>
+
+  <div class="row"><label class="lb"><span class="req">*</span>项目中心：</label>
+    <div class="ctrl"><div class="map" id="map">
+        <span class="city" style="left:62%;top:14%">马鞍山市</span><span class="city" style="left:55%;top:34%">芜湖市</span><span class="city" style="left:18%;top:20%">巢湖</span><span class="city" style="left:30%;top:70%">铜陵市</span><span class="city" style="left:68%;top:62%">宣城市</span>
+        <span class="pin" id="pin"></span><span class="lab" id="mapLab"></span>
+      </div><div class="hint">用于登录后应用地图中心点展示。点击地图可重新选点</div><div class="err"></div><button class="dot" data-note="map">6</button></div></div>
+
+  <div class="footer"><button class="btn ghost" id="btnPrev">上一步</button><button class="btn" id="btnNext">暂存并下一步</button><button class="dot inline" data-note="save">7</button></div>
+</div></div>
+
+<div class="pop" id="pop"><div class="hd"><span id="popT"></span><span class="close" id="popX">✕</span></div><div class="bd" id="popB"></div></div>
+
+<div class="ctrl-panel">
+  <span>PRD 标注</span><div class="switch" id="swDots"></div>
+  <span>必填验证</span><div class="switch" id="swVal" title="开启 / 关闭必填验证"></div>
+  <span>页面场景 <select id="selMode"><option value="act">激活流程</option><option value="cfg">配置模块（初始化完成后）</option></select></span>
+  <span id="admWrap" style="display:none">admin 管理端 <select id="selAdm"><option value="">未改动</option><option value="pwd">密码已修改</option><option value="del">账号已删除</option></select></span>
+  
+  <a id="btnClearMap">清空地图选点</a>
+</div>
+<div class="bk-mask" id="bkMask"><div class="bk-modal">
+  <div class="bk-hd"><span>提示</span><span class="bk-x" id="bkX">✕</span></div>
+  <div class="bk-bd">您当前的修改内容未重启、未激活，若返回则不会保存，是否继续返回？</div>
+  <div class="bk-ft"><button class="bk-ghost" id="bkStay">继续填写</button><button class="bk-ok" id="bkGo">继续返回</button></div>
+</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ---------- 场景：激活流程（act） / 配置模块（cfg），由首页入口写入 ----------
+var INIT_CFG = (function () { try { var q = new URLSearchParams(location.search).get('mode'); if (q) sessionStorage.setItem('initMode', q); return sessionStorage.getItem('initMode') === 'cfg'; } catch (e) { return false; } })();
+var HOME_URL = INIT_CFG ? 'home.html?act=1' : 'home.html';
+if (INIT_CFG) {
+  document.querySelectorAll('.step').forEach(function (s) { var n = s.querySelector('.num'); if (n && n.textContent.trim() === '6') s.lastChild.textContent = '重启服务'; });
+  document.title = document.title.replace('· 初始化 ·', '· 配置 ·').replace('系统初始化', '重启服务');
+  var _h1 = document.querySelector('.titlebar h1'); if (_h1) _h1.textContent = '配置';
+}
+
+// PRD 标注里的字段表格：字段名称 / 默认值 / 限制 / 作用 / 若未填提示
+function tbl(rows) {
+  return '<table><tr><th>字段名称</th><th>默认值</th><th>限制</th><th>作用</th><th>若未填提示</th></tr>' +
+    rows.map(function (r) { return '<tr>' + r.map(function (c) { return '<td>' + c + '</td>'; }).join('') + '</tr>'; }).join('') + '</table>';
+}
+var TYPES = ['城市安全', '城市管理', '水利渔政', '农业监管', '工业企业', '医疗卫生', '自然资源', '城市规划'];
+var NOTES = {
+  pid: { title: '项目ID', items: [
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '激活流程（初始化阶段）<b>不展示</b>。激活完成后，翼飞平台把项目ID返回到一体机，在运维中心的<b>配置模块</b>中展示，<b>不可修改</b>。' }
+  ]},
+  pname: { title: '项目名称', items: [
+    { cls: 'rule', tag: '字段', ver: 'B1.3.0', html: tbl([['项目名称', '—', '最多 30 个字符（待确认）', '用于应用平台的项目名称展示', '请填写项目名称']]) }
+  ]},
+  ptype: { title: '项目类型', items: [
+    { cls: 'rule', tag: '字段', ver: 'B1.3.0', html: tbl([['项目类型', '城市安全', '多选下拉框，至少选 1 项', '标识项目所属的业务类型', '请选择项目类型']]) },
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '<b>新增字段</b>，必填。下拉选项：' + TYPES.join('、') + '。' }
+  ]},
+  acc: { title: '管理员账号', items: [
+    { cls: 'rule', tag: '字段', ver: 'B1.3.0', html: tbl([['管理员账号', '—', '最多 16 个字符', '应用平台超级管理员账号，可在业务中台授权角色权限；新增账号', '请填写管理员账号']]) },
+    { cls: 'rule', tag: '场景', ver: 'B1.3.0', html: '问题场景：客户在 admin 管理端修改或删除了超级管理员账号 / 密码。<br>· <b>账号被删除</b>：配置模块中账号、密码两个字段都展示为空，下方红字提示「管理平台内账号已经删除，若是需要可重新填写并重启服务。」' }
+  ]},
+  pwd: { title: '管理员密码', items: [
+    { cls: 'rule', tag: '字段', ver: 'B1.3.0', html: tbl([['管理员密码', '—', '8–16 位，必须包含大写字母和小写字母；默认密文，可切换显示', '应用平台超级管理员密码', '请填写管理员密码']]) },
+    { cls: 'rule', tag: '场景', ver: 'B1.3.0', html: '· <b>密码被修改</b>：配置模块中密码字段展示为空，下方红字提示「管理平台内密码已修改，若是需要可重新填写并重启服务。」<br>· <b>账号被删除</b>：提示「管理平台内账号已经删除，若是需要可重新填写并重启服务。」' }
+  ]},
+  map: { title: '项目中心', items: [
+    { cls: 'rule', tag: '字段', ver: 'B1.3.0', html: tbl([['项目中心', '有对应地图：按地图服务默认位置<br>无对应地图：马鞍山市', '必须在地图上选择位置', '登录后应用地图的中心点展示', '请在地图上选择项目中心']]) },
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '客户收到货物安装时，会为其配置对应的地图服务，所以页面默认有对应地图；没有时默认展示<b>马鞍山市</b>。' }
+  ]},
+  save: { title: '暂存并下一步', items: [
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '页面数据暂存，进入第五步「可选服务配置」。所有字段均为必填，未填时字段标红并提示「请填写xx」。' }
+  ]}
+};
+var $ = function (id) { return document.getElementById(id); };
+var sel = ['城市安全'], point = { x: 64, y: 18, name: '马鞍山市' };
+function toast(t, bad) { var e = $('toast'); e.textContent = t; e.className = 'toast' + (bad ? ' bad' : ''); e.style.display = 'block'; clearTimeout(e._t); e._t = setTimeout(function () { e.style.display = 'none'; }, 2600); }
+function errBox(el) { return el.closest('.ctrl').querySelector('.err'); }
+function setErr(el, msg) { el.classList.toggle('bad', !!msg); errBox(el).textContent = msg || ''; return !msg; }
+
+// 多选下拉
+function renderMs() {
+  var ms = $('ptype');
+  ms.innerHTML = sel.length ? sel.map(function (t) { return '<span class="tagx">' + t + '<i data-t="' + t + '">✕</i></span>'; }).join('') : '<span class="ph">请选择项目类型</span>';
+  $('ptypeDd').innerHTML = TYPES.map(function (t) { return '<div data-t="' + t + '" class="' + (sel.indexOf(t) > -1 ? 'on' : '') + '">' + t + '</div>'; }).join('');
+}
+$('ptype').onclick = function (e) {
+  if (e.target.tagName === 'I') { sel.splice(sel.indexOf(e.target.dataset.t), 1); renderMs(); e.stopPropagation(); return; }
+  $('ptypeDd').classList.toggle('show'); this.classList.toggle('open');
+};
+$('ptypeDd').onclick = function (e) {
+  var t = e.target.dataset.t; if (!t) return;
+  var i = sel.indexOf(t); i > -1 ? sel.splice(i, 1) : sel.push(t); renderMs(); e.stopPropagation();
+  if (sel.length) setErr($('ptype'), '');
+};
+document.addEventListener('click', function (e) { if (!e.target.closest('#ptype, #ptypeDd')) { $('ptypeDd').classList.remove('show'); $('ptype').classList.remove('open'); } });
+
+// 地图选点
+function renderMap() {
+  $('pin').style.display = point ? 'block' : 'none';
+  if (point) { $('pin').style.left = point.x + '%'; $('pin').style.top = point.y + '%'; }
+  $('mapLab').textContent = point ? '当前中心点：' + point.name : '未选择项目中心';
+}
+$('map').onclick = function (e) {
+  var r = this.getBoundingClientRect();
+  point = { x: Math.round((e.clientX - r.left) / r.width * 100), y: Math.round((e.clientY - r.top) / r.height * 100) };
+  point.name = '经度 ' + (117.9 + point.x / 100 * 1.2).toFixed(4) + '，纬度 ' + (31.9 - point.y / 100 * 1.0).toFixed(4);
+  renderMap(); setErr($('map'), '');
+};
+$('btnClearMap').onclick = function () { point = null; renderMap(); toast('已清空地图选点'); };
+$('eye').onclick = function () { var p = $('pwd'); p.type = p.type === 'password' ? 'text' : 'password'; this.textContent = p.type === 'password' ? '显示' : '隐藏'; };
+// 页面场景：激活流程 / 配置模块（初始化完成后，可修改）
+var MSG_PWD = '管理平台内密码已修改，若是需要可重新填写并重启服务。';
+var MSG_DEL = '管理平台内账号已经删除，若是需要可重新填写并重启服务。';
+function applyMode() {
+  var cfg = $('selMode').value === 'cfg', adm = cfg ? $('selAdm').value : '';
+  $('rowPid').style.display = cfg ? '' : 'none';
+  $('admWrap').style.display = cfg ? '' : 'none';
+  $('btnPrev').style.display = cfg ? 'none' : '';
+  $('btnNext').textContent = cfg ? '保存' : '暂存并下一步';
+  document.querySelector('.steps').style.display = cfg ? 'none' : '';
+  if (cfg) {
+    // 配置模块：回显已激活的数据
+    $('pname').value = $('pname').value || '马鞍山智慧城市项目';
+    $('acc').value = 'superadmin'; $('pwd').value = 'Abcd1234';
+    if (adm === 'pwd') $('pwd').value = '';
+    if (adm === 'del') { $('acc').value = ''; $('pwd').value = ''; }
+  }
+  $('accWarn').style.display = adm === 'del' ? 'block' : 'none';
+  $('accWarn').textContent = adm === 'del' ? MSG_DEL : '';
+  $('pwdWarn').style.display = adm === 'pwd' || adm === 'del' ? 'block' : 'none';
+  $('pwdWarn').textContent = adm === 'pwd' ? MSG_PWD : adm === 'del' ? MSG_DEL : '';
+  ['pname', 'ptype', 'acc', 'pwd', 'map'].forEach(function (id) { setErr($(id), ''); });
+}
+$('selMode').onchange = applyMode;
+$('selAdm').onchange = applyMode;
+
+// 校验：所有字段必填，未填标红并提示「请填写xx」
+function validate() {
+  var ok = true;
+  ok = setErr($('pname'), $('pname').value.trim() ? '' : '请填写项目名称') && ok;
+  ok = setErr($('ptype'), sel.length ? '' : '请选择项目类型') && ok;
+  ok = setErr($('acc'), $('acc').value.trim() ? '' : '请填写管理员账号') && ok;
+  var p = $('pwd').value;
+  var pm = !p ? '请填写管理员密码' : (p.length < 8 || p.length > 16 || !/[A-Z]/.test(p) || !/[a-z]/.test(p)) ? '密码 8–16 位，必须包含大写字母和小写字母' : '';
+  ok = setErr($('pwd'), pm) && ok;
+  ok = setErr($('map'), point ? '' : '请在地图上选择项目中心') && ok;
+  return ok;
+}
+['pname', 'acc', 'pwd'].forEach(function (id) { $(id).addEventListener('input', function () { if (this.value) setErr(this, ''); }); });
+
+
+// ---------- 演示：必填验证开关（开=校验，关=不校验直接下一步），各步骤共用 ----------
+function valOn() { try { return sessionStorage.getItem('demoVal') !== '0'; } catch (e) { return true; } }
+function initValSw(onChange) {
+  var sw = document.getElementById('swVal');
+  sw.classList.toggle('off', !valOn());
+  sw.onclick = function () {
+    var on = this.classList.toggle('off') === false;
+    try { sessionStorage.setItem('demoVal', on ? '1' : '0'); } catch (e) {}
+    if (onChange) onChange(on);
+    toast(on ? '必填验证已开启：点「暂存并下一步」会校验所有输入' : '必填验证已关闭：点「暂存并下一步」直接进入下一步');
+  };
+  if (onChange) onChange(valOn(), true);
+}
+initValSw(function (on, init) { if (!init && !on) ['pname', 'ptype', 'acc', 'pwd', 'map'].forEach(function (id) { setErr($(id), ''); }); });
+$('btnPrev').onclick = function () { location.href = 'activate-step3-service.html'; };
+$('btnNext').onclick = function () {
+  var cfg = $('selMode').value === 'cfg';
+  function keep() { var v = $('pname').value.trim(); if (!cfg && v) try { localStorage.setItem('initProjName', v); } catch (e) {} }
+  if (!cfg && !valOn()) { keep(); location.href = 'activate-step5-optional.html'; return; }
+  if (!validate()) { toast('请完善标红的必填项', true); return; }
+  keep();
+  if (cfg) { toast('保存成功，重启服务后生效'); return; }
+  location.href = 'activate-step5-optional.html';
+};
+
+// PRD 标注弹层
+var curDot = null;
+function closePop() { $('pop').classList.remove('show'); if (curDot) curDot.classList.remove('open'); curDot = null; }
+function openPop(btn) {
+  var n = NOTES[btn.dataset.note]; if (!n) return;
+  closePop(); curDot = btn; btn.classList.add('open');
+  $('popT').textContent = btn.textContent + '. ' + n.title;
+  $('popB').innerHTML = n.items.map(function (it) {
+    return '<div class="note ' + it.cls + '"><span class="ver">' + it.ver + '</span><span class="tag">' + it.tag + '</span>' + it.html + '</div>';
+  }).join('');
+  var pop = $('pop'); pop.classList.add('show');
+  var r = btn.getBoundingClientRect(), sx = window.scrollX, sy = window.scrollY;
+  var vw = document.documentElement.clientWidth;
+  var left = r.right + sx + 10;
+  if (left + pop.offsetWidth > sx + vw - 12) left = Math.max(sx + 12, r.left + sx - pop.offsetWidth - 10);
+  pop.style.left = left + 'px'; pop.style.top = (r.top + sy) + 'px';
+}
+document.querySelectorAll('.dot').forEach(function (d) {
+  d.onclick = function (e) { e.stopPropagation(); curDot === d ? closePop() : openPop(d); };
+});
+$('popX').onclick = closePop;
+$('pop').onclick = function (e) { e.stopPropagation(); };
+document.addEventListener('click', function (e) { if (!e.target.closest('.dot, #pop')) closePop(); });
+$('swDots').onclick = function () { this.classList.toggle('off'); document.body.classList.toggle('hide-dots', this.classList.contains('off')); closePop(); };
+
+renderMs(); renderMap(); applyMode();
+
+// ---------- 返回确认：不保存，返回首页 ----------
+function openBack() { document.getElementById('bkMask').classList.add('open'); }
+function closeBack() { document.getElementById('bkMask').classList.remove('open'); }
+document.getElementById('bkX').onclick = document.getElementById('bkStay').onclick = closeBack;
+document.getElementById('bkGo').onclick = function () { closeBack(); location.href = HOME_URL; };
+</script>
+</body>
+</html>

@@ -1,0 +1,188 @@
+
+运维中心 · 初始化 · 设备激活配置
+ 运维中心
+ ⌂功能入口
+ Aadmin ▾
+ ←
+ 初始化
+ 1网络信息配置
+ 2设备激活配置
+ 3基础服务配置
+ 4项目信息配置
+ 5可选服务配置
+ 6系统初始化
+ 激活文件：
+ 下 载1
+ 提示：下载云盒的唯一标识，给到商务或官方客服，获取授权文件
+ 授权文件：
+ +
+选择文件
+ 2
+ 上一步下一步
+ // 设备激活信息3
+ 云盒授权开始时间：
+ 云盒授权结束时间：
+ 云盒授权设备数量：
+ licenseKey：
+ 上一步下一步
+✕
+ 提示✕
+ 您当前的修改内容未重启、未激活，若返回则不会保存，是否继续返回？
+ 继续填写继续返回
+PRD 标注 
+ 页面状态 上传授权文件已激活（直接展示激活信息）
+ 授权文件验证 通过不通过
+ 重置演示
+// ---------- 场景：激活流程（act） / 配置模块（cfg），由首页入口写入 ----------
+var INIT_CFG = (function () { try { var q = new URLSearchParams(location.search).get('mode'); if (q) sessionStorage.setItem('initMode', q); return sessionStorage.getItem('initMode') === 'cfg'; } catch (e) { return false; } })();
+var HOME_URL = INIT_CFG ? 'home.html?act=1' : 'home.html';
+if (INIT_CFG) {
+ document.querySelectorAll('.step').forEach(function (s) { var n = s.querySelector('.num'); if (n && n.textContent.trim() === '6') s.lastChild.textContent = '重启服务'; });
+ document.title = document.title.replace('· 初始化 ·', '· 配置 ·').replace('系统初始化', '重启服务');
+ var _h1 = document.querySelector('.titlebar h1'); if (_h1) _h1.textContent = '配置';
+}
+// ===== PRD 标注内容 =====
+var NOTES = {
+ down: { title: '激活文件', items: [
+ { cls: 'change', tag: '变更', ver: 'B1.3.0', html: '激活方式字段隐藏，默认选择文件激活。' },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '点击【下载】，下载激活文件。文件内容为设备 ID（云盒唯一标识）及相关设备信息：设备型号、序列号、MAC 地址、硬件指纹、系统版本、软件版本、生成时间。' },
+ { cls: 'draft', tag: '待确认', ver: 'B1.3.0', html: '激活文件里除设备 ID 外具体包含哪些设备信息、文件格式（当前演示为 JSON，后缀 .req），以研发和第三方授权系统的约定为准。' },
+ { cls: 'change', tag: '变更', ver: 'B1.3.0', html: '下载旁新增提示：「下载云盒的唯一标识，给到商务或官方客服，获取授权文件」。' },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '业务流程：用户下载激活文件 → 交给客服 → 客服在第三方授权系统生成并下载对应的授权文件 → 返回给用户上传。' }
+ ]},
+ lic: { title: '授权文件', items: [
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '点击虚线框选择文件（也可拖入），选择后自动上传并验证，无需再点按钮。' },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '验证通过：切换为「设备激活信息」展示，【下一步】可点。' },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '验证不通过：提示「该文件不正确」，停留在上传状态，可重新选择文件。' },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '未通过验证前，【下一步】置灰不可点。' },
+ { cls: 'change', tag: '变更', ver: 'B1.3.0', html: '删除检验信息；删除原【激活并验证】按钮，改为上传后自动验证。' }
+ ]},
+ info: { title: '设备激活信息', items: [
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '激活流程：若之前已上传过授权文件并验证通过，进入本步时直接展示设备激活信息，可点「下一步」进入第三步；未上传过则展示下载激活文件 / 上传授权文件页面。
+配置模块：设备已激活，不展示上传页面，始终展示验证通过后的设备激活信息。' },
+ { cls: 'change', tag: '变更', ver: 'B1.3.0', html: '许可ID：后台保存，页面隐藏。' },
+ { cls: 'change', tag: '变更', ver: 'B1.3.0', html: '授权开始时间、结束时间，新增【云盒】字样。' },
+ { cls: 'change', tag: '变更', ver: 'B1.3.0', html: '新增「云盒授权设备数量」：取值对应 licenseKey 的设备授权数量。' },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: 'licenseKey 只显示首尾 4 位，中间用 **** 打码，例如 SL5X-****-****-8636。' }
+ ]}
+};
+// ===== 标注点弹层（同第一步） =====
+var pop = document.getElementById('pop'), curDot = null;
+function openNote(dot) {
+ if (curDot === dot) return closeNote();
+ closeNote();
+ var n = NOTES[dot.dataset.note];
+ document.getElementById('popTitle').textContent = n.title;
+ document.getElementById('popBody').innerHTML = n.items.map(function (it) {
+ return '' + it.tag + '' + it.ver + '' + it.html + '
+';
+ }).join('');
+ pop.classList.add('show');
+ var r = dot.getBoundingClientRect();
+ var left = r.right + 10 + window.scrollX, top = r.top - 10 + window.scrollY;
+ if (r.right + 400 > document.documentElement.clientWidth) left = r.left - 390 + window.scrollX;
+ pop.style.left = left + 'px'; pop.style.top = top + 'px';
+ dot.classList.add('open'); curDot = dot;
+}
+function closeNote() { pop.classList.remove('show'); if (curDot) curDot.classList.remove('open'); curDot = null; }
+document.addEventListener('click', function (e) {
+ var d = e.target.closest('.dot');
+ if (d) { e.stopPropagation(); openNote(d); return; }
+ if (!pop.contains(e.target)) closeNote();
+});
+document.getElementById('popClose').onclick = closeNote;
+document.getElementById('sw').onclick = function () { this.classList.toggle('off'); document.body.classList.toggle('hide-dots'); closeNote(); };
+function toast(t) { var el = document.getElementById('toast'); el.textContent = t; el.style.display = 'block'; clearTimeout(toast.h); toast.h = setTimeout(function () { el.style.display = 'none'; }, 2200); }
+// ===== 演示数据 =====
+var STORE = 'yw_step2';
+var LIC = { start: '2025-05-19', end: '永久授权', num: 4, key: 'SL5X-****-****-8636' };
+var chkOk = true;
+document.querySelectorAll('#segChk button').forEach(function (b) {
+ b.onclick = function () {
+ document.querySelectorAll('#segChk button').forEach(function (x) { x.classList.remove('on'); });
+ b.classList.add('on'); chkOk = b.dataset.v === '1';
+ };
+});
+// ===== 两个状态切换 =====
+function showInfo(d) {
+ document.getElementById('iStart').textContent = d.start;
+ document.getElementById('iEnd').textContent = d.end;
+ document.getElementById('iNum').textContent = d.num;
+ document.getElementById('iKey').textContent = d.key;
+ document.getElementById('vUpload').style.display = 'none';
+ document.getElementById('vInfo').style.display = '';
+}
+function showUpload() {
+ document.getElementById('vInfo').style.display = 'none';
+ document.getElementById('vUpload').style.display = '';
+}
+function markSt(v) {
+ document.querySelectorAll('#segSt button').forEach(function (x) { x.classList.toggle('on', x.dataset.v === v); });
+ document.getElementById('chkWrap').style.display = v === 'up' ? '' : 'none';
+}
+var saved = null;
+try { saved = JSON.parse(localStorage.getItem(STORE) || 'null'); } catch (e) { saved = null; }
+if (INIT_CFG) {
+ // 配置模块：设备已激活，不存在上传页，始终展示激活信息
+ showInfo(saved || LIC);
+ document.getElementById('stWrap').style.display = 'none';
+ document.getElementById('chkWrap').style.display = 'none';
+} else if (saved) { showInfo(saved); markSt('info'); }
+document.querySelectorAll('#segSt button').forEach(function (b) {
+ b.onclick = function () {
+ var v = b.dataset.v; markSt(v);
+ if (v === 'info') { localStorage.setItem(STORE, JSON.stringify(LIC)); showInfo(LIC); toast('已切换：之前已上传过授权文件，直接展示激活信息'); }
+ else { localStorage.removeItem(STORE); showUpload(); toast('已切换：未上传授权文件，需下载激活文件并上传授权文件'); }
+ };
+});
+document.getElementById('reset').onclick = function () { localStorage.removeItem(STORE); location.reload(); };
+// ===== 下载激活文件（演示：内容为设备 ID 及相关设备信息） =====
+// 演示数据：设备 ID 首次生成后固定，同一台设备每次下载内容一致
+function devId() {
+ var id = localStorage.getItem('yw_device_id');
+ if (!id) { id = 'CLOUDBOX-' + Math.random().toString(36).slice(2, 10).toUpperCase(); localStorage.setItem('yw_device_id', id); }
+ return id;
+}
+document.getElementById('btnDown').onclick = function () {
+ var info = {
+ deviceId: devId(), // 设备 ID（云盒唯一标识）
+ model: 'YW-BOX-3000', // 设备型号
+ serialNo: 'SN20250519008636', // 设备序列号
+ mac: '00:1A:2B:3C:4D:5E', // 网卡 MAC 地址
+ hardwareId: 'HW-7F3A-9C21-E4B8', // 硬件指纹（主板/CPU/硬盘）
+ osVersion: 'Ubuntu 20.04 LTS', // 系统版本
+ appVersion: 'B1.3.0', // 软件版本
+ createdAt: new Date().toISOString().slice(0, 19).replace('T', ' ') // 生成时间
+ };
+ var a = document.createElement('a');
+ a.href = URL.createObjectURL(new Blob([JSON.stringify(info, null, 2)], { type: 'application/json' }));
+ a.download = 'activation_' + info.deviceId + '.req'; a.click();
+ toast('激活文件已下载，请发给商务或官方客服获取授权文件');
+};
+// ===== 上传授权文件 → 自动验证 =====
+var drop = document.getElementById('drop'), picker = document.getElementById('filePicker');
+var dropTxt = document.getElementById('dropTxt'), licErr = document.getElementById('licErr'), busy = false;
+function verify(file) {
+ if (!file || busy) return;
+ busy = true; licErr.textContent = ''; drop.classList.remove('bad'); drop.classList.add('busy');
+ dropTxt.textContent = '正在验证 ' + file.name + ' …';
+ setTimeout(function () {
+ busy = false; drop.classList.remove('busy'); dropTxt.textContent = '选择文件';
+ if (!chkOk) { drop.classList.add('bad'); licErr.textContent = '该文件不正确，请重新选择授权文件'; return toast('该文件不正确'); }
+ localStorage.setItem(STORE, JSON.stringify(LIC));
+ toast('授权文件验证通过'); showInfo(LIC); markSt('info');
+ }, 1200);
+}
+drop.onclick = function () { if (busy) return; picker.value = ''; picker.click(); };
+picker.onchange = function () { verify(picker.files[0]); };
+drop.addEventListener('dragover', function (e) { e.preventDefault(); });
+drop.addEventListener('drop', function (e) { e.preventDefault(); verify(e.dataTransfer.files[0]); });
+// ===== 返回 / 上一步 / 下一步 =====
+function openM(id) { document.getElementById(id).classList.add('open'); }
+function closeM(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('[data-close]').forEach(function (el) { el.addEventListener('click', function () { closeM(el.dataset.close); }); });
+document.getElementById('btnBack').onclick = function () { openM('mBack'); };
+document.getElementById('btnBackOk').onclick = function () { closeM('mBack'); location.href = HOME_URL; };
+document.getElementById('btnPrev1').onclick = document.getElementById('btnPrev2').onclick = function () { location.href = 'activate-step1-network.html'; };
+// 验证通过后进入第三步「基础服务配置」
+document.getElementById('btnNext2').onclick = function () { location.href = 'activate-step3-service.html'; };

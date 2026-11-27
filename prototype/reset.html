@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>运维中心 · 重置</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; font-size: 14px; color: #333; background: #eef0f3; }
+  .topbar { height: 50px; background: #1a6cfb; color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; }
+  .topbar .logo { font-size: 18px; }
+  .topbar .right { display: flex; align-items: center; gap: 28px; }
+  .topbar .entry, .topbar .user { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+  .topbar .ico { width: 26px; height: 26px; border-radius: 50%; background: #fff; color: #1a6cfb; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; }
+  .titlebar { height: 42px; background: #fff; display: flex; align-items: center; padding: 0 22px; border-bottom: 1px solid #eee; }
+  .titlebar .back { font-size: 18px; margin-right: 14px; cursor: pointer; }
+  .titlebar h1 { font-size: 15px; font-weight: bold; }
+  .card { max-width: 1320px; min-height: 620px; margin: 20px auto 30px; background: #fff; padding: 30px 0 40px; }
+  .wrap { width: 980px; margin: 0 auto; }
+  .tabs { border-bottom: 1px solid #e6e6e6; margin-bottom: 26px; }
+  .tabs span { display: inline-block; padding: 10px 40px; margin-right: 4px; background: #f5f7fa; color: #333; border: 1px solid #e6e6e6; border-bottom: none; border-radius: 4px 4px 0 0; cursor: pointer; }
+  .tabs span.on { background: #1a6cfb; color: #fff; border-color: #1a6cfb; }
+  .btn { height: 32px; padding: 0 18px; border-radius: 4px; border: 1px solid #1a6cfb; background: #1a6cfb; color: #fff; font-size: 13px; cursor: pointer; }
+  .btn.ghost { background: #fff; color: #333; border-color: #d9d9d9; }
+  .btn.ghost:hover { color: #1a6cfb; border-color: #1a6cfb; }
+  .bar1 { display: flex; align-items: center; gap: 18px; margin-bottom: 18px; position: relative; }
+  .bar1 .lbl { font-size: 15px; }
+  .bar1 label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; position: relative; }
+  .bar1 .ops { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+  .q { width: 18px; height: 18px; border-radius: 50%; border: 1px solid #999; color: #999; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; cursor: help; position: relative; }
+  .q .tipx { display: none; position: absolute; left: -10px; top: 24px; width: 320px; background: #fffbe6; border: 1px solid #ffe58f; color: #614700; padding: 10px 12px; border-radius: 6px; font-size: 12px; line-height: 1.8; text-align: left; z-index: 30; box-shadow: 0 4px 12px rgba(0,0,0,.12); cursor: default; }
+  .q:hover .tipx { display: block; }
+  .prog { border: 1px dashed #6aa6ff; border-radius: 4px; padding: 14px 16px; display: flex; gap: 14px; align-items: center; background: #f7faff; margin-bottom: 14px; }
+  .prog.ok { border-color: #95de64; background: #f6ffed; }
+  .prog.bad { border-color: #ffa39e; background: #fff1f0; }
+  .prog .ic { width: 40px; height: 40px; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.12); display: flex; align-items: center; justify-content: center; color: #1a6cfb; font-size: 20px; }
+  .prog.ok .ic { color: #52c41a; } .prog.bad .ic { color: #e4393c; }
+  .prog .main { flex: 1; }
+  .prog .txt { font-size: 13px; margin-bottom: 8px; }
+  .prog .txt b { color: #1a6cfb; font-weight: normal; }
+  .prog .row2 { display: flex; align-items: center; gap: 8px; }
+  .prog .track { flex: 1; height: 6px; background: #e8e8e8; border-radius: 3px; overflow: hidden; }
+  .prog .fill { height: 100%; width: 0; background: #1a6cfb; transition: width .4s; }
+  .prog.ok .fill { background: #52c41a; } .prog.bad .fill { background: #e4393c; }
+  .prog .pct { font-size: 12px; color: #666; width: 40px; text-align: right; }
+  .lhead { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .lhead h3 { font-size: 15px; flex: 1; }
+  .lhead .cnt { font-size: 13px; color: #1a6cfb; background: #e8f1ff; padding: 5px 14px; border-radius: 3px; }
+  table.tb { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.tb th { background: #e8f1ff; height: 44px; font-weight: bold; border: 1px solid #e3e8f0; }
+  table.tb td { height: 44px; text-align: center; border: 1px solid #eef0f3; }
+  .lnk { color: #1a6cfb; cursor: pointer; margin: 0 6px; }
+  .lnk:hover { text-decoration: underline; }
+  .dis { color: #bbb; margin: 0 6px; cursor: not-allowed; }
+  .s-cur { color: #e4393c; } .s-run { color: #fa8c16; } .s-done { color: #389e0d; }
+  .pager { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 16px; font-size: 13px; color: #666; }
+  .pager span.on { background: #1a6cfb; color: #fff; padding: 2px 9px; border-radius: 3px; }
+  .filters { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; font-size: 13px; }
+  .filters input, .filters select { height: 30px; border: 1px solid #d9d9d9; border-radius: 4px; padding: 0 8px; font-size: 13px; }
+  .empty { text-align: center; color: #999; padding: 30px 0; }
+  /* 标注 / 弹窗 / 提示 */
+  .dot { width: 20px; height: 20px; border-radius: 50%; background: #ff7a00; color: #fff; font-size: 11px; font-weight: bold; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; border: none; vertical-align: middle; margin-left: 6px; flex-shrink: 0; }
+  .dot.open { background: #1a6cfb; }
+  body.hide-dots .dot { display: none !important; }
+  .pop { position: absolute; width: 640px; max-width: calc(100vw - 24px); background: #fff; border-radius: 6px; box-shadow: 0 6px 24px rgba(0,0,0,.18); z-index: 80; font-size: 13px; line-height: 1.7; display: none; }
+  .pop.show { display: block; }
+  .pop .hd { padding: 10px 14px; border-bottom: 1px solid #eee; font-weight: bold; display: flex; justify-content: space-between; }
+  .pop .hd .close { cursor: pointer; color: #999; font-weight: normal; }
+  .pop .bd { padding: 10px 14px 12px; max-height: 460px; overflow: auto; }
+  .note { padding: 8px 10px; border-radius: 4px; margin-bottom: 8px; background: #fff6c2; border-left: 3px solid #ffdf25; }
+  .note .tag { display: inline-block; font-size: 11px; padding: 0 6px; border-radius: 3px; margin-right: 6px; background: rgba(255,255,255,.75); }
+  .note .ver { float: right; font-size: 11px; color: #888; }
+  .mask { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none; align-items: center; justify-content: center; z-index: 100; }
+  .mask.open { display: flex; }
+  .modal { width: 420px; background: #fff; border-radius: 6px; box-shadow: 0 6px 24px rgba(0,0,0,.2); }
+  .modal .mhd { padding: 14px 20px; border-bottom: 1px solid #eee; font-weight: bold; font-size: 15px; display: flex; justify-content: space-between; }
+  .modal .mhd .close { cursor: pointer; color: #999; font-weight: normal; }
+  .modal .mbd { padding: 24px 22px; font-size: 14px; line-height: 1.8; }
+  .modal .mft { padding: 10px 20px 16px; display: flex; justify-content: flex-end; gap: 10px; }
+  .imp { text-align: center; padding: 30px 0 10px; }
+  .imp .cl { font-size: 54px; color: #1a6cfb; }
+  .ctrl-panel { position: fixed; left: 20px; bottom: 20px; background: #fff; border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,.15); padding: 10px 14px; font-size: 12px; z-index: 60; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; max-width: 560px; }
+  .ctrl-panel select { height: 24px; font-size: 12px; }
+  .ctrl-panel a { color: #1a6cfb; cursor: pointer; }
+  .switch { position: relative; width: 36px; height: 20px; background: #1a6cfb; border-radius: 10px; cursor: pointer; }
+  .switch::after { content: ""; position: absolute; left: 18px; top: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: .2s; }
+  .switch.off { background: #ccc; } .switch.off::after { left: 2px; }
+  .toast { position: fixed; top: 70px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,.78); color: #fff; padding: 9px 20px; border-radius: 4px; z-index: 300; display: none; font-size: 13px; }
+  .toast.bad { background: #e4393c; }
+
+  .notice1 { width: 740px; margin: 70px auto 0; background: #f5f7fa; border: 1px solid #e6e6e6; border-radius: 4px; padding: 30px 20px; text-align: center; font-size: 14px; line-height: 2.1; color: #555; }
+  .center { text-align: center; }
+  .bigReset { width: 280px; height: 72px; margin-top: 72px; border: 1px solid #d9d9d9; background: #fff; border-radius: 4px; font-size: 15px; color: #333; cursor: pointer; }
+  .bigReset:hover { color: #1a6cfb; border-color: #1a6cfb; }
+  .bigReset:disabled { color: #bbb; border-color: #e6e6e6; cursor: not-allowed; }
+  .cfm { display: flex; gap: 12px; } .cfm .wi { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #faad14; color: #faad14; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 13px; flex: none; margin-top: 2px; }
+  .rsBox { text-align: center; padding: 34px 0 26px; background: linear-gradient(120deg, #eef0ff, #e9fbff 60%, #fff); margin: -24px -22px; }
+  .cloud { width: 110px; height: 72px; margin: 0 auto 14px; position: relative; }
+  .cloud i { position: absolute; border-radius: 50%; background: linear-gradient(180deg, #4d8dff, #1a6cfb); }
+  .cloud .a { width: 62px; height: 62px; left: 22px; top: 0; } .cloud .b { width: 40px; height: 40px; left: 68px; top: 28px; } .cloud .c { width: 90px; height: 34px; left: 8px; top: 36px; border-radius: 18px; }
+  .cloud .ar { position: absolute; left: 41px; top: 14px; color: #fff; font-size: 30px; font-weight: bold; line-height: 1; }
+  .cloud.run .ar { animation: upa 1.2s infinite; } @keyframes upa { 0% { transform: translateY(6px); opacity: .4; } 100% { transform: translateY(-4px); opacity: 1; } }
+  .rsBox .tt { font-size: 15px; color: #333; } .rsBox .sub { font-size: 12px; color: #888; margin-top: 6px; }
+  .rsBox .pb { width: 260px; height: 6px; background: #e8e8e8; border-radius: 3px; margin: 14px auto 0; overflow: hidden; } .rsBox .pb i { display: block; height: 100%; width: 0; background: #1a6cfb; transition: width .3s; }
+  .toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,.78); color: #fff; padding: 9px 20px; border-radius: 4px; font-size: 13px; z-index: 200; display: none; } .toast.bad { background: #e4393c; }
+</style>
+</head>
+<body>
+<div class="topbar"><div class="logo">运维中心</div><div class="right"><div class="entry" id="goHome"><span class="ico">⌂</span>功能入口</div><div class="user"><span class="ico">A</span>admin ⌄</div></div></div>
+<div class="titlebar"><span class="back" id="btnBack" title="返回">←</span><h1>重置</h1></div>
+<div class="card"><div class="wrap">
+  <div class="notice1">重置后所有业务数据、应用数据，回归出厂设置，<br>若是要继续使用需要您重新激活，建议提前备份数据信息。<br><br>重启预计10分钟，请耐心等待<button class="dot" data-note="info">1</button></div>
+  <div class="center"><button class="bigReset" id="btnReset">回归出厂设置</button><button class="dot" data-note="reset">2</button></div>
+</div></div>
+<div class="pop" id="pop"><div class="hd"><span id="popT"></span><span class="close" id="popX">✕</span></div><div class="bd" id="popB"></div></div>
+<div class="mask" id="mask"><div class="modal">
+  <div class="mhd" id="mHd"><span id="mT"></span><span class="close" id="mX">✕</span></div>
+  <div class="mbd" id="mB"></div>
+  <div class="mft" id="mF"></div>
+</div></div>
+<div class="ctrl-panel">
+  <span>PRD 标注</span><div class="switch" id="swDots"></div>
+  <span>重置结果 <select id="selRes"><option value="ok">成功</option><option value="fail">失败</option></select></span>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+function $(id) { return document.getElementById(id); }
+var RK = 'yw_resetting', DUR = 9000;
+function toast(m, bad) { var t = $('toast'); t.textContent = m; t.className = 'toast' + (bad ? ' bad' : ''); t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(function () { t.style.display = 'none'; }, 2200); }
+function getRun() { try { var r = JSON.parse(localStorage.getItem(RK)); return r && r.end ? r : null; } catch (e) { return null; } }
+
+/* ---------- 弹窗 ---------- */
+var locked = false, done = false;
+function modal(t, b, btns, noHead) {
+  $('mHd').style.display = noHead ? 'none' : ''; $('mT').textContent = t || ''; $('mB').innerHTML = b; $('mF').innerHTML = ''; $('mF').style.display = btns && btns.length ? '' : 'none';
+  (btns || []).forEach(function (x) { var e = document.createElement('button'); e.className = 'btn' + (x.ghost ? ' ghost' : ''); e.textContent = x.t; e.onclick = function () { closeM(); if (x.fn) x.fn(); }; $('mF').appendChild(e); });
+  $('mask').classList.add('open');
+}
+function closeM() { $('mask').classList.remove('open'); }
+$('mX').onclick = function () { if (!locked) closeM(); };
+
+/* ---------- 其他任务进行中时不能重置 ---------- */
+function busyMsg() {
+  var u = [['yf_upgrade', '翼飞平台'], ['yw_upgrade', '运维中心']], m = '';
+  u.forEach(function (k) { try { var x = JSON.parse(localStorage.getItem(k[0])); if (!m && x && x.run && x.run.state === 'run') m = k[1] + '系统正在更新中，请稍后再重置'; } catch (e) {} });
+  if (m) return m;
+  try { var b = JSON.parse(localStorage.getItem('yw_backup')); if (b && b.run && Date.now() - (b.run.t0 || 0) < 600000) return '备份任务进行中，请稍后再重置'; } catch (e) {}
+  try { var r = (JSON.parse(localStorage.getItem('yw_restore')) || {}).run; if (r && Date.now() < r.end) return '复原进行中，请稍后再重置'; } catch (e) {}
+  if (+localStorage.getItem('yw_restoring') && Date.now() - +localStorage.getItem('yw_restoring') < 600000) return '复原进行中，请稍后再重置';
+  return '';
+}
+
+/* ---------- 重置流程 ---------- */
+function ask() {
+  if (getRun()) return;
+  var m = busyMsg(); if (m) { toast(m, 1); return; }
+  modal('', '<div class="cfm"><span class="wi">!</span><div><div style="font-weight:bold;font-size:15px;margin-bottom:6px">请确认</div><div>初始化将清除所有数据，请确认是否继续？</div></div></div>',
+    [{ t: '取 消', ghost: true }, { t: '确 定', fn: start }], true);
+}
+function start() {
+  var m = busyMsg(); if (m) { toast(m, 1); return; }
+  var n = Date.now(), res = $('selRes').value;
+  localStorage.setItem(RK, JSON.stringify({ t0: n, end: n + (res === 'ok' ? DUR : DUR * .6), res: res }));
+  showRun();
+}
+function showRun() {
+  locked = true; $('btnReset').disabled = true;
+  modal('', '<div class="rsBox"><div class="cloud run"><i class="a"></i><i class="b"></i><i class="c"></i><span class="ar">↑</span></div><div class="tt">重置进行中</div><div class="pb"><i id="rsFill"></i></div><div class="sub">正在初始化数据，请勿关闭页面或断电</div></div>', [], true);
+  tick();
+}
+function tick() {
+  var r = getRun(); if (!r) { if (locked && !done) location.reload(); return; }
+  var now = Date.now();
+  if ($('rsFill')) $('rsFill').style.width = Math.min(99, Math.floor((now - r.t0) / DUR * 100)) + '%';
+  if (now >= r.end) finish(r);
+}
+function finish(r) {
+  done = true;
+  localStorage.removeItem(RK); locked = false; $('btnReset').disabled = false;
+  if (r.res !== 'ok') {
+    modal('重置失败', '<div style="color:#e4393c;margin-bottom:6px">回归出厂设置失败</div>失败原因：数据初始化出错，系统数据未改动。<br>请稍后重试，或联系运维人员。', [{ t: '知道了' }]);
+    return;
+  }
+  /* 回归出厂设置：清除业务数据和配置，回到未激活 */
+  Object.keys(localStorage).forEach(function (k) { if (/^(yw_stepd|yw_device_id|yw_mqtt_pwd|initProjName|yw_backup|yw_restore|yw_restoring|yw_rs_data|yf_upgrade|yw_upgrade|up_plat)$/.test(k)) localStorage.removeItem(k); });
+  localStorage.setItem('yw_demo_act', '0');
+  locked = true;
+  modal('', '<div class="rsBox"><div class="cloud"><i class="a"></i><i class="b"></i><i class="c"></i><span class="ar">↑</span></div><div class="tt">重置完成</div><div class="sub" id="rsCd">3 秒后进入运维中心，请重新激活</div></div>', [], true);
+  var c = 3, h = setInterval(function () { c--; if ($('rsCd')) $('rsCd').textContent = c + ' 秒后进入运维中心，请重新激活'; if (c <= 0) { clearInterval(h); location.href = 'home.html?act=0'; } }, 1000);
+}
+
+/* ---------- PRD 标注 ---------- */
+var NOTES = {
+  info: ['重置说明', '固定提示文案：重置后所有业务数据、应用数据，回归出厂设置；若要继续使用，需要重新激活，建议提前备份数据信息；重启预计 10 分钟。'],
+  reset: ['回归出厂设置', '<ol><li>点击「回归出厂设置」，弹窗「请确认」：初始化将清除所有数据，请确认是否继续？按钮「取消」「确定」。</li><li>点击「确定」进入数据初始化状态，弹窗显示「重置进行中」，不能关闭，也不能离开页面。</li><li>初始化完成后显示「重置完成」，随后跳转到运维中心首页，状态为<b>未激活</b>：只有「激活」可用，其他模块置灰，需要重新激活。</li><li>恢复出厂设置要求所有数值回归默认状态，包括可以恢复设备激活码 + 云联密钥。</li><li>升级、备份、复原进行中时不能重置，点击会提示原因。</li><li>重置失败时弹窗提示原因，系统数据不改动。</li></ol>（演示：重置时长缩短为约 9 秒；演示栏「重置结果」可切换成功 / 失败。）']
+};
+var dotsOn = localStorage.getItem('yw_dots') !== '0';
+function syncDots() { $('swDots').classList.toggle('off', !dotsOn); document.querySelectorAll('.dot').forEach(function (d) { d.style.display = dotsOn ? '' : 'none'; }); if (!dotsOn) $('pop').style.display = 'none'; }
+function openNote(btn) {
+  var n = NOTES[btn.getAttribute('data-note')] || ['说明', '（待补充）'], p = $('pop'), rc = btn.getBoundingClientRect();
+  $('popT').textContent = n[0]; $('popB').innerHTML = n[1]; p.style.display = 'block'; p.style.position = 'fixed';
+  p.style.left = Math.max(10, Math.min(window.innerWidth - p.offsetWidth - 10, rc.right + 8)) + 'px';
+  p.style.top = Math.max(10, Math.min(window.innerHeight - p.offsetHeight - 10, rc.top)) + 'px';
+}
+document.addEventListener('click', function (e) {
+  var t = e.target;
+  if (t.classList.contains('dot')) { e.stopPropagation(); openNote(t); return; }
+  if (!t.closest('#pop')) $('pop').style.display = 'none';
+});
+$('popX').onclick = function () { $('pop').style.display = 'none'; };
+$('swDots').onclick = function () { dotsOn = !dotsOn; localStorage.setItem('yw_dots', dotsOn ? '1' : '0'); syncDots(); };
+
+/* ---------- 事件 / 初始化 ---------- */
+$('btnReset').onclick = ask;
+$('goHome').onclick = $('btnBack').onclick = function () { if (getRun() || locked) { toast('重置进行中，请勿离开页面', 1); return; } location.href = 'home.html'; };
+window.addEventListener('beforeunload', function (e) { if (getRun()) { e.preventDefault(); e.returnValue = ''; } });
+setInterval(tick, 300);
+syncDots();
+if (getRun()) showRun();
+else if (localStorage.getItem('yw_demo_act') === '0') location.replace('home.html?act=0');
+</script>
+</body>
+</html>

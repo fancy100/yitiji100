@@ -1,0 +1,273 @@
+
+运维中心 · 还原
+运维中心
+⌂功能入口
+Aadmin ⌄
+←还原 &gt;&gt; 一键还原
+ 一键还原导入还原1
+ 复原会占用服务，系统数据会按照您选择的备份数据进行还原，建议您在此期间不再使用翼飞平台。复原时间会根据备份数据大小不同而不同，请您耐心等待
+ 复原数据3仅显示最新 5 份备份数据
+ 选择序号备份名称版本号备份内容备份方式数据大小备份时间
+ 开始复原24
+ 当前有备份任务正在进行中，「开始复原」暂不可用，请等待备份完成后再操作。
+ ● 当前版本：；剩余空间：↻5
+✕
+ ✕
+ PRD 标注
+ 上传结果 成功文件损坏版本不一致备份类型不符
+ 执行结果 成功失败
+ 可复原数据 有可复原的数据没有可复原的数据
+ 备份状态 无备份任务备份进行中
+ 复原结果 成功项目数据不存在空间不足上传失败文件损坏版本不兼容模块不一致执行失败
+ 重置演示
+function $(id) { return document.getElementById(id); }
+var BK = 'yw_backup', KEY = 'yw_restore', VER = 'P1.5.0', PRJ = 'xhz';
+var PARTS = ['基础数据', '飞行数据', '成果数据'];
+var SIZE = { '基础数据': 1.2, '飞行数据': 36.5, '成果数据': 58.3 };
+function pad(n) { return (n = 0; }); }
+function cName(c) { return isFull(c) ? '全量数据' : c.join('+'); }
+function sizeOf(c) { return Math.round(c.reduce(function (a, p) { return a + SIZE[p]; }, 0) * 10) / 10; }
+/* ---------- 备份数据（读取备份页面的数据；没有时用演示数据） ---------- */
+function demoRecs() {
+ var n = Date.now(), D = 86400000, a = [[9, PARTS], [7, ['基础数据', '飞行数据']], [5, ['基础数据']], [3, PARTS], [1, PARTS]];
+ return a.map(function (x, i) { var t = n - x[0] * D; return { id: 'd' + i, time: t, content: x[1], size: sizeOf(x[1]), ok: true, status: '存在', way: i === 1 ? '自动备份' : '手动备份', name: VER + '小盒子项目' + cName(x[1]) + stamp(t).slice(0, 8) }; });
+}
+function loadBk() { try { var b = JSON.parse(localStorage.getItem(BK)); return b && Array.isArray(b.recs) ? b : null; } catch (e) { return null; } }
+function bkRecs() {
+ var b = loadBk(), a = b ? b.recs.filter(function (r) { return r.ok !== false && (r.status || '存在') === '存在'; }) : demoRecs();
+ if (localStorage.getItem('yw_rs_data') === 'none') return [];
+ if (!a.length) a = demoRecs();
+ return a.slice(-5).reverse();
+}
+function bkSpace() { var b = loadBk(); return b && typeof b.space === 'number' ? b.space : 186.4; }
+function esc(x) { return String(x).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+function bkBusy() { var b = loadBk(); return !!(b && b.run && Date.now() - (b.run.t0 || 0) ◌
+' + txt + '
+' + pct + '%
+'; }
+/* 进度：done(ok) 在结束时调用；结果取演示栏的「执行结果」 */
+function runProg(title, txt, done) {
+ restoring = true; localStorage.setItem('yw_restoring', Date.now()); var pct = 0, res = $('selRun').value;
+ modal(title, spinHtml(txt, 0), []);
+ var h = setInterval(function () {
+ pct = Math.min(100, pct + 7 + Math.floor(Math.random() * 9));
+ if (res === 'fail' && pct >= 63) pct = 63;
+ if ($('spFill')) { $('spFill').style.width = pct + '%'; $('spPct').textContent = pct + '%'; }
+ if (pct >= 100 || (res === 'fail' && pct === 63 && Math.random() ' + (i + 1) + '' + esc(r.name) + '' + esc(v) + '' + cName(r.content) + '' + (r.way || '手动备份') + '' + r.size + 'GB' + fmtD(r.time) + '
+';
+ }).join('') : '暂无可复原的数据，请先到「备份」页面备份
+';
+ syncGo();
+}
+function syncGo() { var on = autoOn(); $('btnOpen').disabled = on || !!oneRun() || !document.querySelector('input[name=rp]:checked');
+ $('autoHint').style.display = on ? '' : 'none'; $('selAuto').value = autoLocal ? '1' : '0';
+}
+function goRestore() {
+ if (restoring || oneRun()) return;
+ if (autoOn()) { toast('备份任务进行中，请稍后再复原', 1); syncGo(); return; }
+ var el = document.querySelector('input[name=rp]:checked'); if (!el) { toast('请选择复原数据', 1); return; }
+ var r = bkRecs().filter(function (x) { return String(x.id) === el.value; })[0]; if (!r) { toast('该备份数据已不存在，请重新选择', 1); renderPick(); return; }
+ var res = $('selOne').value;
+ if (res === 'proj') { modal('数据上传失败', '数据上传失败
+原因：系统项目数据不存在，不支持上传。请先完成激活，配置项目信息。
+', [{ t: '知道了' }]); return; }
+ var n = Date.now();
+ st.run = { t0: n, end: n + DUR1 * (FAILAT[res] || 100) / 100, res: res, name: r.name, size: r.size };
+ save(); renderOne(); showProg();
+}
+function showProg() {
+ var r = oneRun(); if (!r) return;
+ modal('导入复原中', '导入复原中，复原会占用服务，建议您在此期间不再使用翼飞平台
+' +
+ '
+' +
+ '复原数据：' + esc(r.name) + '
+', [{ t: '取消复原', ghost: true, fn: askCancel }]);
+ progOpen = true; tickOne();
+}
+function askCancel() {
+ modal('取消复原', '确定取消复原吗？取消后系统数据保持复原前的状态。',
+ [{ t: '继续复原', ghost: true, fn: showProg }, { t: '确定取消', fn: function () { if (!oneRun()) return; st.run = null; save(); renderOne(); toast('已取消复原'); } }]);
+}
+function tickOne() {
+ var r = oneRun(); if (!r) return;
+ var now = Date.now(); if (now >= r.end) { finishOne(r); return; }
+ if (progOpen && $('opFill')) {
+ var p = Math.min(99, Math.floor((now - r.t0) / DUR1 * 100)), sp = STEPS1.filter(function (x) { return p >= x[0]; }).pop();
+ $('opFill').style.width = p + '%'; $('opPct').textContent = p + '%'; $('opStep').textContent = sp[1] + '…';
+ }
+}
+function failBox(t, why) { modal(t, '' + t + '
+原因：' + why + '系统数据未改动。
+', [{ t: '知道了' }]); }
+function finishOne(r) {
+ st.run = null; save(); closeM(); renderOne();
+ var x = r.res;
+ if (x === 'ok') modal('复原成功', '✔
+导入成功，系统已按「' + esc(r.name) + '」复原
+', [{ t: '确定' }]);
+ else if (x === 'space') modal('空间不足', '您的空间不足，请前往处理
+剩余空间 ' + bkSpace().toFixed(2) + 'GB，这份备份数据需要 ' + r.size + 'GB。可以到「备份」页面删除不需要的备份数据。
+', [{ t: '知道了' }]);
+ else if (x === 'up') failBox('数据上传失败', '上传过程中网络中断。');
+ else failBox('数据导入执行失败', { bad: '文件损坏。', ver: '导入数据版本不兼容。', mod: '导入数据对应模块不一致。', exec: '执行复原时出错。' }[x] || '');
+}
+/* ---------- 导入还原 ---------- */
+if (!st.imp.files) st.imp.files = {};
+if (!Array.isArray(st.imp.done)) st.imp.done = [];
+var upFor = null, PRJN = '小盒子项目';
+var S4 = [['基础数据', '要求必须导入基础数据，否则系统无法正常展示数据'], ['飞行数据', '可跳过直接下一步'], ['成果数据', '可跳过直接下一步'], ['执行成功', '']];
+function renderSteps() {
+ var k = st.imp.step;
+ $('steps').innerHTML = S4.map(function (x, i) {
+ var c = i + 1 ' + (i + 1 ' + x[0] + '
+' + (x[1] ? '' + x[1] + '
+' : '') + '
+' + (i 
+' : '') + '
+';
+ }).join('');
+}
+function fileOf(p) { return st.imp.files[p]; }
+function isDone(p) { return st.imp.done.indexOf(p) >= 0; }
+function renderImp() {
+ renderSteps(); var k = st.imp.step, h;
+ if (k ⇪上传备份' + p + ' ' + (5 + k) + '' +
+ (f ? '' + esc(f.name) + '' + (ex ? '' : '✕') + '
+✔上传成功
+' +
+ '导入版本：' + f.ver + '
+项目信息：' + PRJN + '
+备份时间：' + fmtD(f.time) + '
+上传时间：' + fmtD(f.up) + '
+' : '') +
+ '
+' + (ex ? '✔' : '▣') + '' + (ex ? '已导入系统' : '导入系统并执行') + '
+' +
+ '下一步
+';
+ } else {
+ var miss = PARTS.filter(function (x) { return !isDone(x); });
+ h = '✔
+执行成功
+数据已导入，可以进入系统使用
+' +
+ '已导入：' + st.imp.done.join('、') + '
+' +
+ (miss.length ? '未导入：' + miss.join('、') + '
+未导入的数据，对应业务没有历史数据
+' : '') + '
+' +
+ '重新导入 进入系统 9
+';
+ }
+ $('impBody').innerHTML = h; syncDots();
+}
+function parseT(name, f) {
+ var m = name.match(/(\d{8})(?:_?(\d{4}))?/);
+ if (!m) return f.lastModified || Date.now();
+ var s = m[1] + (m[2] || '0000'); return new Date(+s.slice(0, 4), +s.slice(4, 6) - 1, +s.slice(6, 8), +s.slice(8, 10), +s.slice(10, 12)).getTime();
+}
+function doUpload(p, f) {
+ var r = $('selUp').value, fv = (f.name.match(/[A-Z]?(\d+\.\d+\.\d+)/i) || [])[1], cv = VER.replace(/^[^\d]+/, '');
+ if (!/\.zip$/i.test(f.name)) { toast('只支持 .zip 格式的备份数据', 1); return; }
+ if (r === 'ok' && fv && fv !== cv) r = 'ver';
+ var bv = fv && fv !== cv ? VER.replace(/[\d.]+$/, '') + fv : 'P1.4.0';
+ if (r === 'bad') { modal('数据上传失败', '数据上传失败
+原因：「' + esc(f.name) + '」文件损坏，无法解析，请重新上传。
+', [{ t: '知道了' }]); return; }
+ if (r === 'ver') { modal('版本不一致', '这份备份数据对应的系统版本是 ' + bv + '，当前系统版本是 ' + VER + '，不能导入。
+请先把系统升级到相同版本，或换一份同版本的备份数据。', [{ t: '知道了' }]); return; }
+ if (r === 'type') { toast('这份文件不是「' + p + '」备份数据，请重新上传', 1); return; }
+ st.imp.files[p] = { name: f.name, ver: VER, time: parseT(f.name, f), up: Date.now(), size: Math.round(f.size / 1073741824 * 100) / 100 || SIZE[p] };
+ save(); renderImp(); toast(p + '上传成功');
+}
+$('fileIn').onchange = function () { var f = this.files[0]; this.value = ''; if (f && upFor) doUpload(upFor, f); upFor = null; };
+function goNext() { st.imp.step++; save(); renderImp(); }
+function act(a) {
+ if (restoring) return;
+ var k = st.imp.step, p = PARTS[k - 1];
+ if (a === 'exec') {
+ if (autoOn()) { toast('备份任务进行中，请稍后再导入', 1); return; }
+ if (!fileOf(p) || isDone(p)) return;
+ runProg('导入复原中', '正在导入「' + p + '」并执行，复原会占用服务，建议您在此期间不再使用翼飞平台…', function (ok) {
+ if (!ok) { modal('数据导入执行失败', '数据导入执行失败
+原因：「' + p + '」数据校验未通过' + (k === 1 ? '，系统数据未改动' : '，已导入的数据不受影响') + '。请重新上传或换一份备份数据。
+', [{ t: '知道了' }]); return; }
+ st.imp.done.push(p); save(); renderImp(); toast(p + '导入成功');
+ });
+ }
+ if (a === 'next') {
+ if (k === 1 && !isDone(p)) { toast('请先导入基础数据', 1); return; }
+ if (k > 1 && fileOf(p) && !isDone(p)) modal('跳过确认', '已上传的「' + p + '」还没有导入系统，跳过后不会导入，对应业务没有历史数据。确定跳过吗？', [{ t: '取消', ghost: true }, { t: '确定跳过', fn: goNext }]);
+ else goNext();
+ }
+ if (a === 'again') { st.imp = initState().imp; save(); renderImp(); }
+ if (a === 'enter') location.href = 'home.html';
+}
+/* ---------- PRD 标注 ---------- */
+var NOTES = {
+ tab: ['页签', '还原分「一键还原」和「导入还原」。复原进行中不能切换页签。'],
+ info: ['当前版本 / 剩余空间', '导入还原时显示当前系统版本和磁盘剩余空间，点 ↻ 刷新。剩余空间与备份页面一致。'],
+ one: ['开始复原', '进入页面先检测当前是否有备份任务正在进行（自动备份或手动备份）。有备份进行中时置灰，按钮下方提示「当前有备份任务正在进行中，「开始复原」暂不可用，请等待备份完成后再操作。」备份完成后自动恢复。
+自动备份开关是否开启不影响复原。
+没有备份进行中时：默认置灰。
+在列表中选中一份复原数据后变为可点击（蓝色），点击进入复原流程。
+没有可复原的数据时一直置灰。
+复原进行中不能再次点击。
+'],
+ pick: ['复原数据', '有可复原的数据：以列表展示最新的 5 份备份数据，按备份时间倒序。列：选择、序号、备份名称、版本号、备份内容、备份方式、数据大小、备份时间。单选，默认不选中，点单选框或整行都可以选中。
+没有可复原的数据：列表显示「暂无可复原的数据，请先到「备份」页面备份」，点「备份」跳到备份页面；「开始复原」置灰。
+（演示栏「可复原数据」可切换这两种情况；「备份状态」可切换无备份任务 / 备份进行中。）'],
+ go: ['开始复原流程', '[流程图]绿色：成功节点；青色菱形：文件校验；任何一步失败，系统数据都不改动。
+'],
+ s1: ['第 1 步：基础数据', '必填，否则系统无法正常展示数据。
+点「上传备份基础数据」，只支持 .zip。上传后显示文件名、上传成功，以及导入版本、项目信息、备份时间、上传时间。导入前点 ✕ 可以移除重新上传，导入后不能移除。
+上传失败时弹窗「数据上传失败」；版本和当前系统不一致时不能导入。
+上传后「导入系统并执行」才可点，执行中弹窗显示进度：导入复原中，复原会占用服务，建议您在此期间不再使用翼飞平台。失败时弹窗「数据导入执行失败」。
+导入成功后「下一步」才可点。
+'],
+ s2: ['第 2 步：飞行数据', '可选，上传和导入规则同第 1 步。可以不上传，直接点「下一步」跳过。已上传但没导入就点「下一步」，会先确认是否跳过。不导入的话，飞行业务没有历史数据。'],
+ s3: ['第 3 步：成果数据', '可选，规则同第 2 步。不导入的话，成果业务没有历史数据。'],
+ s4: ['第 4 步：执行成功', '显示已导入和未导入的数据。点「进入系统」回到首页，点「重新导入」从第 1 步重新开始。']
+};
+var dotsOn = localStorage.getItem('yw_dots') !== '0';
+function syncDots() { $('swDots').classList.toggle('off', !dotsOn); document.querySelectorAll('.dot').forEach(function (d) { d.style.display = dotsOn ? '' : 'none'; }); if (!dotsOn) $('pop').style.display = 'none'; }
+function openNote(btn) {
+ var n = NOTES[btn.getAttribute('data-note')] || ['说明', '（待补充）'], p = $('pop'), rc = btn.getBoundingClientRect();
+ $('popT').textContent = n[0]; $('popB').innerHTML = n[1]; p.classList.toggle('wide', btn.getAttribute('data-note') === 'go'); p.style.display = 'block';
+ var left = Math.min(window.innerWidth - p.offsetWidth - 10, rc.right + 8);
+ p.style.position = 'fixed'; p.style.left = Math.max(10, left) + 'px'; p.style.top = Math.min(window.innerHeight - p.offsetHeight - 10, rc.top) + 'px';
+}
+/* ---------- 事件 ---------- */
+document.addEventListener('click', function (e) {
+ var t = e.target, a;
+ if (t.classList.contains('dot')) { e.stopPropagation(); openNote(t); return; }
+ if (!t.closest('#pop')) $('pop').style.display = 'none';
+ if ((a = t.getAttribute('data-tab'))) { setTab(a); return; }
+ var eu = t.closest('[data-up]'), er = t.closest('[data-rm]'), ea = t.closest('[data-act]');
+ if (eu && (a = eu.getAttribute('data-up'))) { if (restoring || eu.disabled || fileOf(a)) return; upFor = a; $('fileIn').click(); return; }
+ if (er && (a = er.getAttribute('data-rm'))) { if (restoring || isDone(a)) return; delete st.imp.files[a]; save(); renderImp(); return; }
+ if (ea && (a = ea.getAttribute('data-act'))) { if (ea.disabled) return; act(a); return; }
+});
+$('popX').onclick = function () { $('pop').style.display = 'none'; };
+$('swDots').onclick = function () { dotsOn = !dotsOn; localStorage.setItem('yw_dots', dotsOn ? '1' : '0'); syncDots(); };
+$('btnOpen').onclick = function () { if (!this.disabled) goRestore(); };
+$('rList').onclick = function (e) { var tr = e.target.closest('tr[data-rid]'); if (!tr) return; tr.querySelector('input').checked = true; this.querySelectorAll('tr').forEach(function (x) { x.classList.toggle('sel', x === tr); }); syncGo(); };
+$('btnRf').onclick = function () { renderInfo(); renderOne(); renderPick(); toast('已刷新'); };
+$('goHome').onclick = $('btnBack').onclick = function () { if (restoring || oneRun()) { toast('还原进行中，请勿离开页面', 1); return; } location.href = 'home.html'; };
+$('reset').onclick = function () {
+ if (restoring || oneRun()) { toast('还原进行中，请稍后重置', 1); return; }
+ localStorage.removeItem(KEY); st = initState(); st.imp.files = {}; save();
+ renderInfo(); setTab(tab); toast('已重置演示数据');
+};
+/* ---------- 初始化 ---------- */
+window.addEventListener('beforeunload', function (e) { if (restoring) { e.preventDefault(); e.returnValue = ''; } });
+renderInfo();
+setTab(!oneRun() && /tab=imp/.test(location.search) ? 'imp' : 'one', true);
+$('selData').value = localStorage.getItem('yw_rs_data') === 'none' ? 'none' : 'has';
+$('selAuto').onchange = function () { autoLocal = this.value === '1'; syncGo(); toast(autoLocal ? '演示：备份任务进行中' : '演示：无备份任务'); };
+setInterval(syncGo, 2000);
+$('selData').onchange = function () { localStorage.setItem('yw_rs_data', this.value); renderPick(); toast(this.value === 'none' ? '已切换为：没有可复原的数据' : '已切换为：有可复原的数据'); };
+setInterval(tickOne, 300);
+if (oneRun() && Date.now() 

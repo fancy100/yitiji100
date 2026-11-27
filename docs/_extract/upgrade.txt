@@ -1,0 +1,313 @@
+
+运维中心 · 升级
+运维中心
+⌂功能入口
+Aadmin ⌄
+←升级 &gt;&gt; 版本列表
+ 翼飞平台更新运维中心更新1
+ 更新方式：
+ 在线更新
+ ?在线更新操作步骤：
+1、下载升级安装包
+2、执行更新操作
+注：升级过程受更新服务版本的差异性以及下载速度不一样，升级时间有所差异，请耐心等待。
+ 本地更新
+ ?本地更新操作步骤：
+1、记录当前版本号发送给商务人员
+2、下载商务人员给的升级安装包
+3、导入升级安装包
+4、页面点击更新
+注：升级过程受更新服务版本的差异性以及导入速度不一样，升级时间有所差异，请耐心等待。
+ 2
+ 结束进程
+ 查看更新进度
+ 返回版本列表
+ 导入版本服务
+ 更新日志
+ 3
+ ☁
+0%
+4
+ 版本号版本描述升级状态5操作6
+ 共 0 条数据 1 10 条/页
+ 更新服务列表7更新服务：0/0
+ 序号服务名称当前版本更新后版本更新进度
+ 更新时间： ~ 
+ 更新版本：全部
+ 查询重置8
+ 序号更新时间更新前版本更新后版本结果操作9
+ 共 0 条数据 1 10 条/页
+✕
+ ✕
+ PRD 标注
+ 网络环境 已联网无网
+ 更新结果 成功失败
+ 导入结果 成功内存不足文件损坏安装包不完整
+ 速度 正常快进
+ 重置演示
+function $(id) { return document.getElementById(id); }
+function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '': '&gt;', '"': '&quot;' }[c]; }); }
+var PLAT = {
+ yf: { name: '翼飞平台', key: 'yf_upgrade', cur: 'B1.1.0', log: { t: '2026-10-08 09:12:45', from: 'B1.0.0', to: 'B1.1.0' },
+ online: [
+ { v: 'B1.4.0', d: '新增航线模板库；优化在线更新功能' },
+ { v: 'B1.3.0', d: '支持多机协同作业；修复已知问题' },
+ { v: 'B1.2.0', d: '优化了在线更新功能' },
+ { v: 'B1.1.0', d: '新增成果数据管理' },
+ { v: 'B1.0.0', d: '首个正式版本' }
+ ],
+ svc: ['翼飞平台前端', '用户中心服务', '设备接入服务', '航线任务服务', '媒体流服务', '成果管理服务'] },
+ yw: { name: '运维中心', key: 'yw_upgrade', cur: 'V1.2.0', log: { t: '2026-10-12 10:20:31', from: 'V1.1.0', to: 'V1.2.0' },
+ online: [
+ { v: 'V1.4.0', d: '新增 AI 比对服务；优化三维建模性能' },
+ { v: 'V1.3.0', d: '新增 IP 变更提醒；修复已知问题' },
+ { v: 'V1.2.0', d: '支持独立服务部署方式' },
+ { v: 'V1.1.0', d: '首个正式版本' }
+],
+ svc: ['运维中心', '基础平台服务', 'AI识别服务', '二维建图服务', '三维建模服务', 'AI比对服务'] }
+};
+var plat = localStorage.getItem('up_plat') === 'yw' ? 'yw' : 'yf';
+['yf', 'yw'].forEach(function (p) { try { var x = JSON.parse(localStorage.getItem(PLAT[p].key)); if (x && x.run && x.run.state === 'run') plat = p; } catch (e) {} });
+var KEY, ONLINE, SVC, st, run, view = 'list', impTok = 0, dlIng = null;
+function initState() { var P = PLAT[plat]; return { way: 'online', cur: P.cur, local: [], dl: [], failed: [], logs: [{ t: P.log.t, from: P.log.from, to: P.log.to, r: '成功', way: '在线更新', svc: SVC.map(function (n) { return { n: n, s: '成功' }; }) }] }; }
+function loadPlat(p) {
+ plat = p; localStorage.setItem('up_plat', p);
+ var P = PLAT[p]; KEY = P.key; ONLINE = P.online; SVC = P.svc;
+ try { st = JSON.parse(localStorage.getItem(KEY)) || initState(); } catch (e) { st = initState(); }
+ run = st.run || null; if (run && run.state !== 'run') { run = null; st.run = null; } st.dl = st.dl || []; st.failed = st.failed || []; st.local = st.local || []; st.logs = st.logs || [];
+ document.querySelectorAll('#tabs span[data-p]').forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-p') === p); });
+}
+loadPlat(plat);
+function fmtT(x) { x = Math.round(x || 0); return Math.floor(x / 60) + '分' + (x % 60) + '秒'; }
+function save() { st.run = run; localStorage.setItem(KEY, JSON.stringify(st)); }
+function net() { return $('selNet').value === '1'; }
+function cmpV(a, b) { var x = a.slice(1).split('.'), y = b.slice(1).split('.'); for (var i = 0; i 暂无版本，请点击右上角「导入版本服务」导入升级安装包
+';
+ rows.forEach(function (r) {
+ var c = cmpV(r.v, st.cur), s, a, has = st.way === 'local' || st.dl.indexOf(r.v) >= 0;
+ if (run && run.state === 'run' && run.v === r.v) { s = '更新中'; a = '更新查看进度'; }
+ else if (c === 0) { s = '当前版本'; a = '更新'; }
+ else if (c 已更新'; a = '更新'; }
+ else if (!has) { s = '待更新'; a = dlIng === r.v ? '下载中…' : (busy() || dlIng) ? '下载' : '下载'; }
+ else { s = '待更新'; a = busy() ? '更新' : '更新'; if (st.failed.indexOf(r.v) >= 0) a += '日志'; }
+ if (st.way === 'local' && !(busy() && run.v === r.v)) a += '删除';
+ h += '' + r.v + '' + esc(r.d) + '' + s + '' + a + '
+';
+ });
+ $('tbList').innerHTML = h; $('total').textContent = rows.length;
+}
+function askDl(v) {
+ if (!net()) { modal('下载', '网络不可用，无法在线获取升级安装包，请使用本地更新', [{ t: '取消', ghost: 1 }, { t: '确定' }]); return; }
+ modal('下载', '是否下载远程镜像？
+预计大小 12.12GB
+下载内容为当前版本 ' + st.cur + ' 到 ' + v + ' 的增量镜像和数据处理脚本（通用版本）',
+ [{ t: '取消', ghost: 1 }, { t: '确定', fn: function () {
+ dlIng = v; renderList(); toast('开始下载 ' + v + ' 升级安装包');
+ setTimeout(function () {
+ dlIng = null;
+ ONLINE.forEach(function (x) { if (cmpV(x.v, st.cur) > 0 && cmpV(x.v, v) ' + st.cur + ' 更新到 ' + v + ' 吗？
+更新过程中服务会依次重启，业务可能短暂不可用，请勿关闭电源或刷新页面。',
+ [{ t: '取消', ghost: 1 }, { t: '确定更新', fn: function () { startUp(v); } }]);
+}
+var tmr = null;
+function startUp(v) {
+ clearTimeout(tmr);
+ var fail = $('selRes').value === 'fail';
+ run = { v: v, from: st.cur, state: 'run', online: st.way === 'online', dl: 100, sec: 0, svc: SVC.map(function (n) { return { n: n, p: 0 }; }), failAt: fail ? 2 + Math.floor(Math.random() * 3) : -1 };
+ show('svc'); tick();
+}
+function tick() {
+ if (!run || run.state !== 'run') return;
+ var spd = +$('selSpd').value; run.sec = (run.sec || 0) + 23 * spd; save();
+ if (run.dl = 60) { finish(false, i); return; }
+ run.svc[i].p = Math.min(100, run.svc[i].p + 20 * spd);
+ if (run.svc.every(function (x) { return x.p >= 100; })) { finish(true); return; }
+ }
+ paint(); tmr = setTimeout(tick, 500);
+}
+function paint() {
+ if (!run) return;
+ var n = run.svc.length, done = run.svc.filter(function (s) { return s.p >= 100; }).length;
+ var avg = run.svc.reduce(function (a, s) { return a + s.p; }, 0) / n;
+ var pct = Math.round(run.online ? run.dl * 0.3 + avg * 0.7 : avg), txt, cls = '', ic = '☁';
+ if (run.state === 'ok') { pct = 100; cls = 'ok'; ic = '✔'; txt = '更新耗时：' + fmtT(run.sec) + '，更新成功！系统当前版本为 ' + run.v + ''; }
+ else if (run.state === 'fail') { cls = 'bad'; ic = '✕'; txt = (run.stopped ? '已结束更新进程' : '更新失败：「' + run.svc[run.failAt].n + '」更新异常') + '，耗时 ' + fmtT(run.sec) + '，系统已回滚到 ' + run.from + '。可在版本列表中继续更新或查看日志'; }
+ else if (run.dl ' + run.v + '，请耐心等待…';
+ else { var i = Math.max(0, run.svc.findIndex(function (s) { return s.p ' + fmtT(run.sec) + '，请您耐心等待。（正在更新第 ' + (i + 1) + '/' + n + ' 个服务「' + run.svc[i].n + '」）'; }
+ $('prog').className = 'prog' + (cls ? ' ' + cls : ''); $('pIc').textContent = ic;
+ $('pTxt').innerHTML = txt; $('pFill').style.width = pct + '%'; $('pPct').textContent = pct + '%';
+ $('svcCnt').textContent = '更新服务：' + done + '/' + n;
+ var h = '';
+ run.svc.forEach(function (s, k) {
+ var p;
+ if (run.state === 'fail') p = k 已回滚' : k === run.failAt ? '失败' : '未更新';
+ else if (s.p >= 100) p = '成功';
+ else if (s.p > 0) p = '' + s.p + '%';
+ else p = '' + (run.dl ';
+ var cur = run.state === 'ok' ? run.v : run.from;
+ h += '' + (k + 1) + '' + s.n + '' + cur + '' + run.v + '' + p + '
+';
+ });
+ $('tbSvc').innerHTML = h;
+ if (view === 'list') renderList();
+}
+function finish(ok, i) {
+ clearTimeout(tmr);
+ run.state = ok ? 'ok' : 'fail';
+ var log = { t: now(), from: run.from, to: run.v, r: ok ? '成功' : '失败', way: run.online ? '在线更新' : '本地更新',
+ svc: run.svc.map(function (s, k) { return { n: s.n, s: ok ? '成功' : k ' + run.v + '。', [{ t: '知道了' }]);
+ else modal(run.stopped ? '已结束进程' : '更新失败', (run.stopped ? '已结束本次更新进程' : '「' + run.svc[i].n + '」更新异常') + '，系统已自动回滚到 ' + run.from + '。
+版本状态仍为「待更新」，可点击「更新」继续更新，或点击「日志」查看。', [{ t: '知道了' }]);
+}
+$('btnStop').onclick = function () {
+ if (!busy()) return;
+ modal('结束进程', '确定结束本次更新进程吗？
+结束后已更新的服务回滚到 ' + run.from + '，版本状态仍为「待更新」，可继续更新。', [{ t: '取消', ghost: 1 }, { t: '确定结束', fn: function () {
+ if (!busy()) return; var i = run.svc.findIndex(function (x) { return x.p ☁
+导入进行中
+' + esc(f.name) + '
+', [{ t: '取消导入', fn: function () { toast('已取消导入'); } }]);
+ impTok = tok;
+ setTimeout(function () {
+ if (impTok !== tok) return;
+ var r = $('selImp').value; closeM();
+ if (r !== 'ok') { modal('导入失败', IMP_ERR[r], [{ t: '重新导入', ghost: 1, fn: function () { $('picker').value = ''; $('picker').click(); } }, { t: '知道了' }]); return; }
+ var m = f.name.match(/[BV]?(\d+\.\d+\.\d+)/i), v = m ? st.cur[0] + m[1] : nextVer();
+ if (cmpV(v, st.cur) ' + v + ' 不高于当前版本 ' + st.cur + '，无需导入。', [{ t: '知道了' }]); return; }
+ var re = st.local.some(function (x) { return x.v === v; });
+ var add = ONLINE.filter(function (x) { return cmpV(x.v, st.cur) > 0 && cmpV(x.v, v) ' + v + ' 的升级安装包吗？删除后需重新导入。', [{ t: '取消', ghost: 1 }, { t: '确定删除', fn: function () { st.local = st.local.filter(function (x) { return x.v !== v; }); save(); renderList(); toast('已删除'); } }]);
+}
+/* ---------- 更新日志 ---------- */
+function renderLog() {
+ var f = $('fFrom').value, t = $('fTo').value, v = $('fVer').value, h = '';
+ var vs = []; st.logs.forEach(function (l) { if (vs.indexOf(l.to) 全部' + vs.map(function (x) { return '' + x + ''; }).join('');
+ var rows = st.logs.filter(function (l) { var d = l.t.slice(0, 10); return (!f || d >= f) && (!t || d ' + (k + 1) + '' + l.t + '' + l.from + '' + l.to + '' + l.r + '详情
+';
+ });
+ $('tbLog').innerHTML = h || '暂无更新记录
+'; $('logTotal').textContent = rows.length;
+}
+/* 各服务的版本号（演示：由系统版本推算，如 V1.21.4；真实数据由研发提供） */
+function svcVer(k, sv) { var m = sv.slice(1).split('.'); return sv[0] + m[0] + '.' + (+m[1] * 10 + k) + '.' + ((k * 3 + +m[2]) % 7); }
+function logDetail(i) {
+ var l = st.logs[i], h = '' + l.t + '　' + l.way + '　' + l.from + ' → ' + l.to + '
+服务名称更新后版本结果
+';
+ l.svc.forEach(function (s, k) { h += '' + s.n + '' + svcVer(k, l.to) + '' + s.s + '
+'; });
+ modal('更新详情', h + '', [{ t: '关闭' }]);
+}
+/* ---------- PRD 标注 ---------- */
+var NOTES = {
+ tab: { title: '更新页签', items: [
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '分「翼飞平台更新」「运维中心更新」两个页签，默认打开「翼飞平台更新」。
+两个页签各自独立：更新方式、版本列表、下载、更新进度、更新日志互不影响，规则相同。
+某个页签正在更新或正在下载时，不能切换到另一个页签；重新进入升级页时，自动打开正在更新的页签。
+翼飞平台版本号以 B 开头（如 B1.1.0），运维中心以 V 开头（如 V1.2.0）。' },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '首页点击「升级」进入本页，默认展示「版本列表」。翼飞平台和运维中心分两个页签分别更新，各页签内的服务按顺序统一更新。' }
+ ]},
+ way: { title: '更新方式', items: [
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '分在线更新和本地更新两种，默认在线更新。鼠标移到 ? 上显示对应的操作步骤。
+更新进行中不可切换更新方式。' },
+ { cls: 'rule', tag: '在线更新', ver: 'B1.3.0', html: '设备联网时自动获取可更新的版本列表；点击「更新」后先下载升级安装包，再依次更新各服务。
+无网时列表提示「网络异常，无法获取在线版本」，引导切换为本地更新。' },
+ { cls: 'rule', tag: '本地更新', ver: 'B1.3.0', html: '右上角显示「导入版本服务」，导入商务人员提供的升级安装包（.zip / .tar / .tar.gz）后出现在列表中，再点击「更新」。无需下载步骤。' }
+ ]},
+ ops: { title: '右上角按钮', items: [
+ { cls: 'rule', tag: '本地导入', ver: 'B1.3.0', html: '导入时弹窗「导入进行中」，可「取消导入」。流程：导入文件 → 判断内存 → 解压 → 校验文件 → 读取包内版本 → 校验服务是否完整。
+提示：内存不足「您的内存不足，请前往处理」；文件损坏「您导入的文件已损坏」；不完整「您导入的升级安装包不完整，请联系客服人员解决」，列表不展示该版本。
+成功：列表展示该版本及其与当前版本之间的版本，状态为待更新，提示「V1.4.0、V1.3.0 导入成功」。重复导入则更新对应的服务内容。' },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '导入版本服务：仅本地更新显示。异常提示：
+· 导入失败：设备内存不足，请清理磁盘空间后重新导入
+· 导入失败：安装包文件已损坏，请重新获取安装包
+· 导入失败：安装包不完整，请重新下载完整的安装包后导入
+· 版本不高于当前版本、或版本已存在时，提示无需导入。' },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '查看更新进度：有更新任务时显示，进入「更新服务列表」。返回版本列表：在更新服务列表中显示。更新日志：进入更新日志页面。' }
+ ]},
+ prog: { title: '更新进度', items: [
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '记录本次更新耗时：更新中显示「系统更新升级耗时：xx分xx秒，请您耐心等待」；成功显示「更新耗时：xx分xx秒，更新成功！」。
+更新中可离开本页，首页显示「平台名称系统正在更新中」（如「翼飞平台系统正在更新中」「运维中心系统正在更新中」）；返回后继续显示进度。
+更新结束后点击「返回版本列表」，进度条消失。
+结束进程：更新一直卡在进行中时，可在更新服务列表点击结束，系统回滚到更新前版本，版本状态仍为待更新。' },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '显示当前更新状态和总进度：下载中（仅在线更新）→ 逐个服务更新 → 成功 / 失败。
+成功：显示绿色，系统当前版本切换为新版本。
+失败：显示红色，提示失败的服务，系统自动回滚到更新前版本。' }
+ ]},
+ state: { title: '升级状态', items: [
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '版本按版本号从高到低排序。状态：
+· 已更新：当前版本之前的版本，不支持回溯更新
+· 当前版本：不支持更新
+· 待更新（未下载镜像）：操作为「下载」
+· 待更新（已下载镜像 / 本地已导入）：操作为「更新」，更新成功后变为当前版本，之前的都变为已更新
+· 待更新（更新失败）：可「更新」继续更新，可查看「日志」；当前版本不变
+· 更新中：不支持点击更新' }
+ ]},
+ act: { title: '操作', items: [
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '下载（在线更新）：先判断网络。无网弹窗「网络不可用，无法在线获取升级安装包，请使用本地更新」；有网弹窗「是否下载远程镜像？预计大小 xxGB」。下载内容为当前版本到该版本的增量镜像和数据处理脚本（通用版本），下载完成后中间版本同时变为可更新。
+更新：确认后开始更新，同一时间只能更新一个版本。
+日志：更新失败的版本显示，查看该版本的更新日志（日志内容研发提供）。' }
+ ]},
+ svc: { title: '更新服务列表', items: [
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '按顺序逐个更新服务，显示每个服务的当前版本、更新后版本和进度。右上角显示已完成数 / 总数。
+某个服务失败时，已更新的服务回滚，后面的服务不再更新。' }
+ ]},
+ logq: { title: '日志查询', items: [
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '可按更新时间范围、更新后版本查询；「重置」清空条件。' }
+ ]},
+ logt: { title: '日志列表', items: [
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '按时间倒序，记录每次更新的时间、更新前后版本、结果。点击「详情」查看更新方式，以及每个服务的名称、版本、更新结果。
+更新后版本：该服务本次要更新到的版本号，如 V1.21.4。' }
+ ]}
+};
+var popBtn = null;
+function closePop() { $('pop').classList.remove('show'); if (popBtn) popBtn.classList.remove('open'); popBtn = null; }
+function openPop(btn) {
+ if (popBtn === btn) { closePop(); return; }
+ closePop();
+ var n = NOTES[btn.getAttribute('data-note')]; if (!n) return;
+ $('popT').textContent = n.title;
+ $('popB').innerHTML = n.items.map(function (i) { return '' + i.tag + '' + i.ver + '' + i.html + '
+'; }).join('');
+ var r = btn.getBoundingClientRect(), p = $('pop');
+ p.classList.add('show');
+ var left = Math.min(r.left + window.scrollX, window.scrollX + document.documentElement.clientWidth - p.offsetWidth - 12);
+ p.style.left = Math.max(12, left) + 'px'; p.style.top = (r.bottom + window.scrollY + 6) + 'px';
+ btn.classList.add('open'); popBtn = btn;
+}
+$('popX').onclick = closePop;
+/* ---------- 事件 ---------- */
+document.addEventListener('click', function (e) {
+ var d = e.target.closest('.dot'); if (d) { e.stopPropagation(); openPop(d); return; }
+ if (!e.target.closest('#pop')) closePop();
+ var up = e.target.closest('[data-up]'); if (up) { askUp(up.getAttribute('data-up')); return; }
+ var del = e.target.closest('[data-del]'); if (del) { askDel(del.getAttribute('data-del')); return; }
+ var dl = e.target.closest('[data-dl]'); if (dl) { askDl(dl.getAttribute('data-dl')); return; }
+ var lv = e.target.closest('[data-lv]'); if (lv) { show('log'); $('fVer').value = lv.getAttribute('data-lv'); renderLog(); return; }
+ if (e.target.closest('[data-prog]')) { show('svc'); return; }
+ var lg = e.target.closest('[data-log]'); if (lg) logDetail(+lg.getAttribute('data-log'));
+});
+document.querySelectorAll('input[name=way]').forEach(function (i) {
+ i.onchange = function () { if (busy()) { toast('更新进行中，不可切换更新方式', 1); show(view); return; } st.way = i.value; save(); if (run && run.state !== 'run') run = null; show('list'); };
+});
+$('btnProg').onclick = function () { show('svc'); };
+function clearDone() { if (run && run.state !== 'run') { run = null; save(); } }
+$('btnBackList').onclick = function () { clearDone(); show('list'); };
+$('btnLog').onclick = function () { show('log'); };
+$('btnImport').onclick = function () { if (busy()) { toast('更新进行中，暂不可导入', 1); return; } $('picker').value = ''; $('picker').click(); };
+$('picker').onchange = function () { if (this.files[0]) doImport(this.files[0]); };
+$('btnQ').onclick = renderLog;
+$('btnR').onclick = function () { $('fFrom').value = ''; $('fTo').value = ''; $('fVer').value = ''; renderLog(); };
+function goHome() { location.href = 'home.html'; }
+$('btnBack').onclick = function () { if (view !== 'list') { clearDone(); show('list'); } else goHome(); };
+$('goHome').onclick = goHome;
+$('selNet').onchange = function () { if (view === 'list') renderList(); };
+$('swDots').onclick = function () { this.classList.toggle('off'); document.body.classList.toggle('hide-dots', this.classList.contains('off')); closePop(); };
+$('tabs').onclick = function (e) {
+ var x = e.target.closest('span[data-p]'); if (!x) return; var p = x.getAttribute('data-p'); if (p === plat) return;
+ if (busy()) { toast(PLAT[plat].name + '正在更新中，请稍后再切换', 1); return; }
+ if (dlIng) { toast('升级安装包下载中，请稍后再切换', 1); return; }
+ closeM(); $('fFrom').value = ''; $('fTo').value = ''; $('fVer').value = ''; loadPlat(p); show('list');
+};
+$('reset').onclick = function () { if (busy()) { toast('更新进行中，请稍后重置', 1); return; } if (dlIng) { toast('升级安装包下载中，请稍后重置', 1); return; } localStorage.removeItem(KEY); st = initState(); run = null; show('list'); toast('已重置' + PLAT[plat].name + '的演示数据'); };
+if (run && run.state !== 'run') { run = null; save(); }
+if (busy()) { show('svc'); tick(); } else show('list');

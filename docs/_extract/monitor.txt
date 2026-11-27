@@ -1,0 +1,224 @@
+
+运维中心 · 服务监测
+运维中心
+⌂功能入口
+Aadmin ⌄
+←服务监测
+ CPUCPU
+6.04%
+占用比例
+ MEM内存
+62.32GB
+内存上限
+56.38GB
+已消耗
+ DISK存储空间
+292GB / 5966GB
+数据磁盘
+92GB / 5966GB
+建图磁盘
+ NET网络
+976b
+上传速度
+928b
+下载速度
+ GPUGPU
+3953MiB / 15360MiB
+显存使用
+54℃
+温度
+ 1所有服务重启4基础服务详情5
+ 序号业务模块服务名称版本号业务端口号服务状态6服务日志
+ ☁
+ 重启服务执行耗时：0秒，请您耐心等待
+0%
+7
+ 服务进展列表8启动服务：0/0
+ 序号服务名更新进度执行耗时重启次数服务日志
+✕
+ ✕
+ PRD 标注
+ 设备 超脑版（有建图磁盘）标准版一体机（无建图磁盘、无 GPU）
+ GPU 有无
+ 服务状态 全部正常有异常
+ 重启演示 有服务重试全部一次成功
+ 速度 正常快进
+function $(id) { return document.getElementById(id); }
+function tbl(rows) { return '状态说明
+' + rows.map(function (r) { return '' + r[0] + '' + r[1] + '
+'; }).join('') + ''; }
+var V = 'B1.3.0';
+function R(h) { return { cls: 'rule', tag: '规则', ver: V, html: h }; }
+var NOTES = {
+ bg: { title: '服务监测', items: [R('不受激活状态限制，未激活时也可进入。进入页面展示 CPU、内存、存储空间、网络、GPU 资源，每 3 秒自动刷新；下方列出各服务的业务模块、服务名称、版本号、业务端口号、服务状态和服务日志。')] },
+ disk: { title: '存储空间', items: [R('超脑版显示「数据磁盘」和「建图磁盘」；标准版一体机没有建图磁盘，只显示「数据磁盘」。格式：已用 / 总量。')] },
+ gpu: { title: 'GPU', items: [R('设备有 GPU 时显示显存使用（已用 / 总量）和温度；没有 GPU 时不显示这张卡片。标准版一体机（无建图磁盘）没有 GPU，不显示 GPU 卡片。')] },
+ restart: { title: '所有服务重启', items: [R('点击后弹出二次确认：「重启期间所有业务暂时不可用，是否确认重启所有服务？」取消 / 确定。
+确定后页面切换为重启状态，进度、服务进展列表、更新进度、执行耗时、重启次数、日志下载，和「配置」第 6 步「重启服务」一致。
+全部服务启动成功后，只弹窗文字提示「重启服务完成，总耗时 X 秒，所有服务已启动成功」，不展示项目信息数据；点「确定」回到服务监测页面。
+重启进行中不能返回、不能离开页面。
+')] },
+ detail: { title: '基础服务详情', items: [R('弹窗按「存储服务、通信服务、视频服务、时序服务」分组，展示各基础服务的地址、端口、账号、密钥等配置信息，只读。
+密码、密钥全部明文展示，方便出现问题时开发快速查找路径和配置。
+点「全部复制」，把弹窗里所有内容按「分组 + 字段：值」的纯文本复制到剪贴板，提示「已复制全部内容」，弹窗不关闭。
+内容超出弹窗高度时，在弹窗内上下滚动。
+')] },
+ prog: { title: '重启总进度', items: [R('执行中提示「重启服务执行耗时：X秒，请您耐心等待」，耗时实时累加；进度 = 已启动成功服务数 / 服务总数。全部成功后弹出完成提示。')] },
+ svcst: { title: '服务状态', items: [R(tbl([['正常', '服务运行正常，绿色标签'], ['异常', '服务运行异常，红色标签，下方红字显示异常原因，如「网络服务异常」「服务进程异常，端口无响应」等']]) + '点「查看」下载的日志里同样记录状态和异常原因。异常的服务可通过「所有服务重启」恢复。
+')] },
+ state: { title: '更新进度', items: [R(tbl([['等待中', '服务已下发启动，尚未开始执行'], ['启动中', '服务正在启动'], ['检测中', '启动完成，正在检测服务是否可用'], ['重试中', '检测不通过，自动重启该服务，重启次数 +1'], ['启动成功', '检测通过']]) + '服务开始启动后「服务日志」可点「查看」，直接下载该服务日志（.log）。')] }
+};
+// 服务清单：[业务模块, 服务名称, 版本号, 端口, 建图类]
+var SVC = [['基础服务', '数据库服务', 'V8.0.32', '3306'], ['基础服务', '缓存服务', 'V7.0.11', '6379'], ['基础服务', '消息队列服务', 'V5.1.0', '1883'], ['基础服务', '存储服务', 'V2023.5', '9000'],
+ ['基础服务', '视频服务', 'V8.0', '554'], ['基础服务', '网关服务', 'V1.24.0', '443'], ['业务平台', '业务平台服务', V, '8080'], ['可选服务', 'AI识别服务', V, '8501'],
+ ['可选服务', '二维建图服务', V, '8601', 1], ['可选服务', '三维建模服务', V, '8701', 1], ['可选服务', 'AI比对服务', V, '8801']];
+var SPD = [[0,3,2],[0,2,1],[0,4,2],[1,3,1],[0,6,3],[1,2,2],[1,8,3],[0,9,3],[2,5,2],[1,11,4],[0,7,2]];
+var ST = { wait: '等待中', run: '启动中', chk: '检测中', retry: '重试中', ok: '启动成功' };
+var list = [], timer = null, sec = 0, mon = [];
+function pad(n) { return (n 异常' + r + '
+' : '正常'; }
+var gpuPick = '1';
+function syncGpu() { var std = $('selDev').value !== 'pro'; $('selGpu').value = std ? '0' : gpuPick; $('selGpu').disabled = std || !!timer; }
+function renderMon() {
+ mon = svcs();
+ $('mTb').innerHTML = mon.map(function (s, k) {
+ return '' + (k + 1) + '' + s.m + '' + s.name + '' + s.ver + '' + s.port + '' + stCell(s) + '查看
+';
+ }).join('');
+ $('odm').parentNode.classList.toggle('gone', $('selDev').value !== 'pro');
+ syncGpu(); $('cGpu').classList.toggle('gone', $('selDev').value !== 'pro' || $('selGpu').value !== '1');
+}
+function rnd(a, b) { return (a + Math.random() * (b - a)); }
+setInterval(function () {
+ $('cpu').innerHTML = rnd(3, 12).toFixed(2) + '%';
+ $('memUsed').innerHTML = rnd(54, 58).toFixed(2) + 'GB';
+ $('netUp').innerHTML = Math.round(rnd(600, 1200)) + 'b';
+ $('netDn').innerHTML = Math.round(rnd(600, 1200)) + 'b';
+ $('gpuT').innerHTML = Math.round(rnd(50, 58)) + '℃';
+}, 3000);
+function download(name, lines) {
+ var a = document.createElement('a');
+ a.href = URL.createObjectURL(new Blob(['\uFEFF' + lines.join('\r\n')], { type: 'text/plain;charset=utf-8' }));
+ a.download = name + '_服务日志_' + now().replace(/[-: ]/g, '') + '.log';
+ document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+ toast('已下载' + name + '日志');
+}
+$('mTb').addEventListener('click', function (e) {
+ var l = e.target.closest('.lnk'); if (!l) return; var s = mon[l.dataset.m];
+ download(s.name, ['服务名称：' + s.name, '版本号：' + s.ver, '业务端口号：' + s.port, '服务状态：' + (bad(s) ? '异常（' + bad(s) + '）' : '正常'), '', '[' + now() + '] ' + (bad(s) ? '[ERROR] ' + s.name + ' ' + bad(s) : '[INFO] ' + s.name + ' 运行正常')]);
+});
+// ---------- 弹窗 ----------
+function modal(title, html, btns, closable) {
+ $('mT').textContent = title; $('mB').innerHTML = html;
+ $('mF').innerHTML = btns.map(function (b, i) { return '' + b.t + ''; }).join('');
+ $('mF').onclick = function (e) { var b = e.target.closest('[data-b]'); if (!b) return; var bb = btns[b.dataset.b], f = bb.fn; if (!bb.keep) closeModal(); if (f) f(); };
+ $('mX').style.display = closable === false ? 'none' : ''; $('mask').classList.add('open'); closePop();
+}
+function closeModal() { $('mask').classList.remove('open'); }
+$('mX').onclick = closeModal;
+// ---------- 所有服务重启 ----------
+$('btnRestart').onclick = function () {
+ if (timer) return;
+ $('mBox').style.width = '440px';
+ modal('提示', '!重启期间所有业务暂时不可用，是否确认重启所有服务？
+', [{ t: '取消', ghost: 1 }, { t: '确定', fn: startRestart }]);
+};
+function lg(s, m) { s.log.push('[' + now() + '] ' + m); }
+function render() {
+ var okN = list.filter(function (s) { return s.st === 'ok'; }).length;
+ $('tb').innerHTML = list.map(function (s, i) {
+ return '' + (i + 1) + '' + s.name + '' + ST[s.st] + '' + (s.st === 'wait' ? '-' : s.t + '秒') + '' + s.retry + '' +
+ (s.st === 'wait' ? '-' : '查看') + '
+';
+ }).join('');
+ $('cnt').textContent = '启动服务：' + okN + '/' + list.length;
+ var pct = list.length ? Math.round(okN * 100 / list.length) : 0;
+ $('pFill').style.width = pct + '%'; $('pPct').textContent = pct + '%';
+ $('pTxt').className = okN === list.length ? 'txt ok' : 'txt';
+ $('pTxt').textContent = okN === list.length ? '重启服务完成，总耗时：' + sec + '秒' : '重启服务执行耗时：' + sec + '秒，请您耐心等待';
+}
+function adv(c) {
+ if (c.st === 'wait') { if (sec = c.runT) { c.st = 'chk'; c.step = 0; lg(c, '[INFO] 启动完成，检测服务可用性'); }
+ else if (c.st === 'chk' && c.step >= c.chkT) {
+ if (c.fail > 0) { c.fail--; c.retry++; c.st = 'retry'; c.step = 0; lg(c, '[WARN] 检测不通过：服务健康检查超时；自动重启（第' + c.retry + '次）'); }
+ else { c.st = 'ok'; c.end = now(); lg(c, '[INFO] ' + c.name + ' 启动成功'); }
+ } else if (c.st === 'retry' && c.step >= 2) { c.st = 'run'; c.step = 0; lg(c, '[INFO] 重新启动 ' + c.name); }
+}
+function tick() {
+ sec++;
+ var left = list.filter(function (s) { return s.st !== 'ok'; });
+ if (!left.length) { clearInterval(timer); timer = null; render(); finish(); return; }
+ left.forEach(adv); render();
+}
+function startRestart() {
+ var retry = $('selRetry').value === '1';
+ list = svcs().map(function (s) { var p = SPD[s.i]; return { name: s.name, st: 'wait', t: 0, retry: 0, step: 0, delay: p[0], runT: p[1], chkT: p[2], fail: retry && (s.i === 4 || s.i === 7) ? 1 : 0, log: [] }; });
+ sec = 0; $('vMon').style.display = 'none'; $('vRun').style.display = 'block';
+ $('selDev').disabled = $('selGpu').disabled = $('selSt').disabled = true;
+ render(); timer = setInterval(tick, 1000 / Number($('selSpeed').value));
+}
+function finish() {
+ $('mBox').style.width = '440px';
+ modal('提示', '✓重启服务完成，总耗时 ' + sec + ' 秒，所有服务已启动成功。
+', [{ t: '确定', fn: backMon }], false);
+}
+function backMon() { $('vRun').style.display = 'none'; $('vMon').style.display = 'block'; $('selDev').disabled = $('selSt').disabled = false; $('selSt').value = '0'; renderMon(); }
+$('selSpeed').onchange = function () { if (timer) { clearInterval(timer); timer = setInterval(tick, 1000 / Number(this.value)); } };
+$('tb').addEventListener('mousedown', function (e) { if (e.button !== 0) return;
+ var l = e.target.closest('.lnk'); if (!l) return; var s = list[l.dataset.i];
+ var res = s.st === 'ok' ? '启动成功' : (s.st === 'retry' ? '检测不通过，重试中' : '未完成（' + ST[s.st] + '）');
+ download(s.name, ['服务名称：' + s.name, '开始时间：' + (s.begin || '-'), '结束时间：' + (s.end || '未结束'), '执行耗时：' + s.t + '秒', '重启次数：' + s.retry, '执行结果：' + res, '', '---------- 执行明细 ----------'].concat(s.log));
+});
+// ---------- 基础服务详情 ----------
+var DTL = [
+ ['存储服务', [['存储类型', 'minio'], ['文件过期时间', '36000秒'], ['存储桶名称', 'dock'], ['区域', 'cn-shanghai'], ['SecretKey', 'Zwhk@2024#A'], ['AccessKey', 'root'],
+ ['网页Endpoint地址', 'https://172.16.1.144'], ['网页端口', '443'], ['设备Endpoint地址', 'http://172.16.1.144'], ['素材端口', '9000'], ['容器Endpoint地址', 'http://minio'], ['容器Endpoint地址端口', '9000']]],
+ ['通信服务', [['账户名', 'admin'], ['账号密码', 'b#8x75En'], ['wssUrl', 'wss://172.16.1.144:443/mqtt'], ['tcpUrl', 'tcp://172.16.1.144'], ['tcpUrl端口', '1883'], ['服务内部tcpUrl', 'emqx'], ['服务内部tcpUrl端口', '1883']]],
+ ['视频服务', [['地址端口', '172.16.1.144'], ['端口', '443'], ['密钥', 'f6KQfMaXkiAJHJSEEW0F5VcrZgF9hf6T'], ['应用名称', 'zwhk-prod'], ['回放地址', '172.16.1.144'], ['回放地址端口', '443'],
+ ['推流服务地址', '172.16.1.144'], ['推流服务端口', '11935'], ['rtc拉流端口', '18000'], ['rtsp拉流端口', '11554']]],
+ ['时序服务', [['ntp服务', '172.16.1.144']]]
+];
+function esc(t) { return String(t).replace(/&/g, '&amp;').replace(//g, '&gt;'); }
+function dtlText() { return DTL.map(function (g) { return g[0] + '\n' + g[1].map(function (r) { return r[0] + '：' + r[1]; }).join('\n'); }).join('\n\n'); }
+function copyText(t) {
+ function fb() { var ta = document.createElement('textarea'); ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); var ok = false; try { ok = document.execCommand('copy'); } catch (e) {} ta.remove(); toast(ok ? '已复制全部内容' : '复制失败，请手动选中复制'); }
+ if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(t).then(function () { toast('已复制全部内容'); }, fb); else fb();
+}
+$('btnDetail').onclick = function () {
+ $('mBox').style.width = '620px';
+ modal('基础服务详情', '' + DTL.map(function (g) { return '' + g[0] + '
+' + g[1].map(function (r) { return '' + esc(r[0]) + '' + esc(r[1]) + '
+'; }).join(''); }).join('') + '
+',
+ [{ t: '全部复制', ghost: 1, fn: function () { copyText(dtlText()); }, keep: 1 }, { t: '关闭' }]);
+};
+function toast(msg) { var t = $('toast'); t.textContent = msg; t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(function () { t.style.display = 'none'; }, 1800); }
+// ---------- 返回 / 离开 ----------
+function leave() { if (timer) { toast('重启服务进行中，请稍候'); return; } location.href = 'home.html'; }
+$('btnBack').onclick = leave; $('goHome').onclick = leave;
+window.addEventListener('beforeunload', function (e) { if (timer) { e.preventDefault(); e.returnValue = ''; } });
+$('selGpu').onchange = function () { if ($('selDev').value === 'pro') gpuPick = $('selGpu').value; renderMon(); };
+$('selDev').onchange = $('selSt').onchange = renderMon;
+// ---------- PRD 标注弹层 ----------
+var curDot = null;
+function closePop() { $('pop').classList.remove('show'); if (curDot) curDot.classList.remove('open'); curDot = null; }
+function openPop(btn) {
+ var n = NOTES[btn.dataset.note]; if (!n) return;
+ closePop(); curDot = btn; btn.classList.add('open');
+ $('popT').textContent = btn.textContent + '. ' + n.title;
+ $('popB').innerHTML = n.items.map(function (it) { return '' + it.ver + '' + it.tag + '' + it.html + '
+'; }).join('');
+ var pop = $('pop'); pop.classList.add('show');
+ var r = btn.getBoundingClientRect(), sx = window.scrollX, sy = window.scrollY, vw = document.documentElement.clientWidth;
+ var left = r.right + sx + 10;
+ if (left + pop.offsetWidth > sx + vw - 12) left = Math.max(sx + 12, r.left + sx - pop.offsetWidth - 10);
+ pop.style.left = left + 'px'; pop.style.top = (r.top + sy) + 'px';
+}
+document.addEventListener('click', function (e) {
+ var d = e.target.closest('.dot');
+ if (d) { e.preventDefault(); e.stopPropagation(); curDot === d ? closePop() : openPop(d); return; }
+ if (!e.target.closest('#pop')) closePop();
+}, true);
+$('popX').onclick = closePop;
+$('swDots').onclick = function () { this.classList.toggle('off'); document.body.classList.toggle('hide-dots', this.classList.contains('off')); closePop(); };
+renderMon();

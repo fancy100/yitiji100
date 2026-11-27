@@ -1,0 +1,105 @@
+
+运维中心 · 重置
+运维中心
+⌂功能入口
+Aadmin ⌄
+←重置
+ 重置后所有业务数据、应用数据，回归出厂设置，
+若是要继续使用需要您重新激活，建议提前备份数据信息。
+重启预计10分钟，请耐心等待1
+ 回归出厂设置2
+✕
+ ✕
+ PRD 标注
+ 重置结果 成功失败
+function $(id) { return document.getElementById(id); }
+var RK = 'yw_resetting', DUR = 9000;
+function toast(m, bad) { var t = $('toast'); t.textContent = m; t.className = 'toast' + (bad ? ' bad' : ''); t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(function () { t.style.display = 'none'; }, 2200); }
+function getRun() { try { var r = JSON.parse(localStorage.getItem(RK)); return r && r.end ? r : null; } catch (e) { return null; } }
+/* ---------- 弹窗 ---------- */
+var locked = false, done = false;
+function modal(t, b, btns, noHead) {
+ $('mHd').style.display = noHead ? 'none' : ''; $('mT').textContent = t || ''; $('mB').innerHTML = b; $('mF').innerHTML = ''; $('mF').style.display = btns && btns.length ? '' : 'none';
+ (btns || []).forEach(function (x) { var e = document.createElement('button'); e.className = 'btn' + (x.ghost ? ' ghost' : ''); e.textContent = x.t; e.onclick = function () { closeM(); if (x.fn) x.fn(); }; $('mF').appendChild(e); });
+ $('mask').classList.add('open');
+}
+function closeM() { $('mask').classList.remove('open'); }
+$('mX').onclick = function () { if (!locked) closeM(); };
+/* ---------- 其他任务进行中时不能重置 ---------- */
+function busyMsg() {
+ var u = [['yf_upgrade', '翼飞平台'], ['yw_upgrade', '运维中心']], m = '';
+ u.forEach(function (k) { try { var x = JSON.parse(localStorage.getItem(k[0])); if (!m && x && x.run && x.run.state === 'run') m = k[1] + '系统正在更新中，请稍后再重置'; } catch (e) {} });
+ if (m) return m;
+ try { var b = JSON.parse(localStorage.getItem('yw_backup')); if (b && b.run && Date.now() - (b.run.t0 || 0) !请确认
+初始化将清除所有数据，请确认是否继续？
+',
+ [{ t: '取 消', ghost: true }, { t: '确 定', fn: start }], true);
+}
+function start() {
+ var m = busyMsg(); if (m) { toast(m, 1); return; }
+ var n = Date.now(), res = $('selRes').value;
+ localStorage.setItem(RK, JSON.stringify({ t0: n, end: n + (res === 'ok' ? DUR : DUR * .6), res: res }));
+ showRun();
+}
+function showRun() {
+ locked = true; $('btnReset').disabled = true;
+ modal('', '↑
+重置进行中
+正在初始化数据，请勿关闭页面或断电
+', [], true);
+ tick();
+}
+function tick() {
+ var r = getRun(); if (!r) { if (locked && !done) location.reload(); return; }
+ var now = Date.now();
+ if ($('rsFill')) $('rsFill').style.width = Math.min(99, Math.floor((now - r.t0) / DUR * 100)) + '%';
+ if (now >= r.end) finish(r);
+}
+function finish(r) {
+ done = true;
+ localStorage.removeItem(RK); locked = false; $('btnReset').disabled = false;
+ if (r.res !== 'ok') {
+ modal('重置失败', '回归出厂设置失败
+失败原因：数据初始化出错，系统数据未改动。
+请稍后重试，或联系运维人员。', [{ t: '知道了' }]);
+ return;
+ }
+ /* 回归出厂设置：清除业务数据和配置，回到未激活 */
+ Object.keys(localStorage).forEach(function (k) { if (/^(yw_stepd|yw_device_id|yw_mqtt_pwd|initProjName|yw_backup|yw_restore|yw_restoring|yw_rs_data|yf_upgrade|yw_upgrade|up_plat)$/.test(k)) localStorage.removeItem(k); });
+ localStorage.setItem('yw_demo_act', '0');
+ locked = true;
+ modal('', '↑
+重置完成
+3 秒后进入运维中心，请重新激活
+', [], true);
+ var c = 3, h = setInterval(function () { c--; if ($('rsCd')) $('rsCd').textContent = c + ' 秒后进入运维中心，请重新激活'; if (c 点击「回归出厂设置」，弹窗「请确认」：初始化将清除所有数据，请确认是否继续？按钮「取消」「确定」。
+点击「确定」进入数据初始化状态，弹窗显示「重置进行中」，不能关闭，也不能离开页面。
+初始化完成后显示「重置完成」，随后跳转到运维中心首页，状态为未激活：只有「激活」可用，其他模块置灰，需要重新激活。
+恢复出厂设置要求所有数值回归默认状态，包括可以恢复设备激活码 + 云联密钥。
+升级、备份、复原进行中时不能重置，点击会提示原因。
+重置失败时弹窗提示原因，系统数据不改动。
+（演示：重置时长缩短为约 9 秒；演示栏「重置结果」可切换成功 / 失败。）']
+};
+var dotsOn = localStorage.getItem('yw_dots') !== '0';
+function syncDots() { $('swDots').classList.toggle('off', !dotsOn); document.querySelectorAll('.dot').forEach(function (d) { d.style.display = dotsOn ? '' : 'none'; }); if (!dotsOn) $('pop').style.display = 'none'; }
+function openNote(btn) {
+ var n = NOTES[btn.getAttribute('data-note')] || ['说明', '（待补充）'], p = $('pop'), rc = btn.getBoundingClientRect();
+ $('popT').textContent = n[0]; $('popB').innerHTML = n[1]; p.style.display = 'block'; p.style.position = 'fixed';
+ p.style.left = Math.max(10, Math.min(window.innerWidth - p.offsetWidth - 10, rc.right + 8)) + 'px';
+ p.style.top = Math.max(10, Math.min(window.innerHeight - p.offsetHeight - 10, rc.top)) + 'px';
+}
+document.addEventListener('click', function (e) {
+ var t = e.target;
+ if (t.classList.contains('dot')) { e.stopPropagation(); openNote(t); return; }
+ if (!t.closest('#pop')) $('pop').style.display = 'none';
+});
+$('popX').onclick = function () { $('pop').style.display = 'none'; };
+$('swDots').onclick = function () { dotsOn = !dotsOn; localStorage.setItem('yw_dots', dotsOn ? '1' : '0'); syncDots(); };
+/* ---------- 事件 / 初始化 ---------- */
+$('btnReset').onclick = ask;
+$('goHome').onclick = $('btnBack').onclick = function () { if (getRun() || locked) { toast('重置进行中，请勿离开页面', 1); return; } location.href = 'home.html'; };
+window.addEventListener('beforeunload', function (e) { if (getRun()) { e.preventDefault(); e.returnValue = ''; } });
+setInterval(tick, 300);
+syncDots();
+if (getRun()) showRun();
+else if (localStorage.getItem('yw_demo_act') === '0') location.replace('home.html?act=0');

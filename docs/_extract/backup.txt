@@ -1,0 +1,219 @@
+
+运维中心 · 备份
+运维中心
+⌂功能入口
+Aadmin ⌄
+←备份
+ 自动备份手动备份1
+ i当前版本：P1.5.0；剩余空间：↻
+ 自动备份
+2
+ 自动备份时间每 日 3
+ 备份内容
+ 基础数据
+ 飞行数据
+ 成果数据4
+ 备份文件方式
+ 本地备份?备份文件只保存在云盒本地磁盘，占用本地剩余空间。
+ 本地备份+云端备份?本地保存一份，同时上传一份到云端对象存储。需要填写下方的云端存储参数。
+ 5
+ *文件过期时间：
+ *存储桶名称：
+ *EndPoint地址：
+ CDN地址：
+ *AccessKeySecret：
+ *AccessKeyId：
+ 保存
+ 全量备份6
+ 序号导出数据大小状态备份时间操作
+ 备份数据7仅保留最近 5 份全量备份数据 + 自动备份数据备份记录
+ 序号备份数据备份方式备份内容备份大小备份时间操作8
+ 备份记录9
+ 序号备份数据备份方式备份类型数据存储备份大小备份时间备份耗时备份成功数据状态
+✕
+ ✕
+ PRD 标注
+ 备份结果 成功剩余空间不足网络异常任务中断
+ 速度 正常快进
+ 模拟触发自动备份
+ 重置演示
+function $(id) { return document.getElementById(id); }
+var KEY = 'yw_backup', VER = 'P1.5.0', PRJ = 'xhz';
+var PARTS = ['基础数据', '飞行数据', '成果数据'];
+var SIZE = { '基础数据': 1.2, '飞行数据': 36.5, '成果数据': 58.3 };
+var REASON = { space: '剩余空间不足', net: '网络异常，云端上传失败', stop: '其他操作导致任务中断' };
+function pad(n) { return (n = 0; });
+ document.querySelectorAll('input[name=mode]').forEach(function (r) { r.checked = r.value === a.mode; });
+ ['exp', 'bucket', 'ep', 'cdn', 'sk', 'ak'].forEach(function (k) { $('c_' + k).value = a.cloud[k] || ''; $('c_' + k).classList.remove('err'); });
+ syncCloud(); nextTime();
+}
+function syncCloud() { var m = document.querySelector('input[name=mode]:checked'); $('cloud').style.display = m && m.value === 'both' ? '' : 'none'; }
+function nextTime() {
+ if (!st.auto.on) { $('nextT').textContent = ''; return; }
+ var days = Math.max(1, +$('fDays').value || 1), tm = ($('fTime').value || '02:00').split(':');
+ var last = st.recs.filter(function (r) { return r.way === '自动备份'; }).pop();
+ var base = new Date(last ? last.time : Date.now()); base.setDate(base.getDate() + days); base.setHours(+tm[0], +tm[1], 0, 0);
+ $('nextT').textContent = '下次备份时间：' + fmtD(base);
+}
+/* ---------- 列表渲染 ---------- */
+function alive() { return st.recs.filter(function (r) { return r.ok && r.status === '存在'; }); }
+function lastMan(n) { var a = alive().filter(function (r) { return r.way === '手动备份' && cName(r.content) === n; }); return a[a.length - 1]; }
+function renderData() {
+ var list = alive().slice().reverse(), h = '';
+ list.forEach(function (r, i) {
+ h += '' + (i + 1) + '' + r.name + '' + r.way + '' + cName(r.content) + '' + r.size + 'GB' + fmtD(r.time) + '' +
+ '删除还原数据下载
+';
+ });
+ $('tbData').innerHTML = h || '暂无备份数据
+';
+}
+function renderMan() {
+ var rows = [['全量数据', PARTS]].concat(PARTS.map(function (p) { return [p, [p]]; })), h = '';
+ rows.forEach(function (x, i) {
+ var m = lastMan(x[0]), running = st.run && st.run.kind === 'man' && cName(st.run.content) === x[0];
+ var s = running ? '备份中' : m ? '已备份' : '未备份';
+ h += '' + (i + 1) + '' + x[0] + '' + (m ? m.size + 'GB' : '—') + '' + s + '' + (m ? fmtD(m.time) : '—') + '' +
+ '备份' + (m ? '下载' : '下载') + '
+';
+ });
+ $('tbMan').innerHTML = h;
+}
+function renderRec() {
+ var h = '';
+ st.recs.slice().reverse().forEach(function (r, i) {
+ h += '' + (i + 1) + '' + r.name + '' + r.way + '' + (isFull(r.content) ? '全量备份' : '部分备份') + '' + r.store + '' + (r.ok ? r.size + 'GB' : '—') + '' + fmtD(r.time) + '' + fmtDur(r.dur) + '' +
+ '' + (r.ok ? '成功' : '失败：' + r.reason + '') + '' + r.status + '
+';
+ });
+ $('tbRec').innerHTML = h || '暂无备份记录
+';
+}
+function render() { $('space').textContent = st.space.toFixed(2) + 'GB'; if (view === 'rec') renderRec(); else { renderData(); renderMan(); } nextTime(); }
+/* ---------- 备份执行 ---------- */
+var timer = null;
+function spinHtml(txt, pct) { return '◌
+' + txt + '
+' + pct + '%
+'; }
+function startBk(kind, c) {
+ var rs = +localStorage.getItem('yw_restoring') || 0, rr = null; try { rr = (JSON.parse(localStorage.getItem('yw_restore')) || {}).run; } catch (e) {} if ((rs && Date.now() - rs st.space) st.run.res = 'space';
+ save(); render();
+ modal('备份中', spinHtml('正在备份「' + cName(c) + '」，请勿关闭页面…', 0), [{ t: '后台运行', ghost: true }]);
+ tick();
+}
+function tick() {
+ clearTimeout(timer);
+ var r = st.run; if (!r) return;
+ var failAt = r.res === 'ok' ? 101 : r.res === 'stop' ? 40 : r.res === 'net' ? 85 : 20;
+ r.pct = Math.min(100, r.pct + 4 * (+$('selSpd').value || 1));
+ if ($('spFill')) { $('spFill').style.width = r.pct + '%'; $('spPct').textContent = r.pct + '%'; }
+ if (r.pct >= failAt) return endBk(false);
+ if (r.pct >= 100) return endBk(true);
+ save(); timer = setTimeout(tick, 300);
+}
+function endBk(ok) {
+ var r = st.run, way = r.kind === 'auto' ? '自动备份' : '手动备份';
+ var net = r.res === 'net'; if (net) ok = true; var mode = r.mode || st.auto.mode;
+ var store = net ? '本地（云端上传失败）' : r.kind === 'auto' && mode === 'both' ? '本地+云端' : '本地';
+ var rec = mkRec(Date.now(), way, r.content, ok, ok ? '' : REASON[r.res], store);
+ rec.dur = Math.max(5, Math.round((Date.now() - r.t0) / 1000));
+ st.recs.push(rec); st.run = null;
+ if (ok) {
+ st.space = Math.max(0, st.space - rec.size);
+ if (r.kind === 'man') st.man[cName(r.content)] = { time: rec.time, size: rec.size };
+ var fulls = alive().filter(function (x) { return isFull(x.content) && x.way === '手动备份'; });
+ while (fulls.length > 5) { var o = fulls.shift(); o.status = '系统删除'; st.space += o.size; }
+ }
+ save(); render(); closeM();
+ if (net) { modal('云端上传失败', '「' + cName(r.content) + '」已备份到本地，大小 ' + rec.size + 'GB。
+上传云端失败：网络异常，请检查网络和云端存储参数。', [{ t: '确定' }]); return; }
+ if (ok) modal('备份成功', '✔
+「' + cName(r.content) + '」备份完成，大小 ' + rec.size + 'GB
+', [{ t: '确定' }]);
+ else modal('备份失败', '「' + cName(r.content) + '」备份失败
+失败原因：' + REASON[r.res] + (r.res === 'space' ? '
+请清理磁盘或删除旧的备份数据后重试。' : r.res === 'net' ? '
+本地备份已保留，请检查网络后重试云端上传。' : '
+请勿在备份过程中进行升级、还原、重置等操作。'), [{ t: '关闭', ghost: true }, { t: '重新备份', fn: function () { startBk(r.kind, r.content); } }]);
+}
+/* ---------- 删除 / 还原 / 下载 ---------- */
+function findRec(id) { return st.recs.filter(function (r) { return r.id === +id; })[0]; }
+function delRec(id) {
+ var r = findRec(id); if (!r || r.status !== '存在') return;
+ if (restoring) { toast('还原进行中，暂不能删除', 1); return; }
+ modal('删除确认', '确定删除备份数据「' + r.name + '」吗？
+删除后不可恢复。', [{ t: '取消', ghost: true }, { t: '删除', fn: function () {
+ if (r.status !== '存在') return; r.status = '手动删除'; st.space += r.size; save(); render(); toast('已删除');
+ } }]);
+}
+var rtimer = null, restoring = false;
+function restoreRec(id) {
+ var r = findRec(id); if (!r) return;
+ if (st.run || restoring) { toast('有备份或还原任务进行中，请稍后', 1); return; }
+ modal('还原数据', '备份数据：' + r.name + '
+系统版本：' + VER + '　项目：' + PRJ + '
+备份时间：' + fmtD(r.time) + '
+备份内容：' + cName(r.content) +
+ '
+还原会覆盖系统中对应的数据，还原期间请勿进行升级、备份、重置等操作。是否继续？
+',
+ [{ t: '取消', ghost: true }, { t: '确认还原', fn: function () { setTimeout(function () { runRestore(r); }, 0); } }]);
+}
+function runRestore(r) {
+ restoring = true; var pct = 0;
+ modal('恢复中', spinHtml('正在恢复「' + cName(r.content) + '」，请勿关闭页面…', 0), []);
+ (function step() {
+ pct = Math.min(100, pct + 5 * (+$('selSpd').value || 1));
+ if ($('spFill')) { $('spFill').style.width = pct + '%'; $('spPct').textContent = pct + '%'; }
+ if (pct ✔
+「' + cName(r.content) + '」已恢复到系统中
+', [{ t: '确定' }]);
+ })();
+}
+function dlRec(name) { toast('开始下载：' + name); }
+/* ---------- PRD 标注 ---------- */
+var NOTES = {
+ tab: ['页签与空间', '分「自动备份」「手动备份」两个页签。顶部显示当前系统版本和本地剩余空间，点 ↻ 重新读取剩余空间。'],
+ auto: ['自动备份开关', '默认开启。关闭后下方配置置灰不可编辑，系统不再自动备份。'],
+ time: ['自动备份时间', '每 N 日（1–30）在指定时间点执行一次。右侧显示下次备份时间 = 上次自动备份时间 + N 日。'],
+ content: ['备份内容', '基础数据影响系统运行，为必选项，不可取消；飞行数据、成果数据可选。'],
+ mode: ['备份文件方式', '本地备份：只存云盒本地。本地+云端：本地存一份，同时上传云端对象存储，需填写存储参数，带 * 为必填，保存时校验。云端上传失败时本地备份仍保留。'],
+ manual: ['手动备份', '「全量备份」= 基础 + 飞行 + 成果数据；也可在列表中单独备份某一类。备份中弹出进度，可点「后台运行」关闭弹窗；同一时间只允许一个备份任务。剩余空间不足时直接失败。'],
+ data: ['备份数据', '列出现存的成功备份。手动全量备份最多保留 5 份，超出时系统自动删除最早的一份（记录状态为「系统删除」）。'],
+ op: ['操作', '删除：二次确认，状态记为「手动删除」并释放空间。还原数据：确认备份信息后覆盖系统数据，显示恢复进度。下载：下载 zip 包到本地。'],
+ rec: ['备份记录', '记录每次备份，包括失败的。失败原因：剩余空间不足 / 网络异常 / 其他操作导致任务中断。数据状态：存在 / 系统删除 / 手动删除。']
+};
+NOTES.ops = NOTES.op;
+var dotsOn = localStorage.getItem('yw_dots') !== '0';
+function syncDots() { $('swDots').classList.toggle('off', !dotsOn); document.querySelectorAll('.dot').forEach(function (d) { d.style.display = dotsOn ? '' : 'none'; }); if (!dotsOn) $('pop').style.display = 'none'; }
+function openNote(btn) {
+ var n = NOTES[btn.getAttribute('data-note')] || ['说明', '（待补充）'], p = $('pop'), rc = btn.getBoundingClientRect();
+ $('popT').textContent = n[0]; $('popB').innerHTML = n[1]; p.style.display = 'block';
+ var left = Math.min(window.innerWidth - p.offsetWidth - 10, rc.right + 8);
+ p.style.position = 'fixed'; p.style.left = Math.max(10, left) + 'px'; p.style.top = Math.min(window.innerHeight - p.offsetHeight - 10, rc.top) + 'px';
+}
+/* ---------- 事件 ---------- */
+document.addEventListener('click', function (e) {
+ var t = e.target, a;
+ if (t.classList.contains('dot')) { e.stopPropagation(); openNote(t); return; }
+ if ((a = t.getAttribute('data-tab'))) { setTab(a); return; }
+ if ((a = t.getAttribute('data-del'))) { delRec(a); return; }
+ if ((a = t.getAttribute('data-rs'))) { restoreRec(a); return; }
+ if ((a = t.getAttribute('data-dl'))) { var r = findRec(a); if (r) dlRec(r.name); return; }
+ if ((a = t.getAttribute('data-bk'))) { startBk('man', a === '全量数据' ? PARTS : [a]); return; }
+ if ((a = t.getAttribute('data-mdl'))) { var lm = lastMan(a); if (lm) dlRec(lm.name); return; }
+});
+$('popX').onclick = function () { $('pop').style.display = 'none'; };
+$('swDots').onclick = function () { dotsOn = !dotsOn; localStorage.setItem('yw_dots', dotsOn ? '1' : '0'); syncDots(); };
+$('btnFull').onclick = function () { startBk('man', PARTS); };
+$('btnRec').onclick = function () { show('rec'); };
+$('btnBack').onclick = function () { if (view === 'rec') show('main'); else location.href = 'home.html'; };
+$('goHome').onclick = function () { location.href = 'home.html'; };
+$('btnRf').onclick = function () { render(); toast('剩余空间已刷新'); };
+$('swAuto').onclick = function () { st.auto.on = !st.auto.on; save(); fillAuto(); toast(st.auto.on ? '已开启自动备份' : '已关闭自动备份'); };
+$('fDays').oninput = $('fTime').oninput = nextTime;
+document.querySelectorAll('input[name=mode]').forEach(function (r) { r.onchange = syncCloud; });
+$('btnSave').onclick = function () {
+ var days = +$('fDays').value;
+ if (!(days >= 1 && days 

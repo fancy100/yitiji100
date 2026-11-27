@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>运维中心 · 初始化 · 可选服务配置</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; font-size: 14px; color: #333; background: #eef0f3; }
+  .topbar { height: 50px; background: #1a6cfb; color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; }
+  .topbar .logo { font-size: 18px; }
+  .topbar .right { display: flex; align-items: center; gap: 28px; }
+  .topbar .entry, .topbar .user { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+  .topbar .ico { width: 26px; height: 26px; border-radius: 50%; background: #fff; color: #1a6cfb; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; }
+  .titlebar { height: 42px; background: #fff; display: flex; align-items: center; padding: 0 22px; border-bottom: 1px solid #eee; }
+  .titlebar .back { font-size: 18px; margin-right: 18px; cursor: pointer; }
+  .titlebar h1 { font-size: 17px; font-weight: bold; }
+  .steps { background: #fff; display: flex; height: 56px; border-bottom: 1px solid #e6e6e6; }
+  .step { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; color: #999; position: relative; font-size: 15px; }
+  .step:not(:last-child)::after { content: "›"; position: absolute; right: 0; font-size: 22px; color: #bbb; }
+  .step .num { width: 30px; height: 30px; border-radius: 50%; background: #f0f0f0; color: #666; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+  .step.done { color: #333; }
+  .step.done .num, .step.active .num { background: #1a6cfb; color: #fff; }
+  .step.active { color: #333; border-bottom: 2px solid #1a6cfb; }
+  .card { max-width: 1320px; margin: 20px auto 30px; background: #fff; padding: 30px 0 40px; }
+  .wrap { width: 760px; margin: 0 auto; }
+  .row { display: flex; align-items: flex-start; margin-bottom: 16px; }
+  .row label.lb { width: 130px; text-align: right; padding: 7px 10px 0 0; flex-shrink: 0; }
+  .req { color: #e4393c; margin-right: 3px; }
+  .row .ctrl { flex: 1; position: relative; max-width: 480px; }
+  .hint { color: #999; font-size: 12px; margin-top: 4px; line-height: 1.6; }
+  .warn { color: #e4393c; font-size: 12px; margin-top: 6px; line-height: 1.6; }
+  input[type=text], input[type=password] { width: 100%; height: 34px; border: 1px solid #d9d9d9; border-radius: 4px; padding: 0 10px; font-size: 14px; outline: none; }
+  input:focus { border-color: #1a6cfb; }
+  input.ro, input[readonly] { background: #f0f0f0; color: #777; cursor: not-allowed; }
+  input.bad, .opts.bad, .ntbl.bad { border-color: #e4393c !important; outline: 1px solid #e4393c; }
+  .err { color: #e4393c; font-size: 12px; margin-top: 4px; }
+  .btn { height: 36px; padding: 0 30px; border-radius: 4px; border: none; background: #1a6cfb; color: #fff; font-size: 14px; cursor: pointer; }
+  .btn:hover { background: #3d82ff; }
+  .btn:disabled, .btn:disabled:hover { background: #f0f0f0; color: #bbb; border: 1px solid #ddd; cursor: not-allowed; }
+  .btn.ghost { background: #fff; color: #333; border: 1px solid #d9d9d9; }
+  .btn.ghost:hover { color: #1a6cfb; border-color: #1a6cfb; }
+  .btn.light { background: #d6ecff; color: #1a6cfb; }
+  .footer { margin-top: 30px; display: flex; justify-content: center; gap: 12px; align-items: center; }
+  /* 云端资源授权码 */
+  .auth { background: #f5f6f8; border-radius: 4px; padding: 20px 20px 16px; margin-bottom: 20px; position: relative; }
+  .auth .line { display: flex; gap: 12px; align-items: flex-start; }
+  .auth .line .ctrl { flex: 1; }
+  .auth .vbtn { text-align: center; margin-top: 14px; }
+  .quota { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px 20px; background: #fff; border-radius: 4px; padding: 16px 24px; margin-top: 16px; }
+  .quota .k { color: #555; font-size: 13px; }
+  .quota .v { margin-top: 4px; }
+  .quota .v b { color: #1a6cfb; font-size: 22px; margin-right: 10px; }
+  .quota .v span { color: #666; font-size: 12px; }
+  .quota .zero b { color: #bbb; }
+  /* 服务模块 */
+  .mod { margin-bottom: 14px; }
+  .mhead { height: 38px; border-radius: 6px; background: linear-gradient(90deg, #1a6cfb, #6aa6ff 50%, #e3eeff); color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 14px; font-weight: bold; font-size: 15px; }
+  .mhead .ttl { display: flex; align-items: center; }
+  .mhead .ttl::before { content: "//"; margin-right: 8px; font-style: italic; }
+  .sw { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px; font-weight: normal; color: #1a6cfb; background: #fff; border-radius: 10px; padding: 2px 3px 2px 8px; }
+  .sw i { width: 16px; height: 16px; border-radius: 50%; background: #1a6cfb; }
+  .sw.off { color: #999; flex-direction: row-reverse; padding: 2px 8px 2px 3px; background: #ddd; }
+  .sw.off i { background: #fff; }
+  .mbody { padding: 16px 0 4px; }
+  .opts { display: flex; gap: 14px; flex: 1; max-width: 560px; border-radius: 4px; }
+  .opt { flex: 1; border: 1px solid #c8c8c8; border-radius: 4px; padding: 8px 12px; cursor: pointer; background: #fff; }
+  .opt .t { display: flex; align-items: center; gap: 6px; }
+  .opt .t::before { content: ""; width: 12px; height: 12px; border: 1px solid #999; border-radius: 50%; flex-shrink: 0; }
+  .opt .s { font-size: 12px; color: #888; margin-top: 6px; }
+  .opt.on { border-color: #1a6cfb; background: #e8f1ff; }
+  .opt.on .t::before { border: 4px solid #1a6cfb; width: 6px; height: 6px; }
+  .opt.dis { background: #f5f5f5; color: #bbb; cursor: not-allowed; border-style: dashed; }
+  .opt.dis .s { color: #ccc; }
+  .ntbl { width: 480px; border-collapse: collapse; margin: 6px 0 0 130px; font-size: 13px; }
+  .ntbl th, .ntbl td { border: 1px solid #ccc; padding: 7px 8px; text-align: center; }
+  .ntbl th { background: #fafafa; font-weight: normal; }
+  .ntbl label { margin: 0 8px; cursor: pointer; }
+  .nbtn { margin: 6px 0 10px 130px; }
+  /* PRD 标注点 */
+  .dot { position: absolute; right: -32px; top: 8px; width: 20px; height: 20px; border-radius: 50%; background: #ff7a00; color: #fff; font-size: 11px; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 5; border: none; animation: pulse 1.8s infinite; }
+  .dot.inline { position: relative; right: auto; top: auto; display: inline-flex; margin-left: 10px; }
+  .dot.open { background: #1a6cfb; animation: none; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255,122,0,.55); } 70% { box-shadow: 0 0 0 9px rgba(255,122,0,0); } 100% { box-shadow: 0 0 0 0 rgba(255,122,0,0); } }
+  body.hide-dots .dot { display: none !important; }
+  .pop { position: absolute; width: 720px; max-width: calc(100vw - 24px); background: #fff; border-radius: 6px; box-shadow: 0 6px 24px rgba(0,0,0,.18); z-index: 50; font-size: 13px; line-height: 1.7; display: none; }
+  .pop.show { display: block; }
+  .pop .hd { padding: 10px 14px; border-bottom: 1px solid #eee; font-weight: bold; display: flex; justify-content: space-between; }
+  .pop .hd .close { cursor: pointer; color: #999; font-weight: normal; }
+  .pop .bd { padding: 10px 14px 12px; max-height: 460px; overflow: auto; }
+  .note { padding: 8px 10px; border-radius: 4px; margin-bottom: 8px; background: #fff6c2; border-left: 3px solid #ffdf25; }
+  .note:last-child { margin-bottom: 0; }
+  .note .tag { display: inline-block; font-size: 11px; padding: 0 6px; border-radius: 3px; margin-right: 6px; background: rgba(255,255,255,.75); }
+  .note .ver { float: right; font-size: 11px; color: #888; }
+  .note table { width: 100%; border-collapse: collapse; margin-top: 6px; background: #fff; font-size: 12px; line-height: 1.5; }
+  .note th, .note td { border: 1px solid #e3d98a; padding: 4px 6px; text-align: left; vertical-align: top; }
+  .note th { background: #fff1a8; white-space: nowrap; }
+  .ctrl-panel { position: fixed; left: 20px; bottom: 20px; background: #fff; border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,.15); padding: 10px 14px; font-size: 13px; z-index: 60; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; max-width: 600px; }
+  .ctrl-panel select { height: 24px; font-size: 12px; }
+  .ctrl-panel .codes { width: 100%; color: #888; font-size: 12px; }
+  .switch { position: relative; width: 36px; height: 20px; background: #1a6cfb; border-radius: 10px; cursor: pointer; }
+  .switch::after { content: ""; position: absolute; left: 18px; top: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; }
+  .switch.off { background: #ccc; }
+  .switch.off::after { left: 2px; }
+  .toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,.78); color: #fff; padding: 10px 22px; border-radius: 4px; display: none; z-index: 99; max-width: 620px; text-align: center; }
+  .toast.bad { background: #fff1f0; color: #e4393c; border: 1px solid #ffa39e; }
+  .mask { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none; align-items: center; justify-content: center; z-index: 80; }
+  .mask.open { display: flex; }
+  .modal { background: #fff; border-radius: 6px; width: 420px; box-shadow: 0 8px 30px rgba(0,0,0,.25); }
+  .modal .mhd { padding: 14px 20px; border-bottom: 1px solid #eee; font-weight: bold; font-size: 15px; display: flex; justify-content: space-between; }
+  .modal .mhd .close { cursor: pointer; color: #999; font-weight: normal; }
+  .modal .mbd { padding: 18px 20px; line-height: 1.8; }
+  .modal .mft { padding: 10px 20px 16px; text-align: right; }
+  .bk-mask { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none; align-items: center; justify-content: center; z-index: 200; }
+  .bk-mask.open { display: flex; }
+  .bk-modal { width: 420px; background: #fff; border-radius: 6px; box-shadow: 0 6px 24px rgba(0,0,0,.2); color: #333; }
+  .bk-hd { padding: 14px 20px; border-bottom: 1px solid #eee; font-weight: bold; font-size: 15px; display: flex; justify-content: space-between; }
+  .bk-hd .bk-x { cursor: pointer; color: #999; font-weight: normal; }
+  .bk-bd { padding: 22px 20px; font-size: 14px; line-height: 1.7; }
+  .bk-ft { padding: 10px 20px 16px; text-align: right; }
+  .bk-ft button { min-width: 88px; height: 32px; margin-left: 10px; border-radius: 4px; cursor: pointer; font-size: 14px; }
+  .bk-ft .bk-ghost { background: #fff; border: 1px solid #d9d9d9; color: #333; }
+  .bk-ft .bk-ok { background: #1a6cfb; border: 1px solid #1a6cfb; color: #fff; }
+</style>
+</head>
+<body>
+<div class="topbar"><div class="logo">运维中心</div><div class="right"><div class="entry"><span class="ico">⌂</span>功能入口</div><div class="user"><span class="ico">A</span>admin ⌄</div></div></div>
+<div class="titlebar"><span class="back" onclick="openBack()" title="返回">←</span><h1>初始化</h1></div>
+<div class="steps">
+  <div class="step done"><span class="num">1</span>网络信息配置</div>
+  <div class="step done"><span class="num">2</span>设备激活配置</div>
+  <div class="step done"><span class="num">3</span>基础服务配置</div>
+  <div class="step done"><span class="num">4</span>项目信息配置</div>
+  <div class="step active"><span class="num">5</span>可选服务配置</div>
+  <div class="step"><span class="num">6</span>系统初始化</div>
+</div>
+
+<div class="card"><div class="wrap">
+  <!-- 云端资源授权码 -->
+  <div class="auth" id="auth">
+    <div class="row" style="margin-bottom:0"><label class="lb">云端资源授权码：</label>
+      <div class="ctrl" style="max-width:none"><div class="line"><div class="ctrl"><input type="text" id="code" placeholder="请输入云端资源授权码" maxlength="32"></div><button class="btn" id="btnReplace" style="display:none;padding:0 18px">替换授权码</button></div>
+        <div class="hint">云端服务需要联网验证</div><div class="err" id="codeErr"></div><button class="dot" data-note="code">1</button></div></div>
+    <div class="vbtn" id="vbtnWrap"><button class="btn" id="btnVerify" disabled style="padding:0 18px">验证授权码</button><button class="dot inline" data-note="verify">2</button></div>
+    <div id="quotaWrap" style="display:none">
+      <div class="quota" id="quota"></div>
+      <div class="hint" style="margin-top:10px;color:#666">提示：若是需要增加额度，可联系商务或者官方客服增加。<button class="dot inline" data-note="quota">3</button></div>
+    </div>
+  </div>
+
+  <div id="mods"></div>
+
+  <div class="footer"><button class="btn ghost" id="btnPrev">上一步</button><button class="btn" id="btnNext">暂存并下一步</button><button class="dot inline" data-note="save">9</button></div>
+</div></div>
+
+<div class="pop" id="pop"><div class="hd"><span id="popT"></span><span class="close" id="popX">✕</span></div><div class="bd" id="popB"></div></div>
+
+<div class="mask" id="mask"><div class="modal">
+  <div class="mhd"><span id="mT">提示</span><span class="close" id="mX">✕</span></div>
+  <div class="mbd" id="mB"></div>
+  <div class="mft" id="mF"></div>
+</div></div>
+
+<div class="ctrl-panel">
+  <span>PRD 标注</span><div class="switch" id="swDots"></div>
+  <span>必填验证</span><div class="switch" id="swVal" title="开启 / 关闭必填验证"></div>
+  <span>网络环境 <select id="selNet"><option value="1">已联网</option><option value="0">无网</option></select></span>
+  <span>本机 AI 硬件 <select id="selAiHw"><option value="1">已检测到</option><option value="0">未检测到</option></select></span>
+  <span>本地 ODM 建图 <select id="selOdm"><option value="1">已安装</option><option value="0">未安装</option></select></span>
+  <span>本地建模服务 <select id="sel3d"><option value="1">已安装</option><option value="0">未安装</option></select></span>
+  <span>独立服务接口 <select id="selApi"><option value="">全部通过</option><option value="ai">AI识别不通过</option><option value="m2d">二维建图不通过</option><option value="m3d">三维建模不通过</option><option value="cmp">AI比对不通过</option><option value="all">全部不通过</option></select></span>
+  <span>独立服务连接 <select id="selConn"><option value="ok">验证通过</option><option value="err">验证不通过</option></select></span>
+  <div class="codes">演示授权码：MYUWVYTV（同截图额度）、LMALL888（全部有额度）、LMZERO00（额度全为 0），其他输入视为无效</div>
+</div>
+<div class="bk-mask" id="bkMask"><div class="bk-modal">
+  <div class="bk-hd"><span>提示</span><span class="bk-x" id="bkX">✕</span></div>
+  <div class="bk-bd">您当前的修改内容未重启、未激活，若返回则不会保存，是否继续返回？</div>
+  <div class="bk-ft"><button class="bk-ghost" id="bkStay">继续填写</button><button class="bk-ok" id="bkGo">继续返回</button></div>
+</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ---------- 场景：激活流程（act） / 配置模块（cfg），由首页入口写入 ----------
+var INIT_CFG = (function () { try { var q = new URLSearchParams(location.search).get('mode'); if (q) sessionStorage.setItem('initMode', q); return sessionStorage.getItem('initMode') === 'cfg'; } catch (e) { return false; } })();
+var HOME_URL = INIT_CFG ? 'home.html?act=1' : 'home.html';
+if (INIT_CFG) {
+  document.querySelectorAll('.step').forEach(function (s) { var n = s.querySelector('.num'); if (n && n.textContent.trim() === '6') s.lastChild.textContent = '重启服务'; });
+  document.title = document.title.replace('· 初始化 ·', '· 配置 ·').replace('系统初始化', '重启服务');
+  var _h1 = document.querySelector('.titlebar h1'); if (_h1) _h1.textContent = '配置';
+}
+
+// PRD 标注里的字段表格：字段名称 / 默认值 / 限制 / 作用 / 若未填提示
+function tbl(rows) {
+  return '<table><tr><th>字段名称</th><th>默认值</th><th>限制</th><th>作用</th><th>若未填提示</th></tr>' +
+    rows.map(function (r) { return '<tr>' + r.map(function (c) { return '<td>' + c + '</td>'; }).join('') + '</tr>'; }).join('') + '</table>';
+}
+var ACCESS = 'http://192.168.1.100';          // 第一步填写的访问地址（演示值）
+var HOST = ACCESS.replace(/^https?:\/\//, ''); // 本机 IP
+var AI_URL = 'https://dev.zhimouyun.com/', AI_ACC = 'admin', AI_PWD = '123456'; // 内置AI服务默认值（演示值，待确认）
+var ODM_URL = 'http://' + HOST + ':8000', ODM_ACC = 'admin', ODM_PWD = '12345678'; // 内置建图服务默认值（待确认）
+// 演示授权码对应的额度：并发数 / 算法数量 / 二维建图 / 三维建模 / AI比对
+var CODES = {
+  MYUWVYTV: { conc: 4, algo: 12, m2d: 50, m3d: 0, cmp: 1000 },
+  LMALL888: { conc: 8, algo: 30, m2d: 200, m3d: 100, cmp: 5000 },
+  LMZERO00: { conc: 0, algo: 0, m2d: 0, m3d: 0, cmp: 0 }
+};
+var ALGOS = ['人员识别', '车辆识别', '烟火识别', '垃圾堆放', '占道经营', '河道漂浮物', '违章建筑', '人员聚集', '非机动车识别', '船只识别', '游泳识别', '秸秆焚烧'];
+var NOTES = {
+  code: { title: '云端资源授权码', items: [
+    { cls: 'rule', tag: '字段', ver: 'B1.3.0', html: tbl([['云端资源授权码', '空', '文本框，最长 32 位；需联网验证', '开通靓马云端服务（AI识别、二维建图、三维建模、AI比对）的额度凭证', '请填写云端资源授权码']]) },
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '本步骤可不填写授权码、不启用任何服务，直接进入下一步。<br>验证成功后输入框置灰不可编辑，右侧出现「替换授权码」按钮；点击后输入框清空并恢复可编辑，<b>下方额度模块内容一并清空</b>，已选的靓马云端服务取消选择，重新出现「验证授权码」按钮，需重新验证新授权码。' },
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '<b>未验证授权码</b>（输入框为空，或已填写但未验证成功）时：下方 AI识别、二维建图、三维建模、AI比对四个模块中的「靓马云端服务」<b>全部置灰不可选择</b>，点击提示「请先验证云端资源授权码」；内置 / 独立服务不受影响。替换授权码后同样恢复为该状态。' }
+  ]},
+  verify: { title: '验证授权码', items: [
+    { cls: 'rule', tag: '后端', ver: 'B1.3.0', html: '<b>授权码来源</b>：云端资源授权码在<b>翼飞平台</b>的「云端资源授权码」中生成和获取。<br><b>验证流程</b>：用户填写后点击「验证授权码」，后端把授权码发送到翼飞平台校验，翼飞平台返回该授权码的状态和额度。<br><b>返回状态</b>需包含三项：<br>· 是否存在<br>· 是否有效（未被禁用）<br>· 是否已被占用（已被其他设备使用）<br><b>判定</b>：存在、有效且未被占用 → 验证成功，展示额度；不存在、已禁用、已被占用中任一情况 → 统一提示「您的云端资源授权码不正确」，前端不区分具体原因。' },
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '输入框为空时按钮置灰不可点；输入内容后按钮变为蓝色，支持点击验证。<br>· <b>验证成功</b>：按钮消失，下方展示授权码额度及提示「若是需要增加额度，可联系商务或者官方客服增加。」；并按额度自动启用对应模块（见标注 3）。<br>· <b>验证失败</b>：输入框标红，统一提示「您的云端资源授权码不正确」，<b>不区分、不展示具体失败原因</b>。<br>· <b>无网环境</b>：点击验证时先判断网络，无网则不发起验证，输入框下方红字提示「您当前是无网环境，无法进行云端资源授权码验证」。' }
+  ]},
+  quota: { title: '授权码额度', items: [
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '展示 5 项额度：识别并发数、算法数量、二维建图额度、三维建模额度、AI比对额度。点击算法数量可查看算法详情。<br>额度联动（大于 0 即视为有额度）：<br>· 识别并发数、算法数量均有 → <b>AI识别</b>默认启用，选择「靓马云端服务」<br>· 二维建图额度 &gt; 0 → <b>二维建图</b>默认启用，选择「靓马云端服务」<br>· 三维建模额度 &gt; 0 → <b>三维建模</b>默认启用，选择「靓马云端服务」<br>· AI比对额度 &gt; 0 → <b>AI比对</b>默认启用，选择「靓马云端服务」<br>额度 ≤ 0 的模块：<b>不自动启用、不自动勾选</b>，但「靓马云端服务」<b>不置灰</b>，用户可手动启用并选择。' }
+  ]},
+  ai: { title: 'AI识别', items: [
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '模块右上角开关控制启用 / 关闭，默认关闭；关闭时不展示下方内容、不校验。三种部署方式单选：<br>· <b>靓马云端服务</b>：需先验证云端资源授权码；识别额度 &gt; 0 时自动勾选，额度 ≤ 0 时不置灰、可手动选择。<br>· <b>内置AI服务</b>：系统检测一体机机身内是否含 AI 服务硬件；未检测到时选项置灰不可选，下方提示「您没有安装本地AI服务」。选择后字段（服务器地址、账号、密码、回调地址）按内置规则自动带出并展示内容，<b>置灰不可修改</b>，无需用户填写，便于开发人员排查问题。<br>· <b>独立AI服务</b>：用户自建 GPU 服务器。' },
+    { cls: 'rule', tag: '字段', ver: 'B1.3.0', html: '靓马云端服务：' + tbl([['回调地址', '第一步的访问地址', 'URL，最长 253 位', '云端识别结果回调到本平台的地址', '请填写回调地址']]) +
+      '<br>独立AI服务：' + tbl([
+        ['服务器地址', '空', 'URL / IP，最长 253 位', '独立 AI 服务器的访问地址', '请填写服务器地址'],
+        ['账号', '空', '最长 32 位', '登录独立 AI 服务器的账号', '请填写账号'],
+        ['密码', '空', '最长 32 位，默认密文', '登录独立 AI 服务器的密码', '请填写密码'],
+        ['回调地址', '第一步的访问地址', 'URL，最长 253 位', '识别结果回调到本平台的地址', '请填写回调地址']]) }
+  ]},
+  m2d: { title: '二维建图', items: [
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '三种部署方式单选：<br>· <b>靓马云端服务</b>：需先验证云端资源授权码；二维建图额度 &gt; 0 时自动勾选，额度 ≤ 0 时不置灰、可手动选择。下方无字段。<br>· <b>内置建图服务</b>：系统检测一体机内是否安装 ODM 建图服务；未安装时选项置灰，下方提示「您没有安装本地ODM建图服务」。已安装时字段按内置规则自动带出，<b>展示但置灰不可修改</b>（密码明文展示），便于开发人员排查问题，节点类型默认 Web，内部端口 8000 已开通。<br>· <b>独立建图服务</b>：字段默认为空，用户填写后点「获取节点信息」，系统校验服务器地址、账号、密码并拉取节点；<b>校验通过</b>下方展示节点列表，用户为每个节点选择事件类型；<b>校验不通过</b>不展示节点，弹窗提示「您的服务器地址、账号、密码有误，请检查」。' },
+    { cls: 'rule', tag: '字段', ver: 'B1.3.0', html: tbl([
+      ['网页访问地址', '第一步的访问地址', 'URL，最长 253 位；内置不可改，独立可修改', '建图结果网页访问使用的地址', '请填写网页访问地址'],
+      ['服务器地址', '内置：http://IP:8000<br>独立：空', 'URL，最长 253 位', 'ODM 建图服务地址', '请填写服务器地址'],
+      ['账号', '内置：' + ODM_ACC + '<br>独立：空', '最长 32 位', '登录建图服务的账号', '请填写账号'],
+      ['密码', '内置：内置默认密码<br>独立：空', '最长 32 位，默认密文', '登录建图服务的密码', '请填写密码'],
+      ['事件类型', '内置：Web', '每个节点单选', '节点承接的事件类型', '请选择节点的事件类型']]) }
+  ]},
+  m3d: { title: '三维建模', items: [
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '页面与功能逻辑<b>与二维建图一致</b>：靓马云端服务需先验证授权码，三维建模额度 &gt; 0 时自动勾选，≤ 0 时不置灰、可手动选择；内置建模服务需检测本机已安装建模服务，未安装时置灰并提示「您没有安装本地建模服务」；独立建模服务需获取并校验节点信息。字段同二维建图。' }
+  ]},
+  cmp: { title: 'AI比对', items: [
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '两种部署方式单选：<b>靓马云端服务</b>（需先验证授权码；AI比对额度 &gt; 0 时自动勾选，≤ 0 时不置灰、可手动选择；下方无字段）、<b>独立比对服务</b>。' },
+    { cls: 'rule', tag: '字段', ver: 'B1.3.0', html: '独立比对服务：' + tbl([
+      ['服务器地址', '空', 'URL / IP，最长 253 位', '独立比对服务的访问地址', '请填写服务器地址'],
+      ['回调地址', '按规则取第一步的访问地址', '系统自动生成，不可修改', '比对结果回调到本平台的地址', '—']]) }
+  ]},
+  save: { title: '暂存并下一步', items: [
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '<b>独立服务接口检测</b>：必填校验通过后，对已启用且部署方式为「独立服务」的模块检测接口是否连接正常；任一异常则停留本页，弹窗提示，并在对应模块下方显示红字：<br>「访问AI识别服务接口异常」<br>「访问二维建图服务接口异常」<br>「访问三维建模服务接口异常」<br>「访问AI比对服务接口异常」<br>多个异常时全部列出；全部正常才进入第六步。（演示：右下角「独立服务接口」切换通过 / 不通过）' },
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '可不启用任何模块直接进入第六步「系统初始化」。已启用的模块必须选择部署方式，其下字段均为必填，未填时标红并提示「请填写xx」；独立建图 / 建模服务须获取节点成功并为每个节点选择事件类型。' }
+  ]}
+};
+var $ = function (id) { return document.getElementById(id); };
+function toast(t, bad) { var e = $('toast'); e.textContent = t; e.className = 'toast' + (bad ? ' bad' : ''); e.style.display = 'block'; clearTimeout(e._t); e._t = setTimeout(function () { e.style.display = 'none'; }, 2600); }
+function modal(title, html) { $('mT').textContent = title; $('mB').innerHTML = html; $('mF').innerHTML = '<button class="btn" id="mOk">知道了</button>'; $('mask').classList.add('open'); $('mOk').onclick = closeModal; }
+function closeModal() { $('mask').classList.remove('open'); }
+$('mX').onclick = closeModal;
+
+// 模块定义：部署方式、所需额度、本机检测项
+var DEF = {
+  ai:  { name: 'AI识别', dot: 4, has: function (q) { return q.conc > 0 && q.algo > 0; }, local: 'selAiHw', miss: '您没有安装本地AI服务',
+         modes: [['cloud', '靓马云端服务', '使用靓马云端算力，消耗授权码额度'], ['builtin', '内置AI服务', '使用一体机机身内置的 AI 服务硬件'], ['indep', '独立AI服务', '使用用户自建的 GPU 服务器']] },
+  m2d: { name: '二维建图', dot: 5, has: function (q) { return q.m2d > 0; }, local: 'selOdm', miss: '您没有安装本地ODM建图服务', nodes: true,
+         modes: [['cloud', '靓马云端服务', '使用靓马云端建图，消耗授权码额度'], ['builtin', '内置建图服务', '使用一体机内置的 ODM 建图服务'], ['indep', '独立建图服务', '使用用户自建的建图服务器']] },
+  m3d: { name: '三维建模', dot: 6, has: function (q) { return q.m3d > 0; }, local: 'sel3d', miss: '您没有安装本地建模服务', nodes: true,
+         modes: [['cloud', '靓马云端服务', '使用靓马云端建模，消耗授权码额度'], ['builtin', '内置建模服务', '使用一体机内置的建模服务'], ['indep', '独立建模服务', '使用用户自建的建模服务器']] },
+  cmp: { name: 'AI比对', dot: 7, has: function (q) { return q.cmp > 0; },
+         modes: [['cloud', '靓马云端服务', '使用靓马云端比对，消耗授权码额度'], ['indep', '独立比对服务', '使用用户自建的比对服务器']] }
+};
+var ORDER = ['ai', 'm2d', 'm3d', 'cmp'];
+var EVENTS = ['Web', '离线'];                       // 节点事件类型（演示值，待确认）
+var DEMO_NODES = [{ name: 'node-01', addr: HOST + ':3001' }, { name: 'node-02', addr: HOST + ':3002' }];
+var quota = null, S = {};
+ORDER.forEach(function (k) { S[k] = { on: false, mode: null, v: {}, nodes: null, ev: {} }; });
+
+// 各部署方式下的字段
+function fieldsOf(k, mode) {
+  if (k === 'ai' && mode === 'cloud') return [{ id: 'cb', label: '回调地址', def: ACCESS }];
+  if (k === 'ai' && mode === 'indep') return [{ id: 'addr', label: '服务器地址' }, { id: 'acc', label: '账号' }, { id: 'pwd', label: '密码', pw: 1 }, { id: 'cb', label: '回调地址', def: ACCESS }];
+  // 内置服务：字段按内置规则带出，置灰只读、明文展示，便于开发人员排查问题
+  if (k === 'ai' && mode === 'builtin') return [{ id: 'addr', label: '服务器地址', def: AI_URL, ro: 1 }, { id: 'acc', label: '账号', def: AI_ACC, ro: 1 }, { id: 'pwd', label: '密码', def: AI_PWD, ro: 1 }, { id: 'cb', label: '回调地址', def: ACCESS, ro: 1 }];
+  if (DEF[k].nodes && mode === 'builtin') return [{ id: 'web', label: '网页访问地址', def: ACCESS, ro: 1 }, { id: 'addr', label: '服务器地址', def: ODM_URL, ro: 1 }, { id: 'acc', label: '账号', def: ODM_ACC, ro: 1 }, { id: 'pwd', label: '密码', def: ODM_PWD, ro: 1 }];
+  if (DEF[k].nodes && mode === 'indep') return [{ id: 'web', label: '网页访问地址', def: ACCESS }, { id: 'addr', label: '服务器地址' }, { id: 'acc', label: '账号' }, { id: 'pwd', label: '密码', pw: 1 }];
+  if (k === 'cmp' && mode === 'indep') return [{ id: 'addr', label: '服务器地址' }, { id: 'cb', label: '回调地址', def: ACCESS + '/api/compare/callback', ro: 1 }];
+  return [];
+}
+function val(k, f) { var v = S[k].v[S[k].mode + '.' + f.id]; return f.ro ? f.def : (v === undefined ? (f.def || '') : v); }
+function localOk(k) { return !DEF[k].local || $(DEF[k].local).value === '1'; }
+function modeDisabled(k, m) { return (m === 'cloud' && !quota) || (m === 'builtin' && !localOk(k)); }
+
+// ---------- 云端资源授权码 ----------
+$('code').addEventListener('input', function () { $('btnVerify').disabled = !this.value.trim(); this.classList.remove('bad'); $('codeErr').textContent = ''; });
+$('btnVerify').onclick = function () {
+  if ($('selNet').value === '0') { $('code').classList.add('bad'); $('codeErr').textContent = '您当前是无网环境，无法进行云端资源授权码验证'; return; }
+  var c = $('code').value.trim().toUpperCase(), q = CODES[c];
+  if (!q) { $('code').classList.add('bad'); $('codeErr').textContent = '授权码无效，请检查后重新输入'; return; }
+  quota = q; $('code').value = c; $('code').readOnly = true;
+  $('vbtnWrap').style.display = 'none'; $('btnReplace').style.display = ''; $('quotaWrap').style.display = '';
+  renderQuota();
+  ORDER.forEach(function (k) {   // 按额度联动：额度 > 0 则自动启用并选靓马云端服务；额度 ≤ 0 不自动勾选，但可手动选
+    if (DEF[k].has(q)) { S[k].on = true; S[k].mode = 'cloud'; }
+  });
+  renderMods(); toast('授权码验证成功');
+};
+$('btnReplace').onclick = function () {
+  $('code').readOnly = false; $('code').value = ''; $('code').focus();
+  $('btnVerify').disabled = true; $('vbtnWrap').style.display = ''; this.style.display = 'none';
+  // 替换授权码：清空额度展示，云端服务回到未验证状态
+  quota = null; $('quota').innerHTML = ''; $('quotaWrap').style.display = 'none';
+  ORDER.forEach(function (k) { if (S[k].mode === 'cloud') S[k].mode = null; });
+  renderMods();
+};
+function renderQuota() {
+  var items = [['识别并发数', quota.conc, '路'], ['算法数量', quota.algo, '个'], ['二维建图额度', quota.m2d, '平方公里'], ['三维建模额度', quota.m3d, '平方公里'], ['AI比对额度', quota.cmp, '次']];
+  $('quota').innerHTML = items.map(function (it, i) {
+    var link = i === 1 && it[1] > 0 ? ' style="cursor:pointer;text-decoration:underline" id="algoLink" title="点击查看算法详情"' : '';
+    return '<div class="' + (it[1] > 0 ? '' : 'zero') + '"><div class="k">' + it[0] + '</div><div class="v"><b' + link + '>' + it[1] + '</b><span>' + it[2] + '</span></div></div>';
+  }).join('');
+  var a = $('algoLink'); if (a) a.onclick = function () {
+    modal('算法详情（' + quota.algo + ' 个）', ALGOS.concat(['算法' + 13, '算法' + 14]).slice(0, quota.algo).map(function (n, i) { return (i + 1) + '. ' + n; }).join('<br>'));
+  };
+}
+// ---------- 服务模块渲染 ----------
+function renderMods() { $('mods').innerHTML = ORDER.map(modHtml).join(''); }
+function modHtml(k) {
+  var d = DEF[k], s = S[k];
+  var h = '<div class="mod" data-k="' + k + '"><div class="mhead"><span class="ttl">' + d.name + '<button class="dot inline" data-note="' + k + '">' + d.dot + '</button></span>' +
+    '<span class="sw' + (s.on ? '' : ' off') + '" data-act="sw"><i></i>' + (s.on ? '启用' : '关闭') + '</span></div>';
+  if (!s.on) return h + '</div>';
+  h += '<div class="mbody"><div class="row"><label class="lb"><span class="req">*</span>部署方式：</label><div class="ctrl" style="max-width:560px"><div class="opts" id="opts-' + k + '">' +
+    d.modes.map(function (m) {
+      return '<div class="opt' + (s.mode === m[0] ? ' on' : '') + (modeDisabled(k, m[0]) ? ' dis' : '') + '" data-act="mode" data-m="' + m[0] + '"><div class="t">' + m[1] + '</div><div class="s">' + m[2] + '</div>' +
+        (m[0] === 'builtin' && !localOk(k) ? '<div class="warn" style="margin-top:4px">' + d.miss + '</div>' : '') + '</div>';
+    }).join('') + '</div>';
+  if (!quota) h += '<div class="hint">靓马云端服务需先验证云端资源授权码</div>';
+  h += '<div class="err" id="merr-' + k + '"></div></div></div>';
+  fieldsOf(k, s.mode).forEach(function (f) {
+    h += '<div class="row"><label class="lb"><span class="req">*</span>' + f.label + '：</label><div class="ctrl"><input type="' + (f.pw ? 'password' : 'text') + '" id="f-' + k + '-' + f.id + '" data-act="fld" data-f="' + f.id + '"' +
+      (f.ro ? ' readonly' : '') + ' maxlength="' + (f.id === 'acc' || f.id === 'pwd' ? 32 : 253) + '" placeholder="请填写' + f.label + '" value="' + String(val(k, f)).replace(/"/g, '&quot;') + '"><div class="err"></div></div></div>';
+  });
+  if (d.nodes && s.mode === 'indep') h += '<div class="nbtn"><button class="btn light" data-act="fetch">获取节点信息</button><button class="dot inline" data-note="nodes">8</button></div>';
+  if (d.nodes && s.nodes) {
+    var fixed = s.mode === 'builtin';
+    h += '<table class="ntbl" id="ntbl-' + k + '"><tr><th>节点名称</th><th>节点地址</th><th><span class="req">*</span>事件类型</th></tr>' + s.nodes.map(function (n, i) {
+      return '<tr><td>' + n.name + '</td><td>' + n.addr + '</td><td>' + EVENTS.map(function (e) {
+        return '<label><input type="radio" name="ev-' + k + '-' + i + '" data-act="ev" data-i="' + i + '" value="' + e + '"' + (s.ev[i] === e ? ' checked' : '') + (fixed ? ' disabled' : '') + '> ' + e + '</label>';
+      }).join('') + '</td></tr>';
+    }).join('') + '</table><div class="err" id="nerr-' + k + '" style="margin-left:130px"></div>';
+  }
+  return h + '</div></div>';
+}
+function modOf(el) { var m = el.closest('.mod'); return m && m.dataset.k; }
+
+$('mods').addEventListener('click', function (e) {
+  var t = e.target.closest('[data-act]'); if (!t) return;
+  var k = modOf(t), s = S[k], act = t.dataset.act;
+  if (act === 'sw') {
+    s.on = !s.on;
+    if (s.on && !s.mode && quota && DEF[k].has(quota)) s.mode = 'cloud';
+    renderMods();
+  } else if (act === 'mode') {
+    if (t.classList.contains('dis')) { toast(t.dataset.m === 'cloud' ? '请先验证云端资源授权码' : DEF[k].miss, true); return; }
+    s.mode = t.dataset.m; s.ev = {};
+    s.nodes = DEF[k].nodes && s.mode === 'builtin' ? [{ name: 'local-node', addr: HOST + ':8000' }] : null;
+    if (s.nodes) s.ev = { 0: 'Web' };   // 内置服务：节点类型默认 Web
+    renderMods();
+  } else if (act === 'fetch') {
+    if (!checkFields(k)) return;
+    if ($('selConn').value === 'err') { s.nodes = null; s.ev = {}; renderMods(); modal('提示', '您的服务器地址、账号、密码有误，请检查'); return; }
+    s.nodes = DEMO_NODES; s.ev = {}; renderMods(); toast('获取节点信息成功，请为节点选择事件类型');
+  }
+});
+$('mods').addEventListener('input', function (e) {
+  var t = e.target; if (t.dataset.act !== 'fld') return;
+  var k = modOf(t); S[k].v[S[k].mode + '.' + t.dataset.f] = t.value;
+  if (t.value.trim()) { t.classList.remove('bad'); t.nextElementSibling.textContent = ''; }
+});
+$('mods').addEventListener('change', function (e) {
+  var t = e.target; if (t.dataset.act !== 'ev') return;
+  var k = modOf(t); S[k].ev[t.dataset.i] = t.value;
+  var tb = $('ntbl-' + k); if (tb && S[k].nodes.every(function (n, i) { return S[k].ev[i]; })) { tb.classList.remove('bad'); $('nerr-' + k).textContent = ''; }
+});
+['selAiHw', 'selOdm', 'sel3d'].forEach(function (id) {
+  $(id).onchange = function () {
+    ORDER.forEach(function (k) { if (DEF[k].local === id && S[k].mode === 'builtin' && !localOk(k)) { S[k].mode = null; S[k].nodes = null; } });
+    renderMods();
+  };
+});
+
+// ---------- 校验与保存 ----------
+function checkFields(k) {
+  var ok = true;
+  fieldsOf(k, S[k].mode).forEach(function (f) {
+    var el = $('f-' + k + '-' + f.id); if (!el || f.ro) return;
+    var bad = !el.value.trim();
+    el.classList.toggle('bad', bad); el.nextElementSibling.textContent = bad ? '请填写' + f.label : '';
+    if (bad) ok = false;
+  });
+  return ok;
+}
+function checkMod(k) {
+  var s = S[k], d = DEF[k];
+  if (!s.on) return true;
+  if (!s.mode) { $('opts-' + k).classList.add('bad'); $('merr-' + k).textContent = '请选择' + d.name + '的部署方式'; return false; }
+  var ok = checkFields(k);
+  if (d.nodes && s.mode === 'indep' && !s.nodes) { if (ok) toast('请先获取' + d.name + '的节点信息', true); return false; }
+  if (d.nodes && s.nodes && !s.nodes.every(function (n, i) { return s.ev[i]; })) { $('ntbl-' + k).classList.add('bad'); $('nerr-' + k).textContent = '请选择节点的事件类型'; ok = false; }
+  return ok;
+}
+$('btnPrev').onclick = function () { location.href = 'activate-step4-project.html'; };
+
+// ---------- 演示：必填验证开关（开=校验，关=不校验直接下一步），各步骤共用 ----------
+function valOn() { try { return sessionStorage.getItem('demoVal') !== '0'; } catch (e) { return true; } }
+function initValSw(onChange) {
+  var sw = document.getElementById('swVal');
+  sw.classList.toggle('off', !valOn());
+  sw.onclick = function () {
+    var on = this.classList.toggle('off') === false;
+    try { sessionStorage.setItem('demoVal', on ? '1' : '0'); } catch (e) {}
+    if (onChange) onChange(on);
+    toast(on ? '必填验证已开启：点「下一步」会校验所有输入' : '必填验证已关闭：点「下一步」直接进入下一步');
+  };
+  if (onChange) onChange(valOn(), true);
+}
+initValSw();
+$('btnNext').onclick = function () {
+  var ok = true;
+  if (valOn()) ORDER.forEach(function (k) { if (!checkMod(k)) ok = false; });
+  if (!ok) { var b = document.querySelector('#mods .bad'); if (b) b.scrollIntoView({ block: 'center', behavior: 'smooth' }); return; }
+  // 独立服务接口检测（演示：由右下角「独立服务接口」控制结果）
+  var API_ERR = { ai: '访问AI识别服务接口异常', m2d: '访问二维建图服务接口异常', m3d: '访问三维建模服务接口异常', cmp: '访问AI比对服务接口异常' };
+  var fail = $('selApi').value;
+  var bad = ORDER.filter(function (k) { return S[k].on && S[k].mode === 'indep' && (fail === 'all' || fail === k); });
+  ORDER.forEach(function (k) { var e = $('merr-' + k); if (e && e.dataset.api) { e.textContent = ''; delete e.dataset.api; } });
+  if (bad.length) {
+    bad.forEach(function (k) { var e = $('merr-' + k); if (e) { e.textContent = API_ERR[k]; e.dataset.api = '1'; } });
+    modal('提示', bad.map(function (k) { return API_ERR[k]; }).join('<br>') + '<br><span style="color:#999">请检查服务器地址、账号、密码是否正确，以及服务是否已启动</span>');
+    var el = $('opts-' + bad[0]); if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    return;
+  }
+  location.href = 'activate-step6-init.html';
+};
+// ---------- PRD 标注弹层 ----------
+var curDot = null;
+function closePop() { $('pop').classList.remove('show'); if (curDot) curDot.classList.remove('open'); curDot = null; }
+function openPop(btn) {
+  var n = NOTES[btn.dataset.note]; if (!n) return;
+  closePop(); curDot = btn; btn.classList.add('open');
+  $('popT').textContent = btn.textContent + '. ' + n.title;
+  $('popB').innerHTML = n.items.map(function (it) {
+    return '<div class="note ' + it.cls + '"><span class="ver">' + it.ver + '</span><span class="tag">' + it.tag + '</span>' + it.html + '</div>';
+  }).join('');
+  var pop = $('pop'); pop.classList.add('show');
+  var r = btn.getBoundingClientRect(), sx = window.scrollX, sy = window.scrollY;
+  var vw = document.documentElement.clientWidth;
+  var left = r.right + sx + 10;
+  if (left + pop.offsetWidth > sx + vw - 12) left = Math.max(sx + 12, r.left + sx - pop.offsetWidth - 10);
+  pop.style.left = left + 'px'; pop.style.top = (r.top + sy) + 'px';
+}
+// 模块是动态渲染的，标注点用事件委托
+document.addEventListener('click', function (e) {
+  var d = e.target.closest('.dot');
+  if (d) { e.stopPropagation(); curDot === d ? closePop() : openPop(d); return; }
+  if (!e.target.closest('#pop')) closePop();
+}, true);
+$('popX').onclick = closePop;
+$('swDots').onclick = function () { this.classList.toggle('off'); document.body.classList.toggle('hide-dots', this.classList.contains('off')); closePop(); };
+$('mask').addEventListener('click', function (e) { if (e.target === this) closeModal(); });
+
+renderMods();
+
+// ---------- 返回确认：不保存，返回首页 ----------
+function openBack() { document.getElementById('bkMask').classList.add('open'); }
+function closeBack() { document.getElementById('bkMask').classList.remove('open'); }
+document.getElementById('bkX').onclick = document.getElementById('bkStay').onclick = closeBack;
+document.getElementById('bkGo').onclick = function () { closeBack(); location.href = HOME_URL; };
+</script>
+</body>
+</html>

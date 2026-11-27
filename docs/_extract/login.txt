@@ -1,0 +1,179 @@
+
+运维中心 · 登录
+运维中心
+ 账号登录
+ &#128100;
+ 1
+ &#128274;
+ 2
+ 记住密码
+ 3
+ 登 录
+ 切换语言
+ 中文English
+ ภาษาไทยIndonesia
+ 4
+① 账号✕
+ 规则B1.3.0
+ 必填，提示文字「请输入账号」。系统默认账号为 admin，即激活时生成的运维管理员账号。
+ 规则B1.3.0
+ 项规则
+ 长度1–32 个字符，超出不可继续输入
+ 字符字母、数字、下划线；不区分大小写
+ 空格提交时自动去掉首尾空格
+ 校验时机失焦或点击登录时；为空提示「请输入账号」，输入框标红
+ 异常提示B1.3.0
+ 账号不存在与密码错误统一提示「账号或密码错误」。
+ 设计原因
+ 不区分「账号不存在」和「密码错误」，防止被逐个试出有效账号。
+② 密码✕
+ 规则B1.3.0
+ 必填，提示文字「请输入密码」。默认密文显示，点右侧眼睛图标切换明文 / 密文。为空时提示「请输入密码」。
+ 规则B1.3.0
+ 初始密码为出厂固定。使用初始密码首次登录时，登录后强制进入「修改密码」页，修改完成前不能进入其他功能。
+ 规则B1.3.0
+ 场景处理
+ 密码错误提示「账号或密码错误，还可尝试 N 次」
+ 连续错误 5 次锁定账号 10 分钟，提示「账号已锁定，请 X 分钟后再试」
+ 登录成功错误次数清零
+ 设计原因
+ 运维中心可以通过同网段电脑远程访问（http://设备IP:40001/），需要防止被暴力猜测密码。
+③ 记住密码✕
+ 规则B1.3.0
+ 默认不勾选。勾选并登录成功后，下次打开登录页自动填好账号和密码，有效期 7 天；取消勾选后登录即清除。
+ 设计原因
+ 浏览器里不保存明文密码，只保存加密的登录凭证。
+④ 切换语言✕
+ 规则B1.3.0
+ 支持语言切换，默认为中文，单选下拉框内容为中文、英文、泰文、印尼文。
+切换后则页面展示对应的语言模式。
+PRD 标注
+重置演示
+演示账号：admin　初始密码：Admin@123
+输错 5 次触发锁定
+(function () {
+ var $ = function (id) { return document.getElementById(id); };
+ // ===== PRD 标注点：点击展开 / 收起 =====
+ var openDot = null;
+ function closeAll() {
+ document.querySelectorAll('.pop.show').forEach(function (p) { p.classList.remove('show'); });
+ document.querySelectorAll('.dot.open').forEach(function (d) { d.classList.remove('open'); });
+ openDot = null;
+ }
+ document.querySelectorAll('.dot').forEach(function (dot) {
+ dot.addEventListener('click', function (e) {
+ e.preventDefault(); e.stopPropagation();
+ if (openDot === dot) { closeAll(); return; }
+ closeAll();
+ var pop = $(dot.dataset.pop), r = dot.getBoundingClientRect();
+ pop.classList.add('show'); dot.classList.add('open'); openDot = dot;
+ var left = r.right + 12 + window.scrollX;
+ if (left + pop.offsetWidth > window.scrollX + document.documentElement.clientWidth - 10) left = r.left - pop.offsetWidth - 12 + window.scrollX;
+ pop.style.left = Math.max(10, left) + 'px';
+ pop.style.top = Math.max(10, r.top - 10 + window.scrollY) + 'px';
+ });
+ });
+ document.querySelectorAll('.pop .close').forEach(function (c) { c.addEventListener('click', closeAll); });
+ document.addEventListener('click', function (e) { if (!e.target.closest('.pop')) closeAll(); });
+ // ===== 标注开关 =====
+ $('sw').addEventListener('click', function () {
+ this.classList.toggle('off'); document.body.classList.toggle('hide-dots'); closeAll();
+ });
+ // ===== 演示数据 =====
+ var DEMO = { acc: 'admin', pwd: 'Admin@123', maxTry: 5, lockMin: 10 };
+ var KEY = 'proto_login_state';
+ function load() { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } }
+ function save(s) { localStorage.setItem(KEY, JSON.stringify(s)); }
+ var state = load();
+ function toast(t) { var el = $('toast'); el.textContent = t; el.style.display = 'block'; clearTimeout(toast.t); toast.t = setTimeout(function () { el.style.display = 'none'; }, 2200); }
+ function banner(t) { var b = $('banner'); b.textContent = t || ''; b.style.display = t ? 'block' : 'none'; }
+ function setErr(box, msg, t) { $(box).classList.toggle('err', !!t); $(msg).textContent = t || ''; }
+ // ===== 输入框焦点与校验 =====
+ [['acc', 'accBox', 'accMsg', 'accEmpty'], ['pwd', 'pwdBox', 'pwdMsg', 'pwdEmpty']].forEach(function (f) {
+ var inp = $(f[0]);
+ inp.addEventListener('focus', function () { $(f[1]).classList.add('focus'); });
+ inp.addEventListener('blur', function () { $(f[1]).classList.remove('focus'); setErr(f[1], f[2], inp.value.trim() ? '' : T(f[3])); });
+ inp.addEventListener('input', function () { if (inp.value.trim()) setErr(f[1], f[2], ''); });
+ inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') login(); });
+ });
+ $('acc').addEventListener('input', function () { this.value = this.value.replace(/[^\w\s]/g, ''); });
+ // ===== 密码明文 / 密文切换 =====
+ var EYE_OPEN = '[流程图]';
+ var EYE_CLOSED = '[流程图]';
+ function renderEye() {
+ var p = $('pwd'), e = $('eye'), hidden = p.type === 'password';
+ // 密文状态显示「闭眼」，点击后变明文并显示「睁眼」
+ e.innerHTML = hidden ? EYE_CLOSED : EYE_OPEN;
+ var tip = hidden ? '显示密码' : '隐藏密码';
+ e.title = tip; e.setAttribute('aria-label', tip);
+ }
+ $('eye').addEventListener('click', function () {
+ var p = $('pwd');
+ p.type = p.type === 'password' ? 'text' : 'password';
+ renderEye();
+ });
+ renderEye();
+ // ===== 登录逻辑（含错误次数与锁定） =====
+ var timer = null;
+ function lockLeft() { return state.lockUntil ? Math.ceil((state.lockUntil - Date.now()) / 60000) : 0; }
+ function refreshLock() {
+ var left = lockLeft(), btn = $('loginBtn');
+ if (left > 0) {
+ btn.disabled = true; btn.textContent = T('locked').replace('X', left); banner(T('locked').replace('X', left));
+ clearTimeout(timer); timer = setTimeout(refreshLock, 5000);
+ } else {
+ if (state.lockUntil) { state.lockUntil = 0; state.fail = 0; save(state); banner(''); }
+ btn.disabled = false; btn.textContent = T('login');
+ }
+ }
+ function login() {
+ if (lockLeft() > 0) return;
+ var a = $('acc').value.trim(), p = $('pwd').value, ok = true;
+ if (!a) { setErr('accBox', 'accMsg', T('accEmpty')); ok = false; }
+ if (!p) { setErr('pwdBox', 'pwdMsg', T('pwdEmpty')); ok = false; }
+ if (!ok) return;
+ // 改过密码后用新密码校验，否则用出厂初始密码
+ if (a.toLowerCase() !== DEMO.acc || p !== (state.pwd || DEMO.pwd)) {
+ state.fail = (state.fail || 0) + 1;
+ if (state.fail >= DEMO.maxTry) { state.lockUntil = Date.now() + DEMO.lockMin * 60000; save(state); refreshLock(); return; }
+ save(state); banner(T('wrong').replace('N', DEMO.maxTry - state.fail)); return;
+ }
+ state.fail = 0; state.remember = $('remember').checked ? { acc: a, exp: Date.now() + 7 * 864e5 } : null; save(state); banner('');
+ toast(state.changed ? T('okHome') : T('okFirst'));
+ // 跳转到功能入口页；首次登录（使用初始密码）带 first=1，进入后强制弹出修改密码
+ setTimeout(function () { location.href = state.changed ? 'home.html' : 'home.html?first=1'; }, 1000);
+ }
+ $('loginBtn').addEventListener('click', login);
+ // ===== 记住密码回填 =====
+ if (state.remember && state.remember.exp > Date.now()) { $('acc').value = state.remember.acc; $('pwd').value = DEMO.pwd; $('remember').checked = true; }
+ // ===== 重置演示 =====
+ $('resetDemo').addEventListener('click', function () {
+ localStorage.removeItem(KEY); state = {}; $('acc').value = ''; $('pwd').value = ''; $('remember').checked = false;
+ setErr('accBox', 'accMsg', ''); setErr('pwdBox', 'pwdMsg', ''); banner(''); refreshLock(); toast('演示状态已重置');
+ });
+ // ===== 多语言 =====
+ var I18N = {
+ zh: { title: '账号登录', accPh: '请输入账号', pwdPh: '请输入密码', remember: '记住密码', login: '登 录', lang: '切换语言',
+ accEmpty: '请输入账号', pwdEmpty: '请输入密码', wrong: '账号或密码错误，还可尝试 N 次', locked: '账号已锁定，请 X 分钟后再试',
+ okFirst: '登录成功：使用初始密码，进入「修改密码」页（原型演示）', okHome: '登录成功，进入功能入口页（原型演示）' },
+ en: { title: 'Sign In', accPh: 'Enter account', pwdPh: 'Enter password', remember: 'Remember me', login: 'Sign in', lang: 'Language',
+ accEmpty: 'Please enter account', pwdEmpty: 'Please enter password', wrong: 'Incorrect account or password. N attempts left', locked: 'Account locked. Try again in X min',
+ okFirst: 'Signed in with initial password. Please change it (demo)', okHome: 'Signed in (demo)' },
+ th: { title: 'เข้าสู่ระบบ', accPh: 'กรอกบัญชี', pwdPh: 'กรอกรหัสผ่าน', remember: 'จดจำรหัสผ่าน', login: 'เข้าสู่ระบบ', lang: 'ภาษา',
+ accEmpty: 'กรุณากรอกบัญชี', pwdEmpty: 'กรุณากรอกรหัสผ่าน', wrong: 'บัญชีหรือรหัสผ่านไม่ถูกต้อง เหลือ N ครั้ง', locked: 'บัญชีถูกล็อก ลองใหม่ใน X นาที',
+ okFirst: 'เข้าสู่ระบบด้วยรหัสเริ่มต้น กรุณาเปลี่ยนรหัส (เดโม)', okHome: 'เข้าสู่ระบบสำเร็จ (เดโม)' },
+ id: { title: 'Masuk', accPh: 'Masukkan akun', pwdPh: 'Masukkan kata sandi', remember: 'Ingat saya', login: 'Masuk', lang: 'Bahasa',
+ accEmpty: 'Silakan masukkan akun', pwdEmpty: 'Silakan masukkan kata sandi', wrong: 'Akun atau kata sandi salah. Sisa N kali', locked: 'Akun terkunci. Coba lagi dalam X menit',
+ okFirst: 'Masuk dengan kata sandi awal. Silakan ubah (demo)', okHome: 'Berhasil masuk (demo)' }
+ };
+ var lang = 'zh';
+ function T(k) { return (I18N[lang] || I18N.zh)[k] || I18N.zh[k]; }
+ function applyLang() {
+ document.querySelectorAll('[data-i18n]').forEach(function (el) { el.textContent = T(el.dataset.i18n); });
+ document.querySelectorAll('[data-i18n-ph]').forEach(function (el) { el.placeholder = T(el.dataset.i18nPh); });
+ document.documentElement.lang = lang === 'zh' ? 'zh-CN' : lang;
+ refreshLock();
+ }
+ $('langSel').addEventListener('change', function () { lang = this.value; applyLang(); });
+ applyLang();
+})();

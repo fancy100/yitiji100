@@ -1,0 +1,324 @@
+
+运维中心 · 初始化 · 基础服务配置
+ 运维中心
+ ⌂功能入口
+ Aadmin ▾
+ ←
+ 初始化
+ 1网络信息配置
+ 2设备激活配置
+ 3基础服务配置
+ 4项目信息配置
+ 5可选服务配置
+ 6系统初始化
+ 上一步暂存并下一步6
+✕
+ 提示✕
+ 您当前的修改内容未重启、未激活，若返回则不会保存，是否继续返回？
+ 继续填写继续返回
+PRD 标注 
+ 网络环境 已联网未联网（内网）
+ 必填验证 
+ 正向流程（直接暂存进入下一步）报错流程（校验所有输入）
+ 连通性验证 全部通过存储服务不通通信服务不通视频服务不通时序服务不通
+ 重置演示
+// ---------- 场景：激活流程（act） / 配置模块（cfg），由首页入口写入 ----------
+var INIT_CFG = (function () { try { var q = new URLSearchParams(location.search).get('mode'); if (q) sessionStorage.setItem('initMode', q); return sessionStorage.getItem('initMode') === 'cfg'; } catch (e) { return false; } })();
+var HOME_URL = INIT_CFG ? 'home.html?act=1' : 'home.html';
+if (INIT_CFG) {
+ document.querySelectorAll('.step').forEach(function (s) { var n = s.querySelector('.num'); if (n && n.textContent.trim() === '6') s.lastChild.textContent = '重启服务'; });
+ document.title = document.title.replace('· 初始化 ·', '· 配置 ·').replace('系统初始化', '重启服务');
+ var _h1 = document.querySelector('.titlebar h1'); if (_h1) _h1.textContent = '配置';
+}
+// ===== PRD 标注内容 =====
+// PRD 标注里的字段表格：字段名称 / 是否必填 / 默认值 / 限制 / 作用 / 若未填则提示
+// rows 每行：[字段名称, 默认值, 限制, 作用]；必填都为「是」，提示统一为「请填写 + 字段名称」
+function tbl(rows) {
+ return '字段名称是否必填默认值限制作用若未填，则提示
+' +
+ rows.map(function (r) {
+ return '' + r[0] + '是' + r[1] + '' + r[2] + '' + r[3] + '请填写' + r[0] + '
+';
+ }).join('') + '';
+}
+// 不展示字段表格（后端写死 / 按默认值处理）：字段名称 / 后端默认值 / 说明
+function hid(rows) {
+ return '不展示字段后端默认值说明
+' +
+ rows.map(function (r) { return '' + r[0] + '' + r[1] + '' + r[2] + '
+'; }).join('') + '';
+}
+var NOTES = {
+ mode: { title: '配置选择（内置配置 / 自定义）', items: [
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '四个模块各自单选「内置配置 / 自定义」，默认内置配置。' },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '内置配置：模块默认展开，字段显示对应的默认值，只读置灰，不校验格式。' },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '自定义：字段可编辑，输入时不校验；点击【暂存并下一步】时统一按字段规则校验，错误标红并在字段下方提示，重新输入后清除该字段报错。切回内置配置时恢复默认值。' },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '端口类字段：必填，1–65535 的整数。不做端口重复校验。' },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '橙色提示：激活流程中四个模块均不展示；初始化完成后，在配置模块（修改配置页面，存储 / 通信 / 视频 / 时序所有模块均支持修改）的各模块顶部展示：
+· 存储服务：「该配置用于机场获取的图片、视频数据存放，若是修改，需要重启服务，请谨慎修改。」
+· 通信服务：「该模块配置用于机场上云使用，若是修改，若是重启需要10分钟左右，且机场需要重新设置机场上云方可使用，请谨慎修改。」
+· 视频服务：「该模块用于机场直播使用，若是修改，重启服务需要10分钟左右，请谨慎修改。」
+· 时序服务：「该服务用于机场调用，若是修改，相对应的机场需要重启才能生效使用，请谨慎修改。」' }
+ ]},
+ store: { title: '存储服务', items: [
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '页面中所有字段均为必填。点击【暂存并下一步】时，未填写的字段标红并提示「请填写xx」（xx 为字段名称）。' },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '存储类型单选 minio / OSS，默认 minio，切换后显示对应字段。' },
+ { cls: 'rule', tag: '字段', ver: 'B1.3.0', html: '存储类型 = minio（页面展示 3 个字段）' + tbl([
+ ['服务器账号', 'root', '3–20 位，字母、数字、下划线、中划线', 'minio 服务器的账号（AccessKey），本地默认账号'],
+ ['服务器密码', 'Zwhk@2024#A', '8–40 位，不能有空格；默认密文', 'minio 服务器的密码（Secretkey）'],
+ ['素材管理端口', '9000', '1–65535 的整数', '素材管理（存放机场图片、视频）的访问端口']
+ ]) + '存储类型 = minio 时页面不展示、后端写死的字段：
+' + hid([
+ ['文件过期时间', '36000', '获取 sts 客户端时效'],
+ ['存储桶名称', 'dock', '存储文件夹名称'],
+ ['区域', 'cn-shanghai', '存储区域'],
+ ['EndPoint地址', '第一步的访问地址', 'minio 服务访问的地址'],
+ ['EndPoint地址端口', '素材管理端口', 'minio 服务访问的端口'],
+ ['CDN地址', '空', '优化访问链路，minio 服务规模较大时作用明显；不符合当前一体机场景定位，不展示'],
+ ['角色ARN / 角色会话名称', '空', '仅 OSS 使用']
+ ]) },
+ { cls: 'rule', tag: '字段', ver: 'B1.3.0', html: '存储类型 = OSS（页面展示 9 个字段）' + tbl([
+ ['存储桶名称', '空', '3–63 位小写字母、数字、中划线，首尾为字母或数字', '存储文件夹名称'],
+ ['EndPoint地址', '空', 'IP 或域名，最长 253 位', 'OSS 服务访问的地址'],
+ ['EndPoint地址端口', '443', '1–65535 的整数', 'OSS 服务访问的端口'],
+ ['CDN地址', '空', 'http:// 或 https:// 开头', '加速服务地址，优化访问链路，由 OSS 服务供应商提供'],
+ ['角色ARN', '空', 'acs:ram::账号ID:role/角色名，最长 256 位', '阿里云 OSS 服务中的角色，做对应接口连通使用'],
+ ['角色会话名称', '空', '2–64 位，字母、数字、. @ - _', '阿里云 OSS 服务中的会话，做对应接口连通使用'],
+ ['区域', '空', '小写字母、数字、中划线，如 cn-shanghai', 'OSS 存储桶所在区域'],
+ ['AccessKeyId', '空', '16–64 位字母和数字', 'OSS 服务访问账号'],
+ ['AccessKeySecret', '空', '16–64 位字母和数字；默认密文', 'OSS 服务访问密码']
+ ]) + '文件过期时间：OSS 时也不展示，后端写死 36000（获取 sts 客户端时效）。
+' }
+ ]},
+ mqtt: { title: '通信服务', items: [
+ { cls: 'rule', tag: '字段', ver: 'B1.3.0', html: tbl([
+ ['mqtt账户名', 'admin', '固定值，不支持修改（一直置灰）', '机场上云时连接 mqtt 通信服务使用的账户'],
+ ['mqtt账户密码', '随机生成 8 位', '① 随机生成：8 位，字符取自 1–9、A–Z，排除易混字符 1/I、2/Z、8/B、5/S、0/C/G/O/D、H/N/M，必须包含 # 或 @
+② 手动修改：8–16 位，须含字母、数字和 # 或 @，不能有空格
+③ 输入框旁支持「重新生成」；默认密文', '机场上云时连接 mqtt 通信服务使用的密码'],
+ ['无人机通讯端口', '1883', '1–65535 的整数', '机场 / 无人机与平台之间 mqtt 通讯使用的端口']
+ ]) },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '随机生成规则：8 位，字符取自 1–9、A–Z，排除易混字符 1/I、2/Z、8/B、5/S、0/C/G/O/D、H/N/M，必须包含 # 或 @。' },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '不展示：wssUrl（wss:// + ip + :网页访问端口 + /mqtt）、tcpUrl、服务内部 tcpUrl 和端口 1883。' }
+ ]},
+ video: { title: '视频服务', items: [
+ { cls: 'rule', tag: '字段', ver: 'B1.3.0', html: tbl([
+ ['推流服务端口', '11935', '1–65535 的整数', '机场直播 rtmp 协议推流使用的端口'],
+ ['rtc拉流端口', '18000', '1–65535 的整数', '直播 rtc 协议拉流使用的端口'],
+ ['rtsp拉流端口', '11554', '1–65535 的整数', '单兵无人机 AI 功能直播使用的 rtsp 拉流端口']
+ ]) },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '不展示：直播 / 回放 / 推流服务地址（取访问域名）及端口（取网页访问端口）；flv 拉流端口与网页访问端口一致。密钥、应用名称只支持本地直播服务，页面隐藏。' }
+ ]},
+ ntp: { title: '时序服务', items: [
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '配置模块提示：从首页「配置」进入时，四个服务标题下方显示橙色提示，激活流程中不显示。
+存储服务：该配置用于机场获取的图片、视频数据存放，若是修改，需要重启服务，请谨慎修改。
+通信服务：该模块配置用于机场上云使用，若是修改，若是重启需要10分钟左右，且机场需要重新设置机场上云方可使用，请谨慎修改。
+视频服务：该模块用于机场直播使用，若是修改，重启服务需要10分钟左右，请谨慎修改。
+时序服务：该服务用于机场调用，若是修改，相对应的机场需要重启才能生效使用，请谨慎修改。' },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '系统服务器和机场服务器调用相同的 ntp 服务，用于时间校准。要求 ntp 服务能访问通。' },
+ { cls: 'rule', tag: '字段', ver: 'B1.3.0', html: tbl([
+ ['ntp服务', '已联网：ntp1.aliyun.com
+未联网：第一步的访问地址', 'IP 或域名，最长 253 位', '系统服务器和机场服务器调用的 ntp 服务，用于时间校准']
+ ]) },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '默认值按设备当前是否联网判断：已联网（互联网环境）默认 ntp1.aliyun.com；未联网（内网环境）默认第一步的访问地址。' }
+ ]},
+ save: { title: '暂存并下一步', items: [
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '① 先做格式校验，有错误停在当前页 ② 依次验证存储、通信、视频、时序服务的连通性（含对应服务端口是否正确）。' },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '任一不通过：提示「xx服务链接不上，请检查修改xx服务相关配置。」，并框选对应模块。' },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '全部通过：数据存入暂存状态，进入第四步。在第六步「系统初始化」完成后才真正保存。' },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '暂存后点「上一步」再回来，能看到修改过的内容；返回运维中心后再进来，显示系统正在运行的值。' }
+ ]}
+};
+// ===== 标注点弹层（同前两步） =====
+var pop = document.getElementById('pop'), curDot = null;
+function openNote(dot) {
+ if (curDot === dot) return closeNote();
+ closeNote();
+ var n = NOTES[dot.dataset.note];
+ document.getElementById('popTitle').textContent = n.title;
+ document.getElementById('popBody').innerHTML = n.items.map(function (it) {
+ return '' + it.tag + '' + it.ver + '' + it.html + '
+';
+ }).join('');
+ pop.classList.add('show');
+ var r = dot.getBoundingClientRect();
+ var left = r.right + 10 + window.scrollX, top = r.top - 10 + window.scrollY;
+ if (r.right + 420 > document.documentElement.clientWidth) left = r.left - 410 + window.scrollX;
+ pop.style.left = left + 'px'; pop.style.top = top + 'px';
+ dot.classList.add('open'); curDot = dot;
+}
+function closeNote() { pop.classList.remove('show'); if (curDot) curDot.classList.remove('open'); curDot = null; }
+document.addEventListener('click', function (e) {
+ var d = e.target.closest('.dot');
+ if (d) { e.stopPropagation(); openNote(d); return; }
+ if (!pop.contains(e.target)) closeNote();
+});
+document.getElementById('popClose').onclick = closeNote;
+document.getElementById('sw').onclick = function () { this.classList.toggle('off'); document.body.classList.toggle('hide-dots'); closeNote(); };
+function toast(t, bad) { var el = document.getElementById('toast'); el.textContent = t; el.className = 'toast' + (bad ? ' bad' : ''); el.style.display = 'block'; clearTimeout(toast.h); toast.h = setTimeout(function () { el.style.display = 'none'; }, bad ? 3500 : 2200); }
+// ===== 校验规则 =====
+var R = {
+ port: function (v) { return /^\d+$/.test(v) && +v >= 1 && +v ';
+ if (f.pw) inp = '' + inp + '显示' + (f.regen ? '重新生成' : '') + '
+';
+ return '' + (f.opt ? '' : '*') + f.label + '' + inp + '
+';
+}
+function radioRow(label, name, opts, dot) {
+ return '*' + label + '' +
+ opts.map(function (o) { return '' + o[1] + ''; }).join('') +
+ '
+' + (dot || '') + '
+';
+}
+$('mods').innerHTML = MODS.map(function (m) {
+ var modeDot = m.key === 'store' ? '1' : '';
+ return '' + m.name + '' + m.dot + '
+' +
+ // 橙色提示：激活流程中不展示，仅在从首页「配置」进入时展示
+ (INIT_CFG && m.tip ? '提示：' + m.tip + '
+' : '') +
+ '' +
+ radioRow('配置选择', 'mode_' + m.key, [['builtin', '内置配置'], ['custom', '自定义']], modeDot) +
+ (m.key === 'store' ? radioRow('存储类型', 'stype', [['minio', 'minio'], ['oss', 'OSS']]) : '') +
+ m.fields.map(rowHtml).join('') + '
+';
+}).join('');
+// ===== 状态：读取暂存数据 =====
+var saved = null; try { saved = JSON.parse(localStorage.getItem(STORE) || 'null'); } catch (e) { saved = null; }
+function allFields() { return MODS.reduce(function (a, m) { return a.concat(m.fields); }, []); }
+function modeOf(key) { var r = document.querySelector('input[name="mode_' + key + '"]:checked'); return r ? r.value : 'builtin'; }
+function stype() { var r = document.querySelector('input[name="stype"]:checked'); return r ? r.value : 'minio'; }
+function setErr(inp, msg) { inp.classList.toggle('bad', !!msg); inp.closest('.ctrl').querySelector('.err').textContent = msg || ''; }
+// 校验单个字段：内置配置、隐藏字段不校验
+function check(inp) {
+ if (inp.disabled || inp.closest('.row').style.display === 'none') { setErr(inp, ''); return true; }
+ var v = inp.value.trim(), rule = inp.dataset.rule;
+ if (!v) { if (inp.dataset.opt) { setErr(inp, ''); return true; } setErr(inp, '请填写' + inp.closest('.row').querySelector('label').textContent.replace('*', '').trim()); return false; }
+ var msg = rule && R[rule] ? R[rule](v) : '';
+ setErr(inp, msg); return !msg;
+}
+// 存储类型切换：显示对应字段
+function applyStype() {
+ var t = stype();
+ document.querySelectorAll('#mod_store [data-grp]').forEach(function (row) { row.style.display = row.dataset.grp === t ? '' : 'none'; });
+}
+// 配置选择切换：内置 = 默认值 + 只读；自定义 = 可编辑
+function applyMode(m, keepValue) {
+ var builtin = modeOf(m.key) === 'builtin';
+ if (m.key === 'store') {
+ if (builtin) document.querySelector('input[name="stype"][value="minio"]').checked = true;
+ document.querySelectorAll('input[name="stype"]').forEach(function (r) { r.disabled = builtin; });
+ applyStype();
+ }
+ m.fields.forEach(function (f) {
+ var inp = $(f.id);
+ if (builtin || !keepValue) inp.value = dv(f);
+ inp.disabled = builtin || !!f.fixed;
+ setErr(inp, '');
+ });
+ if (m.key === 'mqtt') $('regen').classList.toggle('off', builtin);
+ $('mod_' + m.key).classList.remove('fail');
+}
+// ===== 初始化：默认四个模块都是内置配置 =====
+MODS.forEach(function (m) {
+ var md = saved && saved.modes ? saved.modes[m.key] : 'builtin';
+ document.querySelector('input[name="mode_' + m.key + '"][value="' + (md || 'builtin') + '"]').checked = true;
+});
+document.querySelector('input[name="stype"][value="' + (saved && saved.stype || 'minio') + '"]').checked = true;
+if (saved && saved.net) $('selNet').value = saved.net;
+MODS.forEach(function (m) {
+ applyMode(m, false);
+ // 暂存过的自定义内容回填
+ if (saved && saved.values && modeOf(m.key) === 'custom') m.fields.forEach(function (f) { if (!f.fixed && saved.values[f.id] != null) $(f.id).value = saved.values[f.id]; });
+});
+// ===== 事件 =====
+MODS.forEach(function (m) {
+ document.querySelectorAll('input[name="mode_' + m.key + '"]').forEach(function (r) { r.onchange = function () { applyMode(m, true); }; });
+});
+document.querySelectorAll('input[name="stype"]').forEach(function (r) {
+ r.onchange = function () { applyStype(); document.querySelectorAll('#mod_store input[type=text], #mod_store input[type=password]').forEach(function (i) { setErr(i, ''); }); };
+});
+document.querySelectorAll('#mods input[type=text], #mods input[type=password]').forEach(function (inp) {
+ // 不在失焦时校验：统一在点「暂存并下一步」时校验；重新输入时清掉该字段的报错
+ inp.addEventListener('input', function () { setErr(inp, ''); inp.closest('.mod').classList.remove('fail'); });
+});
+document.querySelectorAll('[data-eye]').forEach(function (e) {
+ e.onclick = function () { var i = $(e.dataset.eye); var show = i.type === 'password'; i.type = show ? 'text' : 'password'; e.textContent = show ? '隐藏' : '显示'; };
+});
+$('regen').onclick = function () { if (this.classList.contains('off')) return; var i = $('m_pwd'); i.value = newPwd(); i.type = 'text'; document.querySelector('[data-eye="m_pwd"]').textContent = '隐藏'; setErr(i, ''); toast('已重新生成 mqtt 账户密码'); };
+// 网络环境切换：时序服务为内置配置时，默认值跟着变
+$('selNet').onchange = function () { var m = MODS[3]; if (modeOf('ntp') === 'builtin') applyMode(m, false); toast(online() ? '已联网：ntp 默认 ntp1.aliyun.com' : '未联网：ntp 默认访问地址 ' + HOST); };
+// ===== 弹窗 / 跳转 =====
+function openM(id) { $(id).classList.add('open'); }
+function closeM(id) { $(id).classList.remove('open'); }
+document.querySelectorAll('[data-close]').forEach(function (el) { el.addEventListener('click', function () { closeM(el.dataset.close); }); });
+$('btnBack').onclick = function () { openM('mBack'); };
+$('btnBackOk').onclick = function () { closeM('mBack'); location.href = HOME_URL; };
+$('btnPrev').onclick = function () { location.href = 'activate-step2-license.html'; };
+// ---------- 演示：必填验证开关（开=校验，关=不校验直接下一步），各步骤共用 ----------
+function valOn() { try { return sessionStorage.getItem('demoVal') !== '0'; } catch (e) { return true; } }
+function initValSw(onChange) {
+ var sw = document.getElementById('swVal');
+ sw.classList.toggle('off', !valOn());
+ sw.onclick = function () {
+ var on = this.classList.toggle('off') === false;
+ try { sessionStorage.setItem('demoVal', on ? '1' : '0'); } catch (e) {}
+ if (onChange) onChange(on);
+ toast(on ? '必填验证已开启：点「暂存并下一步」会校验所有输入' : '必填验证已关闭：点「暂存并下一步」直接进入下一步');
+ };
+ if (onChange) onChange(valOn(), true);
+}
+initValSw(function (on, init) {
+ $('selFlow').value = on ? 'err' : 'ok';
+ $('failWrap').style.display = on ? '' : 'none';
+ if (!init) { document.querySelectorAll('#mods input[type=text], #mods input[type=password]').forEach(function (i) { setErr(i, ''); }); document.querySelectorAll('.mod').forEach(function (m) { m.classList.remove('fail'); }); }
+});
+$('reset').onclick = function () { localStorage.removeItem(STORE); localStorage.removeItem('yw_mqtt_pwd'); location.reload(); };
+// 演示模式切换：报错流程下才显示「连通性验证」选项；切换时清掉已有报错
+$('selFlow').onchange = function () {
+ var err = this.value === 'err';
+ $('failWrap').style.display = err ? '' : 'none';
+ document.querySelectorAll('#mods input[type=text], #mods input[type=password]').forEach(function (i) { setErr(i, ''); });
+ document.querySelectorAll('.mod').forEach(function (m) { m.classList.remove('fail'); });
+ toast(err ? '报错流程：点「暂存并下一步」会校验所有输入和服务连通性' : '正向流程：点「暂存并下一步」直接暂存进入下一步');
+};
+// ===== 暂存并下一步 =====
+$('btnNext').onclick = function () {
+ var btn = this;
+ document.querySelectorAll('.mod').forEach(function (m) { m.classList.remove('fail'); });
+ // 演示模式：正向流程 —— 不做任何校验，直接暂存进入下一步
+ if ($('selFlow').value === 'ok') {
+ document.querySelectorAll('#mods input[type=text], #mods input[type=password]').forEach(function (i) { setErr(i, ''); });
+ return done();
+ }
+ // 演示模式：报错流程 —— ① 格式校验
+ var ok = true, first = null;
+ document.querySelectorAll('#mods input[type=text], #mods input[type=password]').forEach(function (i) { if (!check(i)) { ok = false; first = first || i; } });
+ if (!ok) { first.scrollIntoView({ block: 'center', behavior: 'smooth' }); return toast('请检查标红字段', true); }
+ // ② 依次验证各服务连通性（演示：由右下角面板控制结果）
+ btn.disabled = true; btn.textContent = '正在验证服务连通性…';
+ var fail = $('selFail').value, i = 0;
+ (function next() {
+ if (i >= MODS.length) return done();
+ var m = MODS[i++];
+ btn.textContent = '正在验证' + m.name + '…';
+ setTimeout(function () {
+ if (m.key === fail) {
+ btn.disabled = false; btn.textContent = '暂存并下一步';
+ var mod = $('mod_' + m.key); mod.classList.add('fail'); mod.scrollIntoView({ block: 'center', behavior: 'smooth' });
+ return toast(m.name + '链接不上，请检查修改' + m.name + '相关配置。', true);
+ }
+ next();
+ }, 450);
+ })();
+ // ③ 全部通过：存入暂存状态
+ function done() {
+ var data = { modes: {}, stype: stype(), net: $('selNet').value, values: {} };
+ MODS.forEach(function (m) { data.modes[m.key] = modeOf(m.key); });
+ allFields().forEach(function (f) { data.values[f.id] = $(f.id).value.trim(); });
+ localStorage.setItem(STORE, JSON.stringify(data));
+ btn.disabled = false; btn.textContent = '暂存并下一步';
+ location.href = 'activate-step4-project.html';
+ }
+};

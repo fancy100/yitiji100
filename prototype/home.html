@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>运维中心 · 功能入口</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; min-height: 100vh; color: #fff; overflow-x: hidden;
+    background: radial-gradient(ellipse at 50% 40%, #1d3550 0%, #0e1724 60%, #090f18 100%); }
+  body::before { content: ""; position: fixed; inset: 0; pointer-events: none;
+    background-image: linear-gradient(rgba(80,160,255,.07) 1px, transparent 1px), linear-gradient(90deg, rgba(80,160,255,.07) 1px, transparent 1px);
+    background-size: 60px 60px; }
+  .topbar { position: relative; z-index: 5; height: 50px; background: #131a26; display: flex; align-items: center; justify-content: space-between; padding: 0 14px; }
+  .brand { font-size: 18px; font-weight: bold; }
+  .right { display: flex; align-items: center; gap: 22px; }
+  .user { position: relative; display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; }
+  .avatar { width: 22px; height: 22px; border-radius: 50%; background: #dfe7f2; color: #2a3d57; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; }
+  .menu { position: absolute; top: 34px; right: 0; background: #fff; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,.3); min-width: 120px; display: none; overflow: hidden; }
+  .menu.open { display: block; }
+  .menu a { display: block; padding: 9px 14px; font-size: 13px; color: #333; text-decoration: none; }
+  .menu a:hover { background: #f0f6ff; color: #1677ff; }
+  .lang { background: #131a26; color: #fff; border: 1px solid #8a97a8; height: 26px; padding: 0 6px; font-size: 13px; }
+  h1 { position: relative; z-index: 1; text-align: center; font-size: 44px; letter-spacing: 4px; margin: 56px 0 70px; text-shadow: 0 0 18px rgba(90,170,255,.5); }
+  .grid { position: relative; z-index: 1; display: flex; flex-wrap: wrap; justify-content: center; gap: 22px; max-width: 790px; margin: 0 auto 120px; }
+  .tile { position: relative; width: 170px; height: 166px; border-radius: 10px; padding: 6px; background: #2c3e55; box-shadow: 0 6px 16px rgba(0,0,0,.45); cursor: pointer; transition: transform .15s; }
+  .tile:hover { transform: translateY(-3px); }
+  .face { height: 100%; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; overflow: hidden; position: relative; transition: filter .2s; }
+  .face::before { content: ""; position: absolute; left: -40%; top: -60%; width: 120%; height: 120%; background: rgba(255,255,255,.08); transform: rotate(35deg); }
+  .hex { width: 66px; height: 74px; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); background: rgba(0,0,0,.16); display: flex; align-items: center; justify-content: center; position: relative; }
+  .hex svg { width: 30px; height: 30px; }
+  .name { font-size: 20px; font-weight: bold; position: relative; }
+  .tile.disabled { cursor: not-allowed; }
+  .tile.disabled:hover { transform: none; }
+  .tile.disabled .face { filter: grayscale(1) brightness(.55); }
+  .tile.hidden { display: none; }
+  .reddot { position: absolute; top: 1px; right: 1px; width: 16px; height: 16px; border-radius: 50%; background: #f5222d; border: 2px solid #fff; z-index: 2; display: none; }
+  .tile.has-update:not(.disabled) .reddot { display: block; }
+  .c-green { background: linear-gradient(160deg, #10b45c, #1de38a); }
+  .c-blue { background: linear-gradient(160deg, #0a84ff, #1ab0e8); }
+  .c-purple { background: linear-gradient(160deg, #5a6cff, #8a96ff); }
+  .c-orange { background: linear-gradient(160deg, #ea8a0c, #f2a640); }
+  .c-yellow { background: linear-gradient(160deg, #e9a906, #f4c23e); }
+  .c-navy { background: linear-gradient(160deg, #0a6be8, #2e9cf0); }
+  .c-cyan { background: linear-gradient(160deg, #04a8e0, #0bc4e4); }
+  /* PRD 注释圆点 */
+  .pd { position: absolute; z-index: 6; width: 20px; height: 20px; border-radius: 50%; background: #ff7a00; color: #fff; font-size: 11px; font-weight: bold;
+    display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 0 0 4px rgba(255,122,0,.3); animation: pulse 1.8s infinite; }
+  .pd.inline { position: relative; }
+  .pd.active { background: #1677ff; box-shadow: 0 0 0 4px rgba(22,119,255,.3); animation: none; }
+  @keyframes pulse { 0%,100% { box-shadow: 0 0 0 3px rgba(255,122,0,.35); } 50% { box-shadow: 0 0 0 7px rgba(255,122,0,.1); } }
+  .tile > .pd { top: -9px; left: -9px; }
+  body.no-pd .pd { display: none !important; }
+  .pop { position: fixed; z-index: 20; width: 320px; background: #fff; color: #333; border-radius: 6px; border-left: 4px solid #ff7a00; box-shadow: 0 6px 20px rgba(0,0,0,.4); padding: 12px 14px; font-size: 13px; line-height: 1.75; display: none; }
+  .pop.open { display: block; }
+  .pop h4 { font-size: 14px; margin-bottom: 6px; color: #ff7a00; }
+  .pop ul { padding-left: 18px; }
+  .tpl { display: none; }
+  /* 演示控制 */
+  .demo { position: fixed; left: 14px; bottom: 14px; z-index: 10; background: rgba(255,255,255,.95); color: #333; border-radius: 6px; padding: 10px 12px; font-size: 12px; box-shadow: 0 4px 14px rgba(0,0,0,.35); }
+  .demo .row { display: flex; align-items: center; gap: 6px; margin: 4px 0; }
+  .demo .lbl { width: 60px; color: #666; }
+  .seg button { border: 1px solid #d9d9d9; background: #fff; padding: 3px 10px; font-size: 12px; cursor: pointer; margin-right: -1px; }
+  .seg button.on { background: #1677ff; border-color: #1677ff; color: #fff; }
+  .switch { position: relative; width: 36px; height: 20px; background: #1a6cfb; border-radius: 10px; cursor: pointer; }
+  .switch::after { content: ""; position: absolute; left: 18px; top: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; }
+  .switch.off { background: #ccc; }
+  .switch.off::after { left: 2px; }
+  .demo .prd-row { padding-bottom: 6px; margin-bottom: 6px; border-bottom: 1px solid #eee; }
+  .toast { position: fixed; top: 70px; left: 50%; transform: translateX(-50%); z-index: 30; background: rgba(0,0,0,.8); color: #fff; padding: 8px 18px; border-radius: 4px; font-size: 13px; display: none; }
+  .user > .pd { position: relative; margin-left: 4px; }
+  /* 修改密码弹窗 */
+  .mask { position: fixed; inset: 0; z-index: 15; background: rgba(0,0,0,.45); display: none; align-items: center; justify-content: center; }
+  .mask.open { display: flex; }
+  .dlg { width: 460px; background: #fff; color: #333; border-radius: 4px; box-shadow: 0 8px 30px rgba(0,0,0,.4); }
+  .dlg.max { width: 90vw; }
+  .dlg-hd { height: 46px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; border-bottom: 1px solid #eee; font-size: 14px; font-weight: bold; }
+  .dlg-hd .ops { display: flex; gap: 14px; color: #999; font-weight: normal; }
+  .dlg-hd .ops span { cursor: pointer; font-size: 15px; }
+  .dlg-hd .ops span:hover { color: #1677ff; }
+  .dlg-bd { padding: 18px 26px 10px; }
+  .dlg-ft { border-top: 1px solid #eee; padding: 10px 16px; display: flex; justify-content: flex-end; gap: 8px; }
+  .btn { height: 28px; padding: 0 16px; font-size: 13px; border-radius: 3px; border: 1px solid #d9d9d9; background: #fff; color: #333; cursor: pointer; }
+  .btn.primary { background: #1677ff; border-color: #1677ff; color: #fff; }
+  .frow { display: flex; align-items: flex-start; margin-bottom: 16px; font-size: 13px; }
+  .frow .lb { width: 96px; text-align: right; padding-right: 8px; line-height: 30px; color: #555; flex-shrink: 0; }
+  .frow .lb i { color: #f5222d; font-style: normal; margin-right: 3px; }
+  .frow .ct { flex: 1; position: relative; }
+  .frow .txt { line-height: 30px; font-size: 14px; color: #333; }
+  .ipt { display: flex; align-items: center; height: 30px; border: 1px solid #d9d9d9; border-radius: 3px; padding: 0 8px; }
+  .ipt.err { border-color: #f5222d; }
+  .ipt input { flex: 1; border: none; outline: none; font-size: 13px; min-width: 0; }
+  .ipt .eye2 { color: #aaa; cursor: pointer; display: inline-flex; }
+  .ipt .eye2:hover { color: #1677ff; }
+  .ipt .eye2 svg { width: 16px; height: 16px; }
+  .msg { color: #f5222d; font-size: 12px; line-height: 18px; min-height: 0; }
+  .bars { display: flex; gap: 4px; margin-top: 6px; }
+  .bars span { flex: 1; height: 4px; background: #e5e5e5; border-radius: 2px; }
+  .bars.l1 span:nth-child(-n+1), .bars.l2 span:nth-child(-n+2) { background: #f5222d; }
+  .bars.l3 span:nth-child(-n+3) { background: #fa8c16; }
+  .bars.l4 span:nth-child(-n+4), .bars.l5 span:nth-child(-n+5) { background: #52c41a; }
+  .bars-tip { font-size: 12px; color: #999; margin-top: 3px; }
+  .frow .pd { position: absolute; right: -28px; top: 5px; }
+  .dlg-hd .pd { position: relative; margin-left: 6px; display: inline-flex; }
+  .note-tag { display: inline-block; font-size: 12px; color: #fff; background: #ff7a00; border-radius: 2px; padding: 0 5px; margin-right: 4px; }
+  .pop .draft { margin-top: 6px; padding: 4px 8px; border: 1px dashed #ff7a00; border-radius: 3px; }
+  .pop table { border-collapse: collapse; width: 100%; font-size: 12px; margin-top: 4px; }
+  .pop td { border: 1px solid #eee; padding: 2px 6px; vertical-align: top; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">运维中心</div>
+  <div class="right">
+    <div class="user" id="user">
+      <span class="avatar">A</span><span>admin</span><span>&#9662;</span>
+      <div class="menu" id="menu">
+        <a href="javascript:;" data-act="pwd">修改密码</a>
+        <a href="login.html">退出登录</a>
+      </div>
+    </div>
+    <select class="lang"><option>中文</option><option>English</option><option>ภาษาไทย</option><option>Indonesia</option></select>
+    <span class="pd inline" data-note="n-top">0</span>
+  </div>
+</div>
+
+<h1>运维中心 <span class="pd inline" data-note="n-global" style="display:inline-flex;vertical-align:middle;">G</span></h1>
+
+<div class="grid" id="grid">
+  <div class="tile" id="t-activate" data-mod="激活"><span class="pd" data-note="n-activate">1</span>
+    <div class="face c-green"><div class="hex"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M12 2v10"/><path d="M5.6 6.6a8 8 0 1 0 12.8 0"/></svg></div><div class="name">激活</div></div></div>
+  <div class="tile hidden" id="t-config" data-mod="配置"><span class="pd" data-note="n-config">1</span>
+    <div class="face c-green"><div class="hex"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-2.7-1.1l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.6 1.6 0 0 0 3.6 14H3a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.1-2.7l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 10 3.6V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1A1.6 1.6 0 0 0 20.4 10H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/></svg></div><div class="name">配置</div></div></div>
+  <div class="tile" id="t-upgrade" data-mod="升级"><span class="pd" data-note="n-upgrade">2</span><span class="reddot"></span>
+    <div class="face c-blue"><div class="hex"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg></div><div class="name">升级</div></div></div>
+  <div class="tile" id="t-backup" data-mod="备份"><span class="pd" data-note="n-backup">3</span>
+    <div class="face c-purple"><div class="hex"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg></div><div class="name">备份</div></div></div>
+  <div class="tile" id="t-restore" data-mod="还原"><span class="pd" data-note="n-restore">4</span>
+    <div class="face c-orange"><div class="hex"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></div><div class="name">还原</div></div></div>
+  <div class="tile" id="t-monitor" data-mod="服务监测"><span class="pd" data-note="n-monitor">5</span>
+    <div class="face c-yellow"><div class="hex"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div><div class="name">服务监测</div></div></div>
+  <div class="tile" id="t-project" data-mod="项目信息"><span class="pd" data-note="n-project">6</span>
+    <div class="face c-navy"><div class="hex"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></div><div class="name">项目信息</div></div></div>
+  <div class="tile" id="t-reset" data-mod="重置"><span class="pd" data-note="n-reset">7</span>
+    <div class="face c-cyan"><div class="hex"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/><circle cx="12" cy="12" r="2"/></svg></div><div class="name">重置</div></div></div>
+</div>
+
+<!-- 修改密码弹窗 -->
+<div class="mask" id="ipMask"><div class="dlg">
+  <div class="dlg-hd"><span>ip变更提醒<span class="pd inline" data-note="n-ip">I</span></span><div class="ops"><span id="ipX" title="关闭">&#10005;</span></div></div>
+  <div style="padding:26px 24px;font-size:14px;line-height:1.9;">检测到您的云盒设备已经变更位置，对应的ip地址已经发生变化，请您前往处理。<div style="color:#999;font-size:12px;margin-top:6px;">上次保存的IP：<span id="ipOld"></span> 当前检测到的IP：<span id="ipNew" style="color:#1677ff"></span></div></div>
+  <div class="dlg-ft"><button class="btn" id="ipCancel">取消</button><button class="btn primary" id="ipGo">获取最新ip</button></div>
+</div></div>
+<div class="mask" id="mask">
+  <div class="dlg" id="dlg">
+    <div class="dlg-hd"><span>修改密码<span class="pd inline" data-note="n-dlg">P</span></span>
+      <div class="ops"><span id="dlgClose" title="关闭">&#10005;</span></div></div>
+    <div class="dlg-bd">
+      <div class="frow"><div class="lb">账号名</div><div class="ct"><div class="txt">admin</div><span class="pd" data-note="n-f-acc">1</span></div></div>
+      <div class="frow"><div class="lb">手机号</div><div class="ct">
+        <div class="ipt" id="w-phone"><select id="cc" style="border:none;outline:none;font-size:13px;margin-right:6px;">
+          <option value="CN">中国 +86</option><option value="HK">中国香港 +852</option><option value="MO">中国澳门 +853</option>
+          <option value="GB">英国 +44</option><option value="PT">葡萄牙 +351</option><option value="TH">泰国 +66</option>
+          <option value="ID">印尼 +62</option><option value="VN">越南 +84</option></select>
+          <input id="phone" placeholder="请输入手机号" maxlength="12"></div>
+        <div class="msg" id="m-phone"></div><span class="pd" data-note="n-f-phone">2</span></div></div>
+      <div class="frow"><div class="lb"><i>*</i>旧密码</div><div class="ct">
+        <div class="ipt" id="w-old"><input id="old" type="password" placeholder="请输入旧密码" maxlength="16"><span class="eye2" data-for="old"></span></div>
+        <div class="msg" id="m-old"></div><span class="pd" data-note="n-f-old">3</span></div></div>
+      <div class="frow"><div class="lb"><i>*</i>新密码</div><div class="ct">
+        <div class="ipt" id="w-new"><input id="new" type="password" placeholder="8-16 位，需包含大写和小写字母" maxlength="16"><span class="eye2" data-for="new"></span></div>
+        <div class="bars" id="bars"><span></span><span></span><span></span><span></span><span></span></div>
+        <div class="bars-tip" id="barsTip">密码强度：-</div>
+        <div class="msg" id="m-new"></div><span class="pd" data-note="n-f-new">4</span></div></div>
+      <div class="frow"><div class="lb"><i>*</i>确认新密码</div><div class="ct">
+        <div class="ipt" id="w-cfm"><input id="cfm" type="password" placeholder="请再次输入新密码" maxlength="16"><span class="eye2" data-for="cfm"></span></div>
+        <div class="msg" id="m-cfm"></div><span class="pd" data-note="n-f-cfm">5</span></div></div>
+    </div>
+    <div class="dlg-ft"><button class="btn" id="dlgCancel">取消</button><button class="btn primary" id="dlgOk">确定</button></div>
+  </div>
+</div>
+
+<!-- PRD 注释内容 -->
+<div class="tpl" id="n-global"><h4>功能入口页 · 全局规则</h4><ul>
+  <li>登录成功后进入本页，展示 7 个功能模块：激活、升级、备份、还原、服务监测、项目信息、重置。</li>
+  <li><b>未激活</b>：除「激活」和「服务监测」外，其他模块全部置灰，不可点击；点击置灰模块提示「请先完成激活」。</li>
+  <li><b>激活完成后</b>：所有模块恢复可用；「激活」入口消失，同一位置变为「配置」。</li>
+  <li>激活状态以服务端返回为准，每次进入本页重新获取。</li>
+  <li><b>IP 变更检测</b>：见标注 I。</li></ul></div>
+<div class="tpl" id="n-ip"><h4>ip变更提醒</h4><ul>
+  <li>适用场景：用户已保存 IP 地址（已激活），之后机器重启或换了位置，系统仍能识别到当前 IP，并支持用户更新。</li>
+  <li>IP 在每次开机后重新获取；进入本页时，若检测到的 IP 与上次保存的 IP 不一致，自动弹出本弹窗。仅已激活状态检测。</li>
+  <li>文案：「检测到您的云盒设备已经变更位置，对应的ip地址已经发生变化，请您前往处理。」，并显示上次保存的 IP 和当前检测到的 IP。</li>
+  <li>「取消」/ ✕：关闭弹窗，本次不处理；下次进入本页仍不一致时再次提醒。</li>
+  <li>「获取最新ip」：进入配置流程第一步「网络信息配置」，IP 自动填入最新值；用户确认后按配置流程走到第六步「重启服务」，重启完成后新 IP 生效。</li></ul></div>
+<div class="tpl" id="n-top"><h4>顶部栏</h4><ul>
+  <li>左侧显示系统名称「运维中心」。</li>
+  <li>右侧为当前登录账号和语言切换；语言选项为中文、英文、泰文、印尼文，切换后全局生效并记住选择。</li></ul></div>
+<div class="tpl" id="n-user"><h4>账号菜单</h4><ul>
+  <li>显示当前登录账号 admin，点击展开下拉菜单，再次点击或点击空白处收起。</li>
+  <li><b>修改密码</b>：打开「修改密码」弹窗。</li>
+  <li><b>退出登录</b>：清除登录状态，返回登录页。</li></ul></div>
+<div class="tpl" id="n-activate"><h4>① 激活</h4><ul>
+  <li>未激活时显示，可点击，进入激活向导（6 步）：网络 → 授权 → 基础服务 → 项目信息 → 可选服务 → 初始化。</li>
+  <li>激活完成后本入口消失，变为「配置」。</li></ul></div>
+<div class="tpl" id="n-config"><h4>① 配置</h4><ul>
+  <li>激活完成后替代「激活」入口显示。</li>
+  <li>进入配置向导，可修改激活时填写的信息；第 6 步为「重启服务」，重启后修改才生效。</li></ul></div>
+<div class="tpl" id="n-upgrade"><h4>② 升级</h4><ul>
+  <li>未激活时置灰。</li>
+  <li><b>红点</b>：运维中心或翼飞平台有可更新的版本时，右上角显示红点；没有可更新版本时不显示。</li>
+  <li>升级完成、已是最新版本后，红点消失。</li>
+  <li><b>更新中</b>：首页上方显示「平台名称系统正在更新中」（翼飞平台或运维中心），除升级外其他模块置灰不可点，可进入升级查看进度。</li></ul></div>
+<div class="tpl" id="n-backup"><h4>③ 备份</h4><ul><li>未激活时置灰。</li><li>支持自动备份和手动备份，查看备份记录。</li></ul></div>
+<div class="tpl" id="n-restore"><h4>④ 还原</h4><ul><li>未激活时置灰。</li><li>支持一键还原和导入还原。</li><li>一键还原进行中：顶部提示「导入复原中，复原会占用服务，建议您在此期间不再使用翼飞平台」；配置、升级、备份、重置置灰，点击提示「导入复原中，请稍后再试」；还原、服务监测、项目信息可用。复原结束后自动恢复。</li></ul></div>
+<div class="tpl" id="n-monitor"><h4>⑤ 服务监测</h4><ul><li><b>任何状态下都不置灰</b>：未激活、升级中、备份中、复原中、重置中都可以点击进入，用来随时查看各服务是否正常。</li><li>查看 CPU、内存、存储、网络和各服务运行状态。</li></ul></div>
+<div class="tpl" id="n-project"><h4>⑥ 项目信息</h4><ul><li>未激活时置灰；激活后升级中、复原中也可以点击进入查看（只读）。</li><li>查看系统登录网址、设备上云信息、云端资源额度和设备授权额度。</li></ul></div>
+<div class="tpl" id="n-reset"><h4>⑦ 重置</h4><ul><li>未激活时置灰。</li><li>点击进入重置页面。点「回归出厂设置」后二次确认，确认后进入数据初始化。</li><li>初始化完成后跳转到运维中心首页，状态变为未激活，需要重新激活。</li><li>恢复出厂设置要求所有数值回归默认状态，包括可以恢复设备激活码 + 云联密钥。</li></ul></div>
+<div class="tpl" id="n-dlg"><h4>修改密码弹窗</h4><ul>
+  <li>从账号菜单「修改密码」进入；使用初始密码首次登录时，登录后自动弹出。</li>
+  <li><b>非强制修改</b>：首次登录弹出时也可以点右上角 ✕ 或「取消」关闭，关闭后可正常使用其他功能，不保存。</li>
+  <li>修改成功后提示「密码修改成功，请重新登录」，跳转到登录页。</li>
+  <li>右上角只有关闭按钮 ✕（无最大化）。</li>
+  <li>点「确定」时校验全部字段，有错误就在字段下方标红提示；修改成功后提示「密码修改成功，请重新登录」，并退出到登录页。</li></ul></div>
+<div class="tpl" id="n-f-acc"><h4>1. 账号名</h4><ul><li>显示当前账号 admin，<b>不支持修改</b>。</li></ul></div>
+<div class="tpl" id="n-f-phone"><h4>2. 手机号</h4><ul><li>先选国家/地区，再按对应规则校验位数和开头数字：</li></ul>
+  <table><tr><td>中国 +86</td><td>11 位，开头为 1，不能是 10、11、12（默认选项）</td></tr>
+  <tr><td>中国香港 +852</td><td>8 位，开头 5、6、7、9</td></tr><tr><td>中国澳门 +853</td><td>8 位，开头 6</td></tr>
+  <tr><td>英国 +44</td><td>10 位，开头 7</td></tr><tr><td>葡萄牙 +351</td><td>9 位，开头 9</td></tr>
+  <tr><td>泰国 +66</td><td>9 位，开头 6、8、9</td></tr><tr><td>印尼 +62</td><td>10–12 位，开头 8</td></tr>
+  <tr><td>越南 +84</td><td>9–10 位，开头 3、5、7、8、9</td></tr></table>
+  <div style="margin-top:4px;color:#999;">有其他国家的客户后再补充。</div>
+  <ul><li>手机号为<b>选填</b>：不填写时不校验；填写后按所选国家/地区的规则校验。</li></ul></div>
+<div class="tpl" id="n-f-old"><h4>3. 旧密码</h4><ul><li>必填，做旧密码格式校验；与当前密码不一致时提示「旧密码错误」。</li><li>默认密文，点小眼睛可切换明文。</li></ul></div>
+<div class="tpl" id="n-f-new"><h4>4. 新密码</h4><ul><li>必填，8–16 位，必须同时包含大写和小写字母。</li><li>不能与旧密码相同。</li><li>输入时下方显示密码强度；默认密文，点小眼睛可切换明文。</li></ul></div>
+<div class="tpl" id="n-f-cfm"><h4>5. 确认新密码</h4><ul><li>必填，必须与新密码一致，否则提示「两次输入的密码不一致」。</li></ul></div>
+
+<div class="pop" id="pop"></div>
+<div class="toast" id="toast"></div>
+<div class="demo">
+  <div class="row prd-row"><span class="lbl">PRD 标注</span><div class="switch" id="switch" title="显示 / 隐藏标注点"></div></div>
+  <b>演示控制</b>
+  <div class="row"><span class="lbl">激活状态</span><span class="seg" id="segAct"><button data-v="0">未激活</button><button data-v="1">已激活</button></span></div>
+  <div class="row"><span class="lbl">升级更新</span><span class="seg" id="segUpd"><button data-v="1">有更新</button><button data-v="0">无更新</button></span></div>
+</div>
+
+<script>
+(function () {
+  function $(id) { return document.getElementById(id); }
+  var EYE_OPEN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+  var EYE_CLOSED = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+  var DEMO_PWD = 'Admin@123';           // 演示用的当前密码（与登录页一致）
+  var qs = new URLSearchParams(location.search);
+  var qa = qs.get('act'), sa = localStorage.getItem('yw_demo_act');
+  var state = { act: qa === '0' || qa === '1' ? +qa : sa === '0' ? 0 : 1, upd: 1 };
+  localStorage.setItem('yw_demo_act', state.act);
+
+  // ===== 提示 =====
+  var tt = null;
+  function toast(s) { var t = $('toast'); t.textContent = s; t.style.display = 'block'; clearTimeout(tt); tt = setTimeout(function () { t.style.display = 'none'; }, 1800); }
+
+  // ===== PRD 注释圆点 =====
+  var pop = $('pop'), cur = null;
+  function closePop() { pop.classList.remove('open'); if (cur) cur.classList.remove('active'); cur = null; }
+  function openPop(dot) {
+    var tpl = $(dot.getAttribute('data-note')); if (!tpl) return;
+    if (cur) cur.classList.remove('active');
+    cur = dot; dot.classList.add('active');
+    pop.innerHTML = tpl.innerHTML; pop.classList.add('open');
+    var r = dot.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
+    var x = r.right + 10; if (x + w > innerWidth - 10) x = r.left - w - 10; if (x < 10) x = 10;
+    var y = r.top - 6; if (y + h > innerHeight - 10) y = innerHeight - h - 10; if (y < 10) y = 10;
+    pop.style.left = x + 'px'; pop.style.top = y + 'px';
+  }
+  document.addEventListener('click', function (e) {
+    var dot = e.target.closest('.pd');
+    if (dot) { e.stopPropagation(); e.preventDefault(); if (cur === dot) closePop(); else openPop(dot); return; }
+    if (!e.target.closest('.pop')) closePop();
+    if (!e.target.closest('#user')) $('menu').classList.remove('open');
+  }, true);
+  window.addEventListener('resize', closePop);
+  window.addEventListener('scroll', closePop);
+  $('switch').addEventListener('click', function () {
+    var off = document.body.classList.toggle('no-pd'); closePop();
+    this.classList.toggle('off', off);
+  });
+
+  // ===== 模块状态：激活 / 置灰 / 红点 =====
+  function render() {
+    $('t-activate').classList.toggle('hidden', !!state.act);
+    $('t-config').classList.toggle('hidden', !state.act);
+    document.querySelectorAll('#grid .tile').forEach(function (t) {
+      t.classList.toggle('disabled', !state.act && t.id !== 't-activate' && t.id !== 't-monitor');
+    });
+    $('t-upgrade').classList.toggle('has-update', !!state.upd);
+    var upBusy = false, upName = '翼飞平台'; [['yf_upgrade', '翼飞平台'], ['yw_upgrade', '运维中心']].forEach(function (k) { try { var u = JSON.parse(localStorage.getItem(k[0])); if (!upBusy && u && u.run && u.run.state === 'run') { upBusy = true; upName = k[1]; } } catch (e) {} }); window._upName = upName;
+    var bn = $('upBanner'); if (!bn) { bn = document.createElement('div'); bn.id = 'upBanner'; bn.textContent = '翼飞平台系统正在更新中'; bn.style.cssText = 'margin:0 auto 22px;width:fit-content;padding:8px 32px;border-radius:6px;background:rgba(245,166,35,.15);border:1px solid #f5a623;color:#ffd27a;font-size:14px;text-align:center'; $('grid').parentNode.insertBefore(bn, $('grid')); }
+    bn.textContent = upName + '系统正在更新中';
+    bn.style.display = upBusy && state.act ? '' : 'none';
+    document.querySelectorAll('#grid .tile').forEach(function (t) { if (t.classList.contains('upbusy')) { t.classList.remove('upbusy'); t.classList.toggle('disabled', !state.act && t.id !== 't-activate' && t.id !== 't-monitor'); } if (upBusy && state.act && t.id !== 't-upgrade' && t.id !== 't-monitor' && t.id !== 't-project' && !t.classList.contains('disabled')) t.classList.add('disabled', 'upbusy'); }); var rr = null; try { rr = (JSON.parse(localStorage.getItem('yw_restore')) || {}).run; } catch (e) {} var rsBusy = !!(rr && Date.now() < rr.end && state.act);
+    if (rsBusy) { bn.textContent = '导入复原中，复原会占用服务，建议您在此期间不再使用翼飞平台'; bn.style.display = ''; }
+    document.querySelectorAll('#grid .tile').forEach(function (t) { if (t.classList.contains('rsbusy')) { t.classList.remove('rsbusy'); if (!t.classList.contains('upbusy')) t.classList.toggle('disabled', !state.act && t.id !== 't-activate' && t.id !== 't-monitor'); } if (rsBusy && ['t-config', 't-upgrade', 't-backup', 't-reset'].indexOf(t.id) >= 0 && !t.classList.contains('disabled')) t.classList.add('disabled', 'rsbusy'); });
+    [['segAct', state.act], ['segUpd', state.upd]].forEach(function (p) {
+      $(p[0]).querySelectorAll('button').forEach(function (b) { b.classList.toggle('on', +b.getAttribute('data-v') === p[1]); });
+    });
+  }
+  $('segAct').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) { state.act = +b.getAttribute('data-v'); localStorage.setItem('yw_demo_act', state.act); render(); } });
+  $('segUpd').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) { state.upd = +b.getAttribute('data-v'); render(); } });
+  setInterval(render, 2000);
+  $('grid').addEventListener('click', function (e) {
+    var t = e.target.closest('.tile'); if (!t) return;
+    if (t.classList.contains('disabled')) { if (t.classList.contains('rsbusy')) { toast('导入复原中，请稍后再试'); return; } toast(t.classList.contains('upbusy') ? (window._upName || '翼飞平台') + '系统正在更新中，请稍后再试' : '请先完成激活'); return; }
+    if (t.id === 't-activate') { location.href = 'activate-step1-network.html?mode=act'; return; }
+    if (t.id === 't-config') { location.href = 'activate-step1-network.html?mode=cfg'; return; }
+    if (t.id === 't-upgrade') { location.href = 'upgrade.html'; return; }
+    if (t.id === 't-backup') { location.href = 'backup.html'; return; }
+    if (t.id === 't-restore') { location.href = 'restore.html'; return; }
+    if (t.id === 't-reset') { location.href = 'reset.html'; return; }
+    if (t.id === 't-monitor') { location.href = 'monitor.html'; return; }
+    if (t.id === 't-project') { location.href = 'project.html'; return; }
+    toast('进入「' + t.getAttribute('data-mod') + '」模块（页面待制作）');
+  });
+
+  // ===== 账号菜单 =====
+  $('user').addEventListener('click', function (e) {
+    var a = e.target.closest('a');
+    if (a && a.getAttribute('data-act') === 'pwd') { e.preventDefault(); $('menu').classList.remove('open'); openDlg(false); return; }
+    if (a) return;                       // 退出登录：跳转登录页
+    $('menu').classList.toggle('open');
+  });
+
+  // ===== 修改密码弹窗 =====
+  var KEYS = ['phone', 'old', 'new', 'cfm'], forcedOpen = false;
+  function eyes() {
+    document.querySelectorAll('.eye2').forEach(function (s) {
+      var hid = $(s.getAttribute('data-for')).type === 'password';
+      s.innerHTML = hid ? EYE_CLOSED : EYE_OPEN; s.title = hid ? '显示密码' : '隐藏密码';
+    });
+  }
+  document.querySelectorAll('.eye2').forEach(function (s) {
+    s.addEventListener('click', function () { var i = $(s.getAttribute('data-for')); i.type = i.type === 'password' ? 'text' : 'password'; eyes(); });
+  });
+  function setErr(k, m) { $('m-' + k).textContent = m || ''; $('w-' + k).classList.toggle('err', !!m); }
+  function val(k) { return k === 'phone' ? $(k).value.trim() : $(k).value; }
+  function strength() {
+    var v = $('new').value, s = 0;
+    if (v.length >= 8) s++; if (/[a-z]/.test(v)) s++; if (/[A-Z]/.test(v)) s++; if (/\d/.test(v)) s++; if (/[^A-Za-z0-9]/.test(v)) s++;
+    if (!v) s = 0;
+    $('bars').className = 'bars' + (s ? ' l' + s : '');
+    $('barsTip').textContent = '密码强度：' + (!v ? '-' : s <= 2 ? '弱' : s === 3 ? '中' : '强');
+  }
+  $('new').addEventListener('input', strength);
+  var PHONE = { CN: /^1[3-9]\d{9}$/, HK: /^[5679]\d{7}$/, MO: /^6\d{7}$/, GB: /^7\d{9}$/, PT: /^9\d{8}$/, TH: /^[689]\d{8}$/, ID: /^8\d{9,11}$/, VN: /^[35789]\d{8,9}$/ };
+  var RULES = {
+    phone: function (v) { return v && !PHONE[$('cc').value].test(v) ? '手机号格式不正确' : ''; },
+    old: function (v) { return v ? '' : '请输入旧密码'; },
+    'new': function (v) {
+      if (!v) return '请输入新密码';
+      if (v.length < 8 || v.length > 16 || !/[a-z]/.test(v) || !/[A-Z]/.test(v)) return '需为 8-16 位，且同时包含大写和小写字母';
+      return v === $('old').value ? '新密码不能与旧密码相同' : '';
+    },
+    cfm: function (v) { return !v ? '请再次输入新密码' : v !== $('new').value ? '两次输入的密码不一致' : ''; }
+  };
+  KEYS.forEach(function (k) { $(k).addEventListener('blur', function () { setErr(k, RULES[k](val(k))); }); });
+  $('cc').addEventListener('change', function () { if (val('phone')) setErr('phone', RULES.phone(val('phone'))); });
+  function openDlg(force) {
+    forcedOpen = force;
+    KEYS.forEach(function (k) { $(k).value = ''; setErr(k, ''); });
+    ['old', 'new', 'cfm'].forEach(function (k) { $(k).type = 'password'; });
+    eyes(); strength();
+    $('mask').classList.add('open');
+  }
+  function closeDlg() { $('mask').classList.remove('open'); $('dlg').classList.remove('max'); closePop(); }
+  $('dlgClose').onclick = closeDlg; $('dlgCancel').onclick = closeDlg;
+  $('dlgOk').onclick = function () {
+    var bad = false;
+    KEYS.forEach(function (k) { var m = RULES[k](val(k)); setErr(k, m); if (m) bad = true; });
+    if (bad) return;
+    if ($('old').value !== DEMO_PWD) { setErr('old', '旧密码错误'); return; }
+    forcedOpen = false; closeDlg();
+    // 记录已改密：下次用新密码登录直接进入功能入口页，不再强制改密
+    try { var st = JSON.parse(localStorage.getItem('proto_login_state')) || {}; st.changed = true; st.pwd = $('new').value; localStorage.setItem('proto_login_state', JSON.stringify(st)); } catch (e) {}
+    toast('密码修改成功，请重新登录');
+    setTimeout(function () { location.href = 'login.html'; }, 1500);
+  };
+
+  // ===== 演示：模拟首次登录 =====
+  var row = document.createElement('div'); row.className = 'row';
+  row.innerHTML = '<span class="lbl">修改密码</span><span class="seg"><button id="btnFirst">模拟首次登录</button></span><span style="color:#999;">当前密码 ' + DEMO_PWD + '</span>';
+  document.querySelector('.demo').appendChild(row);
+  $('btnFirst').onclick = function () { openDlg(true); };
+
+  // ===== IP 变更检测（开机后重新获取 IP，与上次保存的不一致则提醒） =====
+  var NEW_IP = '192.168.3.25';
+  function savedIp() { try { return (JSON.parse(localStorage.getItem('yw_step1') || '{}').f_ip) || '192.168.1.100'; } catch (e) { return '192.168.1.100'; } }
+  function openIp() { $('ipOld').textContent = savedIp(); $('ipNew').textContent = NEW_IP; $('ipMask').classList.add('open'); }
+  function closeIp() { $('ipMask').classList.remove('open'); closePop(); }
+  $('ipX').onclick = $('ipCancel').onclick = closeIp;
+  $('ipGo').onclick = function () { closeIp(); location.href = 'activate-step1-network.html?mode=cfg&newip=' + encodeURIComponent(NEW_IP); };
+  var row2 = document.createElement('div'); row2.className = 'row';
+  row2.innerHTML = '<span class="lbl">IP 变更</span><span class="seg"><button id="btnIpChg">模拟重启后 IP 变更</button></span>';
+  document.querySelector('.demo').appendChild(row2);
+  $('btnIpChg').onclick = function () { if (!state.act) { toast('未激活状态不检测 IP 变更，请先切到「已激活」'); return; } openIp(); };
+
+  render(); eyes();
+  if (qs.get('first') === '1') openDlg(true);
+  else if (qs.get('ipchg') === '1' && state.act) openIp();
+})();
+</script>
+</body>
+</html>

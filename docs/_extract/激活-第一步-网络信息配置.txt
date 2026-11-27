@@ -1,0 +1,159 @@
+
+运维中心 · 初始化 · 网络信息配置
+ 运维中心
+ ⌂功能入口
+ Aadmin ▾
+ ←
+ 初始化
+ 1
+ 1网络信息配置
+ 2设备激活配置
+ 3基础服务配置
+ 4项目信息配置
+ 5可选服务配置
+ 6系统初始化
+ *IP：
+ 2
+ *子网掩码：
+ 3
+ *网关：
+ *DNS1：
+ *DNS2：
+ *平台访问端口：
+ 4
+ 内网端口映射：尽量不用 80/443 端口，避免与 http/https 服务冲突或被扫描攻击。
+互联网端口映射：80/443 端口若要使用，需要完成网络备案。
+ 域名SSL证书
+（公钥pem文件）：
+ 域名SSL证书
+（私钥key文件）：
+ 下一步
+✕
+PRD 标注 
+重置演示
+// PRD 标注数据，来源：Axure 原型 B0.1.2 / B0.1.3 / B1.2.1
+// cls：rule=规则（亮黄） change=修改说明（浅黄） reason=设计原因（灰）
+var NOTES = {
+ global: { title: '页面说明', items: [
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '激活、配置、重置模块的网络信息页都要同步修改。' },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '激活页面、配置页面同步改造。' }
+ ]},
+ net: { title: 'IP / 网关 / DNS1 / DNS2', items: [
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '去掉【获取DHCP】按钮，页面加载时自动获取 DHCP 数值：
+· IP、子网掩码、网关、DNS1、DNS2 字段无值时，自动获取 DHCP 并填充；
+· 字段已有值时，不再自动获取。' },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '自动获取后的字段支持编辑，并校验格式。' },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '激活成功后，IP、子网掩码、网关、DNS 字段仍支持修改；配置模块、重置模块同步支持展示。
+内网模式下的访问地址，从 IP 获取后支持修改。' },
+ { cls: 'rule old', tag: '已废弃', ver: 'B1.3.0', html: '置灰数据不可修改，若要修改需在重置模块进行重启。（B0.1.3 起改为支持修改）' }
+ ]},
+ mask: { title: '子网掩码', items: [
+ { cls: 'change', tag: '修改', ver: 'B1.3.0', html: '子网掩码组件变更为输入文本框。' },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '与 IP 字段一致：页面加载自动获取 DHCP，获取后支持编辑并校验格式。' }
+ ]},
+ port: { title: '平台访问端口', items: [
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '默认端口 443。系统各服务使用的端口如下（互联网模式下需做端口映射）：' +
+ '端口协议用途
+' +
+ '443tcp平台页面
+' +
+ '1883tcp无人机通讯接口
+' +
+ '9000tcp素材管理
+' +
+ '21935tcp直播数据推流
+' +
+ '18000rtc直播数据拉流（默认 18000，互联网模式需映射端口与内部端口一致）
+' +
+ '11554rtsp直播数据拉流（单兵设备使用 AI 功能直播）
+' +
+ '8000tcp建图服务端口
+' },
+ { cls: 'change', tag: '修改', ver: 'B1.3.0', html: '下方端口映射提示文字按新版调整。' },
+ { cls: 'reason', tag: '原因', ver: 'B1.3.0', html: '内网端口映射尽量不用 80/443，避免与 http/https 服务冲突或被扫描攻击；互联网使用 80/443 需要网络备案。' }
+ ]},
+ cert: { title: '域名SSL证书', items: [
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '点击【+】选择文件后立即执行上传。' },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '点击文件后的【X】关闭文件，退回上传前的状态。' },
+ { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '可以修改证书内容，并新增提示语：若不上传，系统采用默认证书。' }
+ ]}
+};
+// ===== 标注点弹层 =====
+var pop = document.getElementById('pop'), curDot = null;
+function openNote(dot) {
+ if (curDot === dot) return closeNote();
+ closeNote();
+ var n = NOTES[dot.dataset.note];
+ document.getElementById('popTitle').textContent = n.title;
+ document.getElementById('popBody').innerHTML = n.items.map(function (it) {
+ return '' + it.tag + '' + it.ver + '' + it.html + '
+';
+ }).join('');
+ pop.classList.add('show');
+ var r = dot.getBoundingClientRect();
+ var left = r.right + 10 + window.scrollX, top = r.top - 10 + window.scrollY;
+ if (r.right + 400 > document.documentElement.clientWidth) left = r.left - 390 + window.scrollX;
+ pop.style.left = left + 'px'; pop.style.top = top + 'px';
+ dot.classList.add('open'); curDot = dot;
+}
+function closeNote() { pop.classList.remove('show'); if (curDot) curDot.classList.remove('open'); curDot = null; }
+document.addEventListener('click', function (e) {
+ var d = e.target.closest('.dot');
+ if (d) { e.stopPropagation(); openNote(d); return; }
+ if (!pop.contains(e.target)) closeNote();
+});
+document.getElementById('popClose').onclick = closeNote;
+document.getElementById('sw').onclick = function () { this.classList.toggle('off'); document.body.classList.toggle('hide-dots'); closeNote(); };
+function toast(t) { var el = document.getElementById('toast'); el.textContent = t; el.style.display = 'block'; clearTimeout(toast.h); toast.h = setTimeout(function () { el.style.display = 'none'; }, 2200); }
+// ===== 页面加载：字段无值时自动获取 DHCP 并填充 =====
+var STORE = 'yw_step1';
+var DHCP = { f_ip: '192.168.1.100', f_mask: '255.255.255.0', f_gw: '192.168.1.1', f_dns1: '114.114.114.114', f_dns2: '8.8.8.8' };
+var saved = null;
+try { saved = JSON.parse(localStorage.getItem(STORE) || 'null'); } catch (e) { saved = null; }
+Object.keys(DHCP).forEach(function (id) { document.getElementById(id).value = saved ? (saved[id] || '') : ''; });
+if (saved && saved.f_port) document.getElementById('f_port').value = saved.f_port;
+if (!saved) setTimeout(function () {
+ Object.keys(DHCP).forEach(function (id) { var i = document.getElementById(id); if (!i.value) i.value = DHCP[id]; });
+ toast('已自动获取 DHCP 网络信息');
+}, 600);
+document.getElementById('reset').onclick = function () { localStorage.removeItem(STORE); location.reload(); };
+// ===== 格式校验 =====
+var IPRE = /^((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)$/;
+function check(inp) {
+ var v = inp.value.trim(), t = inp.dataset.type, m = '';
+ if (!v) m = '此项为必填项';
+ else if (t === 'ip' && !IPRE.test(v)) m = '格式不正确，示例：192.168.1.100';
+ else if (t === 'port' && !(/^\d+$/.test(v) && +v >= 1 && +v 5' : '';
+ if (!fname) {
+ box.innerHTML = '+' + dot + '若是不上传则会采用默认证书
+';
+ } else {
+ box.innerHTML = '📄 X' + dot + '上传成功
+';
+ box.querySelector('.fn').textContent = fname;
+ }
+}
+renderUpload('up_pem', '.pem,.crt', null);
+renderUpload('up_key', '.key', null);
+document.querySelector('.form').addEventListener('click', function (e) {
+ var d = e.target.dataset;
+ if (e.target.classList.contains('upload')) { target = { box: d.box, accept: d.accept }; picker.accept = d.accept; picker.value = ''; picker.click(); }
+ if (e.target.classList.contains('x')) renderUpload(d.box, d.accept, null);
+});
+picker.onchange = function () {
+ if (!picker.files.length || !target) return;
+ var name = picker.files[0].name, t = target, box = document.getElementById(t.box);
+ box.innerHTML = '📄 上传中…0%';
+ var p = 0, pr = box.querySelector('.progress');
+ var h = setInterval(function () { p += 25; pr.textContent = p + '%'; if (p >= 100) { clearInterval(h); renderUpload(t.box, t.accept, name); } }, 200);
+};
+// ===== 下一步 =====
+document.getElementById('btnNext').onclick = function () {
+ var ok = true;
+ document.querySelectorAll('.form input[type=text]').forEach(function (i) { if (!check(i)) ok = false; });
+ if (!ok) return toast('请检查标红字段');
+ var data = {};
+ Object.keys(DHCP).concat('f_port').forEach(function (id) { data[id] = document.getElementById(id).value.trim(); });
+ localStorage.setItem(STORE, JSON.stringify(data));
+ toast('已保存。第二步「设备激活配置」还没做');
+};

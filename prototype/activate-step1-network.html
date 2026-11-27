@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>运维中心 · 初始化 · 网络信息配置</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; font-size: 14px; color: #333; background: #eef0f3; }
+  .topbar { height: 50px; background: #1a6cfb; color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; }
+  .topbar .logo { font-size: 18px; }
+  .topbar .right { display: flex; align-items: center; gap: 28px; }
+  .topbar .entry, .topbar .user { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+  .topbar .ico { width: 26px; height: 26px; border-radius: 50%; background: #fff; color: #1a6cfb; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; }
+  .titlebar { height: 42px; background: #fff; display: flex; align-items: center; padding: 0 22px; border-bottom: 1px solid #eee; }
+  .titlebar .back { font-size: 18px; margin-right: 18px; cursor: pointer; }
+  .titlebar h1 { font-size: 17px; font-weight: bold; }
+  .steps { background: #fff; display: flex; height: 56px; border-bottom: 1px solid #e6e6e6; }
+  .step { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; color: #999; position: relative; font-size: 15px; }
+  .step:not(:last-child)::after { content: "›"; position: absolute; right: 0; font-size: 22px; color: #bbb; }
+  .step .num { width: 30px; height: 30px; border-radius: 50%; background: #f0f0f0; color: #666; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+  .step.active { color: #333; border-bottom: 2px solid #1a6cfb; }
+  .step.active .num { background: #1a6cfb; color: #fff; }
+  .card { max-width: 1320px; margin: 20px auto 30px; background: #fff; padding: 70px 0 50px; min-height: 760px; }
+  .form { width: 640px; margin: 0 auto; }
+  .row { display: flex; align-items: center; margin-bottom: 26px; }
+  .row label { width: 150px; text-align: right; padding-right: 10px; flex-shrink: 0; }
+  .row label .req { color: #e4393c; margin-right: 4px; }
+  .row .ctrl { flex: 1; position: relative; }
+  .row input[type=text] { width: 100%; height: 34px; border: 1px solid #d9d9d9; border-radius: 4px; padding: 0 10px; font-size: 14px; outline: none; transition: border .2s; }
+  .row input[type=text]:focus { border-color: #1a6cfb; }
+  .row input.err { border-color: #e4393c; }
+  .row .msg { position: absolute; left: 0; top: 36px; color: #e4393c; font-size: 12px; }
+  .row .hint { color: #999; font-size: 12px; margin-top: 6px; }
+  .tip-box { margin: -6px 0 26px 150px; padding: 10px 12px; background: #fffbe6; border: 1px solid #ffe58f; border-radius: 4px; color: #8a6d00; font-size: 12px; line-height: 1.8; }
+  .upload { display: inline-flex; align-items: center; justify-content: center; width: 140px; height: 36px; background: #81d3f8; border-radius: 4px; cursor: pointer; font-size: 18px; color: #fff; vertical-align: middle; }
+  .upload:hover { background: #5fc3f1; }
+  .file-chip { display: inline-flex; align-items: center; gap: 10px; padding: 6px 12px; background: #f5f7fa; border: 1px solid #dcdfe6; border-radius: 4px; vertical-align: middle; }
+  .file-chip .x { cursor: pointer; color: #999; font-weight: bold; }
+  .file-chip .x:hover { color: #e4393c; }
+  .progress { font-size: 12px; color: #1a6cfb; margin-left: 10px; }
+  .footer { text-align: center; margin-top: 40px; }
+  .btn { height: 36px; padding: 0 30px; border-radius: 4px; border: none; background: #1a6cfb; color: #fff; font-size: 14px; cursor: pointer; }
+  .btn:hover { background: #3d82ff; }
+  /* PRD 标注点 */
+  .dot { position: absolute; right: -32px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; border-radius: 50%; background: #ff7a00; color: #fff; font-size: 11px; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 5; border: none; animation: pulse 1.8s infinite; }
+  .dot.inline { position: relative; right: auto; top: auto; transform: none; display: inline-flex; margin-left: 10px; vertical-align: middle; }
+  .dot.open { background: #1a6cfb; animation: none; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255,122,0,.55); } 70% { box-shadow: 0 0 0 9px rgba(255,122,0,0); } 100% { box-shadow: 0 0 0 0 rgba(255,122,0,0); } }
+  body.hide-dots .dot { display: none !important; }
+  .pop { position: absolute; width: 380px; background: #fff; border-radius: 6px; box-shadow: 0 6px 24px rgba(0,0,0,.18); z-index: 50; font-size: 13px; line-height: 1.7; display: none; }
+  .pop.show { display: block; }
+  .pop .hd { padding: 10px 14px; border-bottom: 1px solid #eee; font-weight: bold; display: flex; justify-content: space-between; }
+  .pop .hd .close { cursor: pointer; color: #999; font-weight: normal; }
+  .pop .bd { padding: 10px 14px 12px; max-height: 440px; overflow: auto; }
+  .note { padding: 8px 10px; border-radius: 4px; margin-bottom: 8px; }
+  .note:last-child { margin-bottom: 0; }
+  .note .tag { display: inline-block; font-size: 11px; padding: 0 6px; border-radius: 3px; margin-right: 6px; background: rgba(255,255,255,.75); }
+  .note .ver { float: right; font-size: 11px; color: #888; }
+  .note.rule { background: #fff6c2; border-left: 3px solid #ffdf25; }
+  .note.change { background: #ffffd6; border-left: 3px solid #e6e600; }
+  .note.reason { background: #f0f0f0; border-left: 3px solid #bdbdbd; }
+  .note.old { opacity: .6; }
+  .note table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 12px; background: #fff; }
+  .note th, .note td { border: 1px solid #e5e5e5; padding: 3px 6px; text-align: left; }
+  .note th { background: #fafafa; }
+  .ctrl-panel { position: fixed; left: 20px; bottom: 20px; background: #fff; border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,.15); padding: 10px 14px; font-size: 13px; z-index: 60; display: flex; align-items: center; gap: 12px; }
+  .ctrl-panel a { color: #1a6cfb; cursor: pointer; }
+  .switch { position: relative; width: 36px; height: 20px; background: #1a6cfb; border-radius: 10px; cursor: pointer; transition: .2s; }
+  .switch::after { content: ""; position: absolute; left: 18px; top: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: .2s; }
+  .switch.off { background: #ccc; }
+  .switch.off::after { left: 2px; }
+  .toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,.75); color: #fff; padding: 10px 22px; border-radius: 4px; display: none; z-index: 99; max-width: 560px; text-align: center; }
+  /* IP 行 + 获取IP 按钮 */
+  .ipline, .url { display: flex; align-items: center; gap: 8px; }
+  .ipline input { flex: 1; }
+  .btn-sub { height: 34px; padding: 0 14px; border: 1px solid #1a6cfb; background: #fff; color: #1a6cfb; border-radius: 4px; cursor: pointer; white-space: nowrap; font-size: 14px; }
+  .btn-sub:hover { background: #ecf3ff; }
+  .btn-sub:disabled { color: #999; border-color: #d9d9d9; cursor: wait; background: #f5f5f5; }
+  /* 平台访问网址：https:// + 地址 + 端口 */
+  .url .pre { height: 34px; line-height: 32px; padding: 0 10px; background: #f5f5f5; border: 1px solid #d9d9d9; border-radius: 4px; color: #999; cursor: not-allowed; user-select: none; }
+  .url .sep { color: #666; }
+  .url #f_host { flex: 1; }
+  .row .url #f_port { width: 90px; flex: none; }
+  .link { color: #1a6cfb; cursor: pointer; text-decoration: none; }
+  .link:hover { text-decoration: underline; }
+  /* 弹窗 */
+  .mask { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none; align-items: center; justify-content: center; z-index: 80; }
+  .mask.open { display: flex; }
+  .modal { background: #fff; border-radius: 6px; width: 720px; max-height: 86vh; display: flex; flex-direction: column; box-shadow: 0 8px 30px rgba(0,0,0,.25); }
+  .modal.sm { width: 420px; }
+  .modal .mhd { padding: 14px 20px; border-bottom: 1px solid #eee; font-weight: bold; font-size: 15px; display: flex; justify-content: space-between; }
+  .modal .mhd .close { cursor: pointer; color: #999; font-weight: normal; }
+  .modal .mbd { padding: 18px 20px; line-height: 1.8; overflow: auto; }
+  .modal .mft { padding: 10px 20px 16px; text-align: right; }
+  .modal .mft .btn { padding: 0 20px; margin-left: 10px; }
+  .btn.ghost { background: #fff; color: #333; border: 1px solid #d9d9d9; }
+  .btn.ghost:hover { color: #1a6cfb; border-color: #1a6cfb; background: #fff; }
+  .ports h4 { font-size: 14px; margin: 4px 0 6px; }
+  .ports p { padding-left: 2em; }
+  .ports table { width: 100%; border-collapse: collapse; margin: 10px 0 16px; font-size: 13px; }
+  .ports th, .ports td { border: 1px solid #e5e5e5; padding: 8px 10px; text-align: left; vertical-align: middle; }
+  .ports th { background: #f0f5ff; }
+  .seg button { border: 1px solid #d9d9d9; background: #fff; padding: 2px 10px; cursor: pointer; font-size: 12px; }
+  .seg button + button { border-left: none; }
+  .seg button.on { background: #1a6cfb; color: #fff; border-color: #1a6cfb; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">运维中心</div>
+  <div class="right">
+    <div class="entry"><span class="ico">⌂</span>功能入口</div>
+    <div class="user"><span class="ico">A</span>admin ▾</div>
+  </div>
+</div>
+
+<div class="titlebar">
+  <span class="back" id="btnBack" title="返回">←</span>
+  <h1>初始化</h1>
+  <button class="dot inline" data-note="back" title="查看 PRD 标注">1</button>
+</div>
+
+<div class="steps">
+  <div class="step active"><span class="num">1</span>网络信息配置</div>
+  <div class="step"><span class="num">2</span>设备激活配置</div>
+  <div class="step"><span class="num">3</span>基础服务配置</div>
+  <div class="step"><span class="num">4</span>项目信息配置</div>
+  <div class="step"><span class="num">5</span>可选服务配置</div>
+  <div class="step"><span class="num">6</span>系统初始化</div>
+</div>
+
+<div class="card">
+  <div class="form">
+    <div id="cfgTip" style="display:none;margin:0 0 22px;padding:10px 14px;background:#fff7e6;border:1px solid #ffd591;border-radius:4px;color:#fa8c16;font-size:13px;line-height:1.7;">提示：IP 或平台访问网址变更后，需要走到第六步「重启服务」并完成重启，修改才能生效。</div>
+    <div class="row"><label><span class="req">*</span>IP：</label>
+      <div class="ctrl"><div class="ipline"><input type="text" id="f_ip" data-type="ip" placeholder="请输入 IP"><button class="btn-sub" id="btnGetIp">获取IP</button></div><span class="msg"></span>
+        <button class="dot" data-note="net" title="查看 PRD 标注">2</button></div></div>
+    <div class="row"><label><span class="req">*</span>子网掩码：</label>
+      <div class="ctrl"><input type="text" id="f_mask" data-type="ip" placeholder="请输入子网掩码"><span class="msg"></span></div></div>
+    <div class="row"><label><span class="req">*</span>网关：</label>
+      <div class="ctrl"><input type="text" id="f_gw" data-type="ip" placeholder="请输入网关"><span class="msg"></span></div></div>
+    <div class="row"><label><span class="req">*</span>DNS1：</label>
+      <div class="ctrl"><input type="text" id="f_dns1" data-type="ip" placeholder="请输入 DNS1"><span class="msg"></span></div></div>
+    <div class="row"><label>DNS2：</label>
+      <div class="ctrl"><input type="text" id="f_dns2" data-type="ip" data-opt="1" placeholder="选填"><span class="msg"></span></div></div>
+
+    <div class="row" style="margin-top:40px"><label><span class="req">*</span>平台访问网址：</label>
+      <div class="ctrl"><div class="url"><span class="pre" title="固定前缀，不可编辑">https://</span><input type="text" id="f_host" data-type="host" placeholder="请输入访问地址"><span class="sep">:</span><input type="text" id="f_port" data-type="port" value="443" placeholder="端口"></div><span class="msg"></span>
+        <button class="dot" data-note="port" title="查看 PRD 标注">3</button></div></div>
+    <div class="tip-box">当您使用互联网模式时，需要您的路由开通对应的端口映射，<a class="link" id="lnkPorts">查看端口清单</a></div>
+
+    <div class="row" style="margin-top:40px; align-items:flex-start"><label style="padding-top:8px">域名SSL证书<br>（公钥pem文件）：</label>
+      <div class="ctrl" id="up_pem"></div></div>
+    <div class="row" style="align-items:flex-start"><label style="padding-top:8px">域名SSL证书<br>（私钥key文件）：</label>
+      <div class="ctrl" id="up_key"></div></div>
+
+    <div class="footer"><button class="btn" id="btnNext">下一步</button></div>
+  </div>
+</div>
+
+<div class="pop" id="pop"><div class="hd"><span id="popTitle"></span><span class="close" id="popClose">✕</span></div><div class="bd" id="popBody"></div></div>
+
+<!-- 返回确认弹窗 -->
+<div class="mask" id="mBack"><div class="modal sm">
+  <div class="mhd"><span>提示</span><span class="close" data-close="mBack">✕</span></div>
+  <div class="mbd">您当前的修改内容未重启、未激活，若返回则不会保存，是否继续返回？</div>
+  <div class="mft"><button class="btn ghost" data-close="mBack">继续填写</button><button class="btn" id="btnBackOk">继续返回</button></div>
+</div></div>
+
+<!-- 端口清单弹窗 -->
+<div class="mask" id="mPorts"><div class="modal">
+  <div class="mhd"><span>端口清单</span><span class="close" data-close="mPorts">✕</span></div>
+  <div class="mbd ports">
+    <h4>内网端口映射</h4><p>尽量不使用 80/443 端口，避免与 http/https 服务冲突或被扫描攻击。</p>
+    <h4>互联网端口映射</h4><p>80/443 端口若要使用，需要完成网络备案。</p>
+    <table>
+      <tr><th style="width:90px">端口</th><th style="width:80px">协议</th><th>用途</th></tr>
+      <tr><td>443</td><td>tcp</td><td>平台页面</td></tr>
+      <tr><td>1883</td><td>tcp</td><td>无人机通讯接口</td></tr>
+      <tr><td>9000</td><td>tcp</td><td>素材管理</td></tr>
+      <tr><td>21935</td><td>tcp</td><td>直播数据推流</td></tr>
+      <tr><td>18000</td><td>rtc</td><td>直播数据拉流（默认 18000，互联网模式下映射端口需与内部端口一致）</td></tr>
+      <tr><td>11554</td><td>rtsp</td><td>直播数据拉流（单兵设备使用 AI 功能直播）</td></tr>
+      <tr><td>8000</td><td>tcp</td><td>建图服务端口</td></tr>
+    </table>
+  </div>
+  <div class="mft"><button class="btn" data-close="mPorts">我知道了</button></div>
+</div></div>
+
+<div class="ctrl-panel">PRD 标注 <div class="switch" id="sw" title="显示 / 隐藏标注点"></div>
+  必填验证 <div class="switch" id="swVal" title="开启 / 关闭必填验证"></div>
+  获取IP结果 <span class="seg" id="segIp"><button data-v="1" class="on">成功</button><button data-v="0">失败</button></span>
+  <a id="reset" title="清除本地演示数据">重置演示</a></div>
+<div class="toast" id="toast"></div>
+<input type="file" id="filePicker" style="display:none">
+
+<script>
+// ---------- 场景：激活流程（act） / 配置模块（cfg），由首页入口写入 ----------
+var INIT_CFG = (function () { try { var q = new URLSearchParams(location.search).get('mode'); if (q) sessionStorage.setItem('initMode', q); return sessionStorage.getItem('initMode') === 'cfg'; } catch (e) { return false; } })();
+var HOME_URL = INIT_CFG ? 'home.html?act=1' : 'home.html';
+if (INIT_CFG) {
+  document.querySelectorAll('.step').forEach(function (s) { var n = s.querySelector('.num'); if (n && n.textContent.trim() === '6') s.lastChild.textContent = '重启服务'; });
+  document.title = document.title.replace('· 初始化 ·', '· 配置 ·').replace('系统初始化', '重启服务');
+  var _h1 = document.querySelector('.titlebar h1'); if (_h1) _h1.textContent = '配置';
+}
+
+// PRD 标注数据，来源：Axure 原型 B0.1.2 / B0.1.3 / B1.2.1
+// cls：rule=规则（亮黄） change=修改说明（浅黄） reason=设计原因（灰）
+var NOTES = {
+  back: { title: '返回', items: [
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '点击左上角【返回】时弹窗提示：<br>「您当前的修改内容未重启、未激活，若返回则不会保存，是否继续返回？」' },
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '弹窗提供两个按钮：<br>· <b>继续返回</b>：放弃本页修改，返回功能入口页；<br>· <b>继续填写</b>：关闭弹窗，停留在当前页，已填内容保留。' }
+  ]},
+  net: { title: 'IP / 子网掩码 / 网关 / DNS1 / DNS2', items: [
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '页面包含 IP、子网掩码、网关、DNS1、DNS2 五个输入框，<b>进入页面时默认全部为空</b>。' },
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: 'IP、子网掩码、网关、DNS1 为<b>必填</b>；DNS2 为<b>非必填</b>，填写时校验格式。' },
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: 'IP 后有【获取IP】按钮。手动点击后，自动获取并填入 IP、子网掩码、网关、DNS1。' },
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '获取失败时提示：「当前无法获取对应的 IP、子网掩码、网关和 DNS1 数据，请手动填写」。' },
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '获取到的数据<b>支持编辑</b>，编辑后按 IP 格式校验。' }
+  ]},
+  port: { title: '平台访问网址', items: [
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '<b>配置模块提示</b>：从首页「配置」进入时，页面顶部显示橙色提示「IP 或平台访问网址变更后，需要走到第六步「重启服务」并完成重启，修改才能生效。」激活流程中不显示。' },
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '字段名为「平台访问网址」，由三个框组成：<br>① 前缀 <b>https://</b>，置灰，不可编辑；<br>② 访问地址输入框，用户填写，<b>必填</b>；<br>③ 端口输入框，默认 <b>443</b>，支持修改，<b>必填</b>，范围 1–65535。' },
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '下方提示：「当您使用互联网模式时，需要您的路由开通对应的端口映射，<span style="color:#1a6cfb">查看端口清单</span>」。' },
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '「查看端口清单」显示为蓝色，点击后弹窗展示端口清单（内网/互联网端口映射说明 + 端口、协议、用途对照表）。' }
+  ]},
+  cert: { title: '域名SSL证书', items: [
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '点击【+】选择文件后<b>立即执行上传</b>。' },
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '点击文件后的【X】关闭文件，退回上传前的状态。' },
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '可以修改证书内容，并新增提示语：若不上传，系统采用默认证书。' }
+  ]}
+};
+
+// ===== 标注点弹层 =====
+var pop = document.getElementById('pop'), curDot = null;
+function openNote(dot) {
+  if (curDot === dot) return closeNote();
+  closeNote();
+  var n = NOTES[dot.dataset.note];
+  document.getElementById('popTitle').textContent = n.title;
+  document.getElementById('popBody').innerHTML = n.items.map(function (it) {
+    return '<div class="note ' + it.cls + '"><span class="tag">' + it.tag + '</span><span class="ver">' + it.ver + '</span>' + it.html + '</div>';
+  }).join('');
+  pop.classList.add('show');
+  var r = dot.getBoundingClientRect();
+  var left = r.right + 10 + window.scrollX, top = r.top - 10 + window.scrollY;
+  if (r.right + 400 > document.documentElement.clientWidth) left = r.left - 390 + window.scrollX;
+  pop.style.left = left + 'px'; pop.style.top = top + 'px';
+  dot.classList.add('open'); curDot = dot;
+}
+function closeNote() { pop.classList.remove('show'); if (curDot) curDot.classList.remove('open'); curDot = null; }
+document.addEventListener('click', function (e) {
+  var d = e.target.closest('.dot');
+  if (d) { e.stopPropagation(); openNote(d); return; }
+  if (!pop.contains(e.target)) closeNote();
+});
+document.getElementById('popClose').onclick = closeNote;
+document.getElementById('sw').onclick = function () { this.classList.toggle('off'); document.body.classList.toggle('hide-dots'); closeNote(); };
+
+function toast(t) { var el = document.getElementById('toast'); el.textContent = t; el.style.display = 'block'; clearTimeout(toast.h); toast.h = setTimeout(function () { el.style.display = 'none'; }, 2200); }
+
+// ===== 页面加载：默认全部为空（只回显本页「下一步」保存过的数据） =====
+var STORE = 'yw_step1';
+var FIELDS = ['f_ip', 'f_mask', 'f_gw', 'f_dns1', 'f_dns2', 'f_host', 'f_port'];
+var DHCP = { f_ip: '192.168.1.100', f_mask: '255.255.255.0', f_gw: '192.168.1.1', f_dns1: '114.114.114.114' };
+var saved = null;
+try { saved = JSON.parse(localStorage.getItem(STORE) || 'null'); } catch (e) { saved = null; }
+if (saved) FIELDS.forEach(function (id) { if (saved[id] != null) document.getElementById(id).value = saved[id]; });
+document.getElementById('reset').onclick = function () { localStorage.removeItem(STORE); location.reload(); };
+
+// ===== 获取IP：手动点击，演示面板可切换成功 / 失败 =====
+var ipOk = true;
+document.querySelectorAll('#segIp button').forEach(function (b) {
+  b.onclick = function () {
+    document.querySelectorAll('#segIp button').forEach(function (x) { x.classList.remove('on'); });
+    b.classList.add('on'); ipOk = b.dataset.v === '1';
+  };
+});
+document.getElementById('btnGetIp').onclick = function () {
+  var btn = this; btn.disabled = true; btn.textContent = '获取中…';
+  setTimeout(function () {
+    btn.disabled = false; btn.textContent = '获取IP';
+    if (!ipOk) return toast('当前无法获取对应的 IP、子网掩码、网关和 DNS1 数据，请手动填写');
+    Object.keys(DHCP).forEach(function (id) { var i = document.getElementById(id); i.value = DHCP[id]; check(i); });
+    toast('已获取 IP、子网掩码、网关和 DNS1，可直接修改');
+  }, 800);
+};
+
+// ===== 格式校验 =====
+var IPRE = /^((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)$/;
+var HOSTRE = /^[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?)*$/;
+function check(inp) {
+  var v = inp.value.trim(), t = inp.dataset.type, m = '';
+  if (!v) m = inp.dataset.opt ? '' : '此项为必填项';
+  else if (t === 'ip' && !IPRE.test(v)) m = '格式不正确，示例：192.168.1.100';
+  else if (t === 'host' && !HOSTRE.test(v)) m = '访问地址格式不正确，示例：ops.example.com 或 192.168.1.100';
+  else if (t === 'port' && !(/^\d+$/.test(v) && +v >= 1 && +v <= 65535)) m = '端口范围 1-65535';
+  inp.classList.toggle('err', !!m);
+  var msg = inp.closest('.ctrl').querySelector('.msg');
+  // 平台访问网址的地址和端口共用一行提示：任一有错就显示
+  if (t === 'host' || t === 'port') {
+    var other = document.getElementById(t === 'host' ? 'f_port' : 'f_host');
+    if (!m && other.classList.contains('err')) return true;
+  }
+  msg.textContent = m;
+  return !m;
+}
+document.querySelectorAll('.form input[type=text]').forEach(function (i) { i.addEventListener('blur', function () { check(i); }); });
+
+// ===== 弹窗：返回确认 / 端口清单 =====
+function openM(id) { document.getElementById(id).classList.add('open'); }
+function closeM(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('[data-close]').forEach(function (el) { el.addEventListener('click', function () { closeM(el.dataset.close); }); });
+document.getElementById('btnBack').onclick = function () { openM('mBack'); };
+document.getElementById('btnBackOk').onclick = function () { closeM('mBack'); location.href = HOME_URL; };
+document.getElementById('lnkPorts').onclick = function () { openM('mPorts'); };
+
+// ===== 证书上传：选择文件即上传，X 关闭后退回上一状态 =====
+var picker = document.getElementById('filePicker'), target = null;
+function renderUpload(boxId, accept, fname) {
+  var box = document.getElementById(boxId);
+  var dot = boxId === 'up_pem' ? '<button class="dot inline" data-note="cert" title="查看 PRD 标注">4</button>' : '';
+  if (!fname) {
+    box.innerHTML = '<span class="upload" data-box="' + boxId + '" data-accept="' + accept + '">+</span>' + dot + '<div class="hint">若是不上传则会采用默认证书</div>';
+  } else {
+    box.innerHTML = '<span class="file-chip">📄 <span class="fn"></span><span class="x" data-box="' + boxId + '" data-accept="' + accept + '">X</span></span>' + dot + '<div class="hint" style="color:#52c41a">上传成功</div>';
+    box.querySelector('.fn').textContent = fname;
+  }
+}
+renderUpload('up_pem', '.pem,.crt', null);
+renderUpload('up_key', '.key', null);
+document.querySelector('.form').addEventListener('click', function (e) {
+  var d = e.target.dataset;
+  if (e.target.classList.contains('upload')) { target = { box: d.box, accept: d.accept }; picker.accept = d.accept; picker.value = ''; picker.click(); }
+  if (e.target.classList.contains('x')) renderUpload(d.box, d.accept, null);
+});
+picker.onchange = function () {
+  if (!picker.files.length || !target) return;
+  var name = picker.files[0].name, t = target, box = document.getElementById(t.box);
+  box.innerHTML = '<span class="file-chip">📄 上传中…</span><span class="progress">0%</span>';
+  var p = 0, pr = box.querySelector('.progress');
+  var h = setInterval(function () { p += 25; pr.textContent = p + '%'; if (p >= 100) { clearInterval(h); renderUpload(t.box, t.accept, name); } }, 200);
+};
+
+
+// ---------- 演示：必填验证开关（开=校验，关=不校验直接下一步），各步骤共用 ----------
+function valOn() { try { return sessionStorage.getItem('demoVal') !== '0'; } catch (e) { return true; } }
+function initValSw(onChange) {
+  var sw = document.getElementById('swVal');
+  sw.classList.toggle('off', !valOn());
+  sw.onclick = function () {
+    var on = this.classList.toggle('off') === false;
+    try { sessionStorage.setItem('demoVal', on ? '1' : '0'); } catch (e) {}
+    if (onChange) onChange(on);
+    toast(on ? '必填验证已开启：点「下一步」会校验所有输入' : '必填验证已关闭：点「下一步」直接进入下一步');
+  };
+  if (onChange) onChange(valOn(), true);
+}
+initValSw();
+// ===== 下一步 =====
+document.getElementById('btnNext').onclick = function () {
+  var ok = true;
+  if (valOn()) document.querySelectorAll('.form input[type=text]').forEach(function (i) { if (!check(i)) ok = false; });
+  if (!ok) return toast('请检查标红字段');
+  var data = {};
+  // 保存全部字段（含 DNS2、访问地址、端口）
+  FIELDS.forEach(function (id) { data[id] = document.getElementById(id).value.trim(); });
+  localStorage.setItem(STORE, JSON.stringify(data));
+  // 保存后进入第二步「设备激活配置」
+  location.href = 'activate-step2-license.html';
+};
+
+// ---------- 从首页「ip变更提醒 → 获取最新ip」进入：自动填入最新 IP ----------
+(function () {
+  var nip = new URLSearchParams(location.search).get('newip');
+  if (!nip) return;
+  var el = document.getElementById('f_ip');
+  if (el) { el.value = nip; el.style.borderColor = '#1a6cfb'; }
+  toast('已获取最新IP：' + nip + '，请确认后点「下一步」，并在第六步重启服务后生效');
+})();
+
+// ---------- 配置模块：顶部显示「IP / 平台访问网址变更需重启服务后生效」提示 ----------
+if (INIT_CFG) document.getElementById('cfgTip').style.display = '';
+</script>
+</body>
+</html>

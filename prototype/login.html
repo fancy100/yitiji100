@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>运维中心 · 登录</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; font-size: 14px; color: #333; min-height: 100vh; overflow-x: hidden;
+    background:
+      radial-gradient(ellipse at 30% 60%, rgba(40,110,255,.28), transparent 55%),
+      linear-gradient(rgba(80,120,200,.07) 1px, transparent 1px) 0 0 / 46px 46px,
+      linear-gradient(90deg, rgba(80,120,200,.07) 1px, transparent 1px) 0 0 / 46px 46px,
+      #0f1a2e; }
+  .head { text-align: center; padding-top: 70px; color: #fff; font-size: 38px; letter-spacing: 4px; display: flex; align-items: center; justify-content: center; gap: 30px; }
+  .head::before, .head::after { content: ""; width: 160px; height: 1px; background: linear-gradient(90deg, transparent, #8aa0c8, transparent); }
+  .wrap { max-width: 1400px; margin: 0 auto; display: flex; align-items: flex-start; justify-content: space-between; padding: 50px 60px 0; }
+  .art { flex: 1; height: 440px; position: relative; }
+  .art .core { position: absolute; left: 40%; top: 45%; width: 150px; height: 150px; margin: -75px; border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, #8fd0ff, #1a6cfb 60%, #0a2a6b); box-shadow: 0 0 80px rgba(60,150,255,.6); }
+  .art .ring { position: absolute; left: 40%; top: 45%; border: 1px solid rgba(120,190,255,.35); border-radius: 50%; transform: translate(-50%,-50%) rotateX(70deg); }
+  .card { width: 362px; background: #fff; border-radius: 10px; padding: 26px 16px 22px; position: relative; margin-top: 0; }
+  .card h2 { text-align: center; font-size: 18px; margin-bottom: 24px; }
+  .field { position: relative; margin-bottom: 16px; }
+  .field .box { height: 44px; background: #f2f3f7; border-radius: 6px; display: flex; align-items: center; padding: 0 12px; border: 1px solid transparent; transition: border .2s; }
+  .field .box.focus { border-color: #3d8bff; background: #fff; }
+  .field .box.err { border-color: #e4393c; }
+  .field .ico { width: 20px; color: #1a6cfb; font-size: 16px; text-align: center; }
+  .field .sep { width: 1px; height: 18px; background: #c9cdd6; margin: 0 10px; }
+  .field input { flex: 1; border: none; background: transparent; outline: none; font-size: 14px; height: 100%; }
+  .field .eye { cursor: pointer; color: #999; user-select: none; padding-left: 8px; display: inline-flex; align-items: center; }
+  .field .eye svg { width: 18px; height: 18px; display: block; }
+  .field .eye:hover { color: #1677ff; }
+  .field .msg { color: #e4393c; font-size: 12px; height: 16px; margin: 3px 0 -6px 4px; }
+  .remember { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #666; margin: 6px 0 18px; position: relative; }
+  .btn { width: 100%; height: 36px; border: none; border-radius: 4px; background: #3d95ff; color: #fff; font-size: 14px; letter-spacing: 6px; cursor: pointer; }
+  .btn:hover { background: #2a82f0; }
+  .btn:disabled { background: #a6c8f5; cursor: not-allowed; letter-spacing: 1px; }
+  .lang { display: flex; align-items: center; justify-content: center; gap: 18px; margin-top: 16px; font-size: 12px; color: #666; position: relative; }
+  .lang select { width: 122px; height: 30px; border-radius: 15px; border: 1px solid #dcdfe6; background: #f2f3f7; text-align: center; font-size: 12px; outline: none; cursor: pointer; }
+  .err-banner { background: #fff1f0; border: 1px solid #ffccc7; color: #cf1322; font-size: 12px; border-radius: 4px; padding: 6px 10px; margin: -10px 0 14px; display: none; }
+  /* PRD 标注点（与第一步页面一致） */
+  .dot { position: absolute; right: -34px; top: 12px; width: 20px; height: 20px; border-radius: 50%; background: #ff7a00; color: #fff; font-size: 11px; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 5; border: none; animation: pulse 1.8s infinite; }
+  .dot.open { background: #1a6cfb; animation: none; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255,122,0,.6); } 70% { box-shadow: 0 0 0 9px rgba(255,122,0,0); } 100% { box-shadow: 0 0 0 0 rgba(255,122,0,0); } }
+  body.hide-dots .dot { display: none !important; }
+  .pop { position: absolute; width: 400px; background: #fff; border-radius: 6px; box-shadow: 0 6px 24px rgba(0,0,0,.35); z-index: 50; font-size: 13px; line-height: 1.7; display: none; }
+  .pop.show { display: block; }
+  .pop .hd { padding: 10px 14px; border-bottom: 1px solid #eee; font-weight: bold; display: flex; justify-content: space-between; }
+  .pop .hd .close { cursor: pointer; color: #999; font-weight: normal; }
+  .pop .bd { padding: 10px 14px 12px; max-height: 460px; overflow: auto; }
+  .note { padding: 8px 10px; border-radius: 4px; margin-bottom: 8px; }
+  .note:last-child { margin-bottom: 0; }
+  .note .tag { display: inline-block; font-size: 11px; padding: 0 6px; border-radius: 3px; margin-right: 6px; background: rgba(255,255,255,.75); }
+  .note .ver { float: right; font-size: 11px; color: #888; }
+  .note.rule { background: #fff6c2; border-left: 3px solid #ffdf25; }
+  .note.reason { background: #f0f0f0; border-left: 3px solid #bdbdbd; }
+  .note.error { background: #e0ffff; border-left: 3px solid #39c9c9; }
+  .note.draft { background: #fff; border: 1px dashed #ff7a00; border-left: 3px solid #ff7a00; }
+  .note table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 12px; background: #fff; }
+  .note th, .note td { border: 1px solid #e5e5e5; padding: 3px 6px; text-align: left; }
+  .note th { background: #fafafa; }
+  .legend { font-size: 11px; color: #888; margin-top: 4px; }
+  .ctrl-panel { position: fixed; left: 20px; bottom: 20px; background: #fff; border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,.3); padding: 10px 14px; font-size: 13px; z-index: 60; display: flex; align-items: center; gap: 12px; }
+  .ctrl-panel a { color: #1a6cfb; cursor: pointer; }
+  .switch { position: relative; width: 36px; height: 20px; background: #1a6cfb; border-radius: 10px; cursor: pointer; transition: .2s; }
+  .switch::after { content: ""; position: absolute; left: 18px; top: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: .2s; }
+  .switch.off { background: #ccc; }
+  .switch.off::after { left: 2px; }
+  .demo { position: fixed; left: 20px; bottom: 76px; background: rgba(255,255,255,.1); color: #c8d4ea; border: 1px solid rgba(255,255,255,.2); border-radius: 6px; padding: 8px 12px; font-size: 12px; line-height: 1.8; }
+  .toast { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,.8); color: #fff; padding: 10px 22px; border-radius: 4px; display: none; z-index: 99; }
+</style>
+</head>
+<body>
+<div class="head">运维中心</div>
+<div class="wrap">
+  <div class="art">
+    <div class="ring" style="width:420px;height:420px"></div>
+    <div class="ring" style="width:300px;height:300px"></div>
+    <div class="core"></div>
+  </div>
+  <div class="card" id="card">
+    <h2 data-i18n="title">账号登录</h2>
+    <div class="err-banner" id="banner"></div>
+
+    <div class="field">
+      <div class="box" id="accBox"><span class="ico">&#128100;</span><span class="sep"></span>
+        <input id="acc" data-i18n-ph="accPh" placeholder="请输入账号" maxlength="32" autocomplete="username"></div>
+      <div class="msg" id="accMsg"></div>
+      <button class="dot" data-pop="p1" title="PRD 注释">1</button>
+    </div>
+
+    <div class="field">
+      <div class="box" id="pwdBox"><span class="ico">&#128274;</span><span class="sep"></span>
+        <input id="pwd" type="password" data-i18n-ph="pwdPh" placeholder="请输入密码" maxlength="32" autocomplete="current-password">
+        <span class="eye" id="eye" title="显示密码" role="button" aria-label="显示密码"></span></div>
+      <div class="msg" id="pwdMsg"></div>
+      <button class="dot" data-pop="p2" title="PRD 注释">2</button>
+    </div>
+
+    <label class="remember"><input type="checkbox" id="remember"> <span data-i18n="remember">记住密码</span>
+      <button class="dot" data-pop="p3" title="PRD 注释" style="top:-3px">3</button></label>
+
+    <button class="btn" id="loginBtn" data-i18n="login">登 录</button>
+
+    <div class="lang"><span data-i18n="lang">切换语言</span>
+      <select id="langSel">
+        <option value="zh">中文</option><option value="en">English</option>
+        <option value="th">ภาษาไทย</option><option value="id">Indonesia</option>
+      </select>
+      <button class="dot" data-pop="p4" title="PRD 注释" style="top:5px">4</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PRD 注释弹层 ===== -->
+<div class="pop" id="p1"><div class="hd"><span>① 账号</span><span class="close">✕</span></div><div class="bd">
+  <div class="note rule"><span class="tag">规则</span><span class="ver">B1.3.0</span>
+    必填，提示文字「请输入账号」。系统默认账号为 <b>admin</b>，即激活时生成的运维管理员账号。</div>
+  <div class="note rule"><span class="tag">规则</span><span class="ver">B1.3.0</span>
+    <table><tr><th>项</th><th>规则</th></tr>
+      <tr><td>长度</td><td>1–32 个字符，超出不可继续输入</td></tr>
+      <tr><td>字符</td><td>字母、数字、下划线；不区分大小写</td></tr>
+      <tr><td>空格</td><td>提交时自动去掉首尾空格</td></tr>
+      <tr><td>校验时机</td><td>失焦或点击登录时；为空提示「请输入账号」，输入框标红</td></tr></table></div>
+  <div class="note error"><span class="tag">异常提示</span><span class="ver">B1.3.0</span>
+    账号不存在与密码错误<b>统一提示</b>「账号或密码错误」。</div>
+  <div class="note reason"><span class="tag">设计原因</span>
+    不区分「账号不存在」和「密码错误」，防止被逐个试出有效账号。</div>
+</div></div>
+
+<div class="pop" id="p2"><div class="hd"><span>② 密码</span><span class="close">✕</span></div><div class="bd">
+  <div class="note rule"><span class="tag">规则</span><span class="ver">B1.3.0</span>
+    必填，提示文字「请输入密码」。默认<b>密文</b>显示，点右侧眼睛图标切换明文 / 密文。为空时提示「请输入密码」。</div>
+  <div class="note rule"><span class="tag">规则</span><span class="ver">B1.3.0</span>
+    <b>初始密码为出厂固定</b>。使用初始密码首次登录时，登录后强制进入「修改密码」页，修改完成前不能进入其他功能。</div>
+  <div class="note rule"><span class="tag">规则</span><span class="ver">B1.3.0</span>
+    <table><tr><th>场景</th><th>处理</th></tr>
+      <tr><td>密码错误</td><td>提示「账号或密码错误，还可尝试 N 次」</td></tr>
+      <tr><td>连续错误 5 次</td><td>锁定账号 10 分钟，提示「账号已锁定，请 X 分钟后再试」</td></tr>
+      <tr><td>登录成功</td><td>错误次数清零</td></tr></table></div>
+  <div class="note reason"><span class="tag">设计原因</span>
+    运维中心可以通过同网段电脑远程访问（<code>http://设备IP:40001/</code>），需要防止被暴力猜测密码。</div>
+</div></div>
+
+<div class="pop" id="p3"><div class="hd"><span>③ 记住密码</span><span class="close">✕</span></div><div class="bd">
+  <div class="note rule"><span class="tag">规则</span><span class="ver">B1.3.0</span>
+    默认不勾选。勾选并登录成功后，下次打开登录页自动填好账号和密码，有效期 7 天；取消勾选后登录即清除。</div>
+  <div class="note reason"><span class="tag">设计原因</span>
+    浏览器里不保存明文密码，只保存加密的登录凭证。</div>
+</div></div>
+
+<div class="pop" id="p4"><div class="hd"><span>④ 切换语言</span><span class="close">✕</span></div><div class="bd">
+  <div class="note rule"><span class="tag">规则</span><span class="ver">B1.3.0</span>
+    支持语言切换，默认为中文，单选下拉框内容为中文、英文、泰文、印尼文。<br>切换后则页面展示对应的语言模式。</div>
+</div></div>
+
+<div class="ctrl-panel"><span>PRD 标注</span><div class="switch" id="sw"></div><a id="resetDemo">重置演示</a></div>
+<div class="demo">演示账号：admin　初始密码：Admin@123<br>输错 5 次触发锁定</div>
+<div class="toast" id="toast"></div>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  // ===== PRD 标注点：点击展开 / 收起 =====
+  var openDot = null;
+  function closeAll() {
+    document.querySelectorAll('.pop.show').forEach(function (p) { p.classList.remove('show'); });
+    document.querySelectorAll('.dot.open').forEach(function (d) { d.classList.remove('open'); });
+    openDot = null;
+  }
+  document.querySelectorAll('.dot').forEach(function (dot) {
+    dot.addEventListener('click', function (e) {
+      e.preventDefault(); e.stopPropagation();
+      if (openDot === dot) { closeAll(); return; }
+      closeAll();
+      var pop = $(dot.dataset.pop), r = dot.getBoundingClientRect();
+      pop.classList.add('show'); dot.classList.add('open'); openDot = dot;
+      var left = r.right + 12 + window.scrollX;
+      if (left + pop.offsetWidth > window.scrollX + document.documentElement.clientWidth - 10) left = r.left - pop.offsetWidth - 12 + window.scrollX;
+      pop.style.left = Math.max(10, left) + 'px';
+      pop.style.top = Math.max(10, r.top - 10 + window.scrollY) + 'px';
+    });
+  });
+  document.querySelectorAll('.pop .close').forEach(function (c) { c.addEventListener('click', closeAll); });
+  document.addEventListener('click', function (e) { if (!e.target.closest('.pop')) closeAll(); });
+
+  // ===== 标注开关 =====
+  $('sw').addEventListener('click', function () {
+    this.classList.toggle('off'); document.body.classList.toggle('hide-dots'); closeAll();
+  });
+
+  // ===== 演示数据 =====
+  var DEMO = { acc: 'admin', pwd: 'Admin@123', maxTry: 5, lockMin: 10 };
+  var KEY = 'proto_login_state';
+  function load() { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } }
+  function save(s) { localStorage.setItem(KEY, JSON.stringify(s)); }
+  var state = load();
+
+  function toast(t) { var el = $('toast'); el.textContent = t; el.style.display = 'block'; clearTimeout(toast.t); toast.t = setTimeout(function () { el.style.display = 'none'; }, 2200); }
+  function banner(t) { var b = $('banner'); b.textContent = t || ''; b.style.display = t ? 'block' : 'none'; }
+  function setErr(box, msg, t) { $(box).classList.toggle('err', !!t); $(msg).textContent = t || ''; }
+
+  // ===== 输入框焦点与校验 =====
+  [['acc', 'accBox', 'accMsg', 'accEmpty'], ['pwd', 'pwdBox', 'pwdMsg', 'pwdEmpty']].forEach(function (f) {
+    var inp = $(f[0]);
+    inp.addEventListener('focus', function () { $(f[1]).classList.add('focus'); });
+    inp.addEventListener('blur', function () { $(f[1]).classList.remove('focus'); setErr(f[1], f[2], inp.value.trim() ? '' : T(f[3])); });
+    inp.addEventListener('input', function () { if (inp.value.trim()) setErr(f[1], f[2], ''); });
+    inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') login(); });
+  });
+  $('acc').addEventListener('input', function () { this.value = this.value.replace(/[^\w\s]/g, ''); });
+
+  // ===== 密码明文 / 密文切换 =====
+  var EYE_OPEN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+  var EYE_CLOSED = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+  function renderEye() {
+    var p = $('pwd'), e = $('eye'), hidden = p.type === 'password';
+    // 密文状态显示「闭眼」，点击后变明文并显示「睁眼」
+    e.innerHTML = hidden ? EYE_CLOSED : EYE_OPEN;
+    var tip = hidden ? '显示密码' : '隐藏密码';
+    e.title = tip; e.setAttribute('aria-label', tip);
+  }
+  $('eye').addEventListener('click', function () {
+    var p = $('pwd');
+    p.type = p.type === 'password' ? 'text' : 'password';
+    renderEye();
+  });
+  renderEye();
+
+  // ===== 登录逻辑（含错误次数与锁定） =====
+  var timer = null;
+  function lockLeft() { return state.lockUntil ? Math.ceil((state.lockUntil - Date.now()) / 60000) : 0; }
+  function refreshLock() {
+    var left = lockLeft(), btn = $('loginBtn');
+    if (left > 0) {
+      btn.disabled = true; btn.textContent = T('locked').replace('X', left); banner(T('locked').replace('X', left));
+      clearTimeout(timer); timer = setTimeout(refreshLock, 5000);
+    } else {
+      if (state.lockUntil) { state.lockUntil = 0; state.fail = 0; save(state); banner(''); }
+      btn.disabled = false; btn.textContent = T('login');
+    }
+  }
+  function login() {
+    if (lockLeft() > 0) return;
+    var a = $('acc').value.trim(), p = $('pwd').value, ok = true;
+    if (!a) { setErr('accBox', 'accMsg', T('accEmpty')); ok = false; }
+    if (!p) { setErr('pwdBox', 'pwdMsg', T('pwdEmpty')); ok = false; }
+    if (!ok) return;
+    // 改过密码后用新密码校验，否则用出厂初始密码
+    if (a.toLowerCase() !== DEMO.acc || p !== (state.pwd || DEMO.pwd)) {
+      state.fail = (state.fail || 0) + 1;
+      if (state.fail >= DEMO.maxTry) { state.lockUntil = Date.now() + DEMO.lockMin * 60000; save(state); refreshLock(); return; }
+      save(state); banner(T('wrong').replace('N', DEMO.maxTry - state.fail)); return;
+    }
+    state.fail = 0; state.remember = $('remember').checked ? { acc: a, exp: Date.now() + 7 * 864e5 } : null; save(state); banner('');
+    toast(state.changed ? T('okHome') : T('okFirst'));
+    // 跳转到功能入口页；首次登录（使用初始密码）带 first=1，进入后强制弹出修改密码
+    setTimeout(function () { location.href = state.changed ? 'home.html' : 'home.html?first=1'; }, 1000);
+  }
+  $('loginBtn').addEventListener('click', login);
+
+  // ===== 记住密码回填 =====
+  if (state.remember && state.remember.exp > Date.now()) { $('acc').value = state.remember.acc; $('pwd').value = DEMO.pwd; $('remember').checked = true; }
+
+  // ===== 重置演示 =====
+  $('resetDemo').addEventListener('click', function () {
+    localStorage.removeItem(KEY); state = {}; $('acc').value = ''; $('pwd').value = ''; $('remember').checked = false;
+    setErr('accBox', 'accMsg', ''); setErr('pwdBox', 'pwdMsg', ''); banner(''); refreshLock(); toast('演示状态已重置');
+  });
+
+  // ===== 多语言 =====
+  var I18N = {
+    zh: { title: '账号登录', accPh: '请输入账号', pwdPh: '请输入密码', remember: '记住密码', login: '登 录', lang: '切换语言',
+      accEmpty: '请输入账号', pwdEmpty: '请输入密码', wrong: '账号或密码错误，还可尝试 N 次', locked: '账号已锁定，请 X 分钟后再试',
+      okFirst: '登录成功：使用初始密码，进入「修改密码」页（原型演示）', okHome: '登录成功，进入功能入口页（原型演示）' },
+    en: { title: 'Sign In', accPh: 'Enter account', pwdPh: 'Enter password', remember: 'Remember me', login: 'Sign in', lang: 'Language',
+      accEmpty: 'Please enter account', pwdEmpty: 'Please enter password', wrong: 'Incorrect account or password. N attempts left', locked: 'Account locked. Try again in X min',
+      okFirst: 'Signed in with initial password. Please change it (demo)', okHome: 'Signed in (demo)' },
+    th: { title: 'เข้าสู่ระบบ', accPh: 'กรอกบัญชี', pwdPh: 'กรอกรหัสผ่าน', remember: 'จดจำรหัสผ่าน', login: 'เข้าสู่ระบบ', lang: 'ภาษา',
+      accEmpty: 'กรุณากรอกบัญชี', pwdEmpty: 'กรุณากรอกรหัสผ่าน', wrong: 'บัญชีหรือรหัสผ่านไม่ถูกต้อง เหลือ N ครั้ง', locked: 'บัญชีถูกล็อก ลองใหม่ใน X นาที',
+      okFirst: 'เข้าสู่ระบบด้วยรหัสเริ่มต้น กรุณาเปลี่ยนรหัส (เดโม)', okHome: 'เข้าสู่ระบบสำเร็จ (เดโม)' },
+    id: { title: 'Masuk', accPh: 'Masukkan akun', pwdPh: 'Masukkan kata sandi', remember: 'Ingat saya', login: 'Masuk', lang: 'Bahasa',
+      accEmpty: 'Silakan masukkan akun', pwdEmpty: 'Silakan masukkan kata sandi', wrong: 'Akun atau kata sandi salah. Sisa N kali', locked: 'Akun terkunci. Coba lagi dalam X menit',
+      okFirst: 'Masuk dengan kata sandi awal. Silakan ubah (demo)', okHome: 'Berhasil masuk (demo)' }
+  };
+  var lang = 'zh';
+  function T(k) { return (I18N[lang] || I18N.zh)[k] || I18N.zh[k]; }
+  function applyLang() {
+    document.querySelectorAll('[data-i18n]').forEach(function (el) { el.textContent = T(el.dataset.i18n); });
+    document.querySelectorAll('[data-i18n-ph]').forEach(function (el) { el.placeholder = T(el.dataset.i18nPh); });
+    document.documentElement.lang = lang === 'zh' ? 'zh-CN' : lang;
+    refreshLock();
+  }
+  $('langSel').addEventListener('change', function () { lang = this.value; applyLang(); });
+  applyLang();
+})();
+</script>
+</body>
+</html>

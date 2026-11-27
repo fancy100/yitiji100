@@ -1,0 +1,982 @@
+{
+  "1-B0.1.0": [
+    {
+      "name": "总体介绍",
+      "type": "Wireframe",
+      "url": "总体介绍.html",
+      "children": []
+    },
+    {
+      "name": "可选服务页面-第四步",
+      "type": "Wireframe",
+      "url": "可选服务页面-第四步.html",
+      "children": []
+    },
+    {
+      "name": "远程更新",
+      "type": "Wireframe",
+      "url": "远程更新.html",
+      "children": []
+    },
+    {
+      "name": "初始化界面-第六步",
+      "type": "Wireframe",
+      "url": "初始化界面-第六步.html",
+      "children": []
+    },
+    {
+      "name": "UI设计页面",
+      "type": "Wireframe",
+      "url": "ui设计页面.html",
+      "children": []
+    },
+    {
+      "name": "授权码应用时序图2",
+      "type": "Wireframe",
+      "url": "授权码应用时序图2.html",
+      "children": []
+    },
+    {
+      "name": "修改部分",
+      "type": "Wireframe",
+      "url": "修改部分.html",
+      "children": []
+    }
+  ],
+  "2-B0.1.1": [
+    {
+      "name": "设备激活文件",
+      "type": "Wireframe",
+      "url": "设备激活文件.html",
+      "children": []
+    },
+    {
+      "name": "项目信息配置",
+      "type": "Wireframe",
+      "url": "项目信息配置.html",
+      "children": []
+    },
+    {
+      "name": "可选服务配置",
+      "type": "Wireframe",
+      "url": "可选服务配置.html",
+      "children": []
+    },
+    {
+      "name": "在线更新",
+      "type": "Wireframe",
+      "url": "在线更新.html",
+      "children": []
+    },
+    {
+      "name": "配置>>第六步",
+      "type": "Wireframe",
+      "url": "配置__第六步.html",
+      "children": []
+    },
+    {
+      "name": "重置>>第六步",
+      "type": "Wireframe",
+      "url": "重置__第六步.html",
+      "children": []
+    },
+    {
+      "name": "为硬件激活兼容做的变更。",
+      "type": "Folder",
+      "url": null,
+      "children": []
+    },
+    {
+      "name": "硬件开机后链接显示屏localhost网址",
+      "type": "Wireframe",
+      "url": "硬件开机后链接显示屏localhost网址.html",
+      "children": []
+    },
+    {
+      "name": "新增DHCP",
+      "type": "Wireframe",
+      "url": "__dhcp.html",
+      "children": []
+    },
+    {
+      "name": "ip40001网址",
+      "type": "Wireframe",
+      "url": "ip40001__.html",
+      "children": []
+    }
+  ],
+  "3-B0.1.2": [
+    {
+      "name": "整体说明",
+      "type": "Wireframe",
+      "url": "整体说明.html",
+      "children": []
+    },
+    {
+      "name": "初始化模块",
+      "type": "Folder",
+      "url": null,
+      "children": [
+        {
+          "name": "初始化导航页",
+          "type": "Wireframe",
+          "url": "初始化导航页.html",
+          "children": []
+        },
+        {
+          "name": "设备激活配置第二步",
+          "type": "Wireframe",
+          "url": "设备激活配置第二步.html",
+          "children": []
+        },
+        {
+          "name": "基础服务配置",
+          "type": "Wireframe",
+          "url": "基础服务配置.html",
+          "children": []
+        },
+        {
+          "name": "可选服务页面",
+          "type": "Wireframe",
+          "url": "可选服务页面.html",
+          "children": [
+            {
+              "name": "AI识别删除字段",
+              "type": "Wireframe",
+              "url": "ai识别删除字段.html",
+              "children": []
+            },
+            {
+              "name": "密钥算法清单",
+              "type": "Wireframe",
+              "url": "密钥算法清单.html",
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "项目信息配置-第四步",
+          "type": "Wireframe",
+          "url": "项目信息配置-第四步.html",
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "修改信息内容",
+      "type": "Folder",
+      "url": null,
+      "children": [
+        {
+          "name": "导航页面",
+          "type": "Wireframe",
+          "url": "导航页面.html",
+          "children": [
+            {
+              "name": "初始化-第一步",
+              "type": "Wireframe",
+              "url": "初始化-第一步.html",
+              "children": []
+            },
+            {
+              "name": "设备激活配置-第二步",
+              "type": "Wireframe",
+              "url": "设备激活配置-第二步.html",
+              "children": []
+            },
+            {
+              "name": "基础服务配置-第三步",
+              "type": "Wireframe",
+              "url": "基础服务配置-第三步.html",
+              "children": []
+            },
+            {
+              "name": "项目信息配置-第四步",
+              "type": "Wireframe",
+              "url": "项目信息配置-第四步_1.html",
+              "children": []
+            },
+            {
+              "name": "可选服务-第五步",
+              "type": "Wireframe",
+              "url": "可选服务-第五步.html",
+              "children": []
+            },
+            {
+              "name": "系统初始化-第六步",
+              "type": "Wireframe",
+              "url": "系统初始化-第六步.html",
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "业务中台",
+      "type": "Folder",
+      "url": null,
+      "children": [
+        {
+          "name": "密钥过期或禁用提示--设置航线、计划",
+          "type": "Wireframe",
+          "url": "密钥过期或禁用提示--设置航线、计划.html",
+          "children": [
+            {
+              "name": "建图采集",
+              "type": "Wireframe",
+              "url": "建图采集.html",
+              "children": []
+            },
+            {
+              "name": "比对标注",
+              "type": "Wireframe",
+              "url": "比对标注.html",
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "激活、配置、重置区别",
+      "type": "Wireframe",
+      "url": "激活、配置、重置区别.html",
+      "children": []
+    },
+    {
+      "name": "重置模块",
+      "type": "Wireframe",
+      "url": "重置模块.html",
+      "children": []
+    },
+    {
+      "name": "本地更新",
+      "type": "Wireframe",
+      "url": "本地更新.html",
+      "children": []
+    }
+  ],
+  "4-B0.1.3": [
+    {
+      "name": "整体目标",
+      "type": "Wireframe",
+      "url": "整体目标.html",
+      "children": []
+    },
+    {
+      "name": "导出备份流程",
+      "type": "Wireframe",
+      "url": "导出备份流程.html",
+      "children": [
+        {
+          "name": "导出列表页",
+          "type": "Wireframe",
+          "url": "导出列表页.html",
+          "children": []
+        },
+        {
+          "name": "系统中没有数据提示",
+          "type": "Wireframe",
+          "url": "系统中没有数据提示.html",
+          "children": []
+        },
+        {
+          "name": "打包合成提示、删除弹窗",
+          "type": "Wireframe",
+          "url": "打包合成提示、删除弹窗.html",
+          "children": []
+        },
+        {
+          "name": "打包的内容",
+          "type": "Wireframe",
+          "url": "打包的内容.html",
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "导入复原流程",
+      "type": "Wireframe",
+      "url": "导入复原流程.html",
+      "children": [
+        {
+          "name": "上传数据页面",
+          "type": "Wireframe",
+          "url": "上传数据页面.html",
+          "children": []
+        },
+        {
+          "name": "第一步上传数据成功",
+          "type": "Wireframe",
+          "url": "第一步上传数据成功.html",
+          "children": []
+        },
+        {
+          "name": "第一步导入成功",
+          "type": "Wireframe",
+          "url": "第一步导入成功.html",
+          "children": []
+        },
+        {
+          "name": "第一步导入失败",
+          "type": "Wireframe",
+          "url": "第一步导入失败.html",
+          "children": []
+        },
+        {
+          "name": "导入第二步-飞行数据",
+          "type": "Wireframe",
+          "url": "导入第二步-飞行数据.html",
+          "children": []
+        },
+        {
+          "name": "第二步-导入成功",
+          "type": "Wireframe",
+          "url": "第二步-导入成功.html",
+          "children": []
+        },
+        {
+          "name": "导入第三步-成果数据",
+          "type": "Wireframe",
+          "url": "导入第三步-成果数据.html",
+          "children": []
+        },
+        {
+          "name": "导入第四步成功",
+          "type": "Wireframe",
+          "url": "导入第四步成功.html",
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "其他优化",
+      "type": "Folder",
+      "url": null,
+      "children": [
+        {
+          "name": "第一步",
+          "type": "Wireframe",
+          "url": "第一步.html",
+          "children": []
+        },
+        {
+          "name": "可选服务",
+          "type": "Wireframe",
+          "url": "可选服务.html",
+          "children": []
+        },
+        {
+          "name": "基础服务配置",
+          "type": "Wireframe",
+          "url": "基础服务配置.html",
+          "children": []
+        },
+        {
+          "name": "第四步项目基本信息",
+          "type": "Wireframe",
+          "url": "第四步项目基本信息.html",
+          "children": []
+        },
+        {
+          "name": "第六步",
+          "type": "Wireframe",
+          "url": "第六步.html",
+          "children": []
+        },
+        {
+          "name": "配置-第六步",
+          "type": "Wireframe",
+          "url": "配置-第六步.html",
+          "children": []
+        },
+        {
+          "name": "当前操作人限制--配置模块禁止操作",
+          "type": "Wireframe",
+          "url": "当前操作人限制--配置模块禁止操作.html",
+          "children": [
+            {
+              "name": "重置模块禁止操作",
+              "type": "Wireframe",
+              "url": "重置模块禁止操作.html",
+              "children": []
+            },
+            {
+              "name": "升级模块禁止操作",
+              "type": "Wireframe",
+              "url": "升级模块禁止操作.html",
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "多人操作进入限制-激活前",
+          "type": "Wireframe",
+          "url": "多人操作进入限制-激活前.html",
+          "children": [
+            {
+              "name": "激活后",
+              "type": "Wireframe",
+              "url": "激活后.html",
+              "children": []
+            },
+            {
+              "name": "配置重启按钮",
+              "type": "Wireframe",
+              "url": "配置重启按钮.html",
+              "children": []
+            },
+            {
+              "name": "升级进行中",
+              "type": "Wireframe",
+              "url": "升级进行中.html",
+              "children": []
+            },
+            {
+              "name": "导入执行中",
+              "type": "Wireframe",
+              "url": "导入执行中.html",
+              "children": []
+            },
+            {
+              "name": "重置初始进行中",
+              "type": "Wireframe",
+              "url": "重置初始进行中.html",
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "关机",
+      "type": "Wireframe",
+      "url": "关机.html",
+      "children": []
+    }
+  ],
+  "5-B1.1.0": [
+    {
+      "name": "整体说明",
+      "type": "Wireframe",
+      "url": "整体说明.html",
+      "children": []
+    },
+    {
+      "name": "服务监测",
+      "type": "Wireframe",
+      "url": "服务监测.html",
+      "children": []
+    },
+    {
+      "name": "监测页面",
+      "type": "Wireframe",
+      "url": "监测页面.html",
+      "children": []
+    },
+    {
+      "name": "项目信息",
+      "type": "Wireframe",
+      "url": "项目信息.html",
+      "children": []
+    },
+    {
+      "name": "基础服务页面",
+      "type": "Wireframe",
+      "url": "基础服务页面.html",
+      "children": []
+    },
+    {
+      "name": "重置模块",
+      "type": "Wireframe",
+      "url": "重置模块.html",
+      "children": []
+    },
+    {
+      "name": "重置进行中",
+      "type": "Wireframe",
+      "url": "重置进行中.html",
+      "children": []
+    },
+    {
+      "name": "初始化执行中",
+      "type": "Wireframe",
+      "url": "初始化执行中.html",
+      "children": []
+    },
+    {
+      "name": "配置重启服务进行中",
+      "type": "Wireframe",
+      "url": "配置重启服务进行中.html",
+      "children": []
+    },
+    {
+      "name": "项目信息页面",
+      "type": "Wireframe",
+      "url": "项目信息页面.html",
+      "children": []
+    },
+    {
+      "name": "翼飞平台提示词",
+      "type": "Wireframe",
+      "url": "翼飞平台提示词.html",
+      "children": []
+    },
+    {
+      "name": "升级流程",
+      "type": "Wireframe",
+      "url": "升级流程.html",
+      "children": [
+        {
+          "name": "运维中心更新>>在线更新",
+          "type": "Wireframe",
+          "url": "运维中心更新__在线更新.html",
+          "children": [
+            {
+              "name": "更新进度展示",
+              "type": "Wireframe",
+              "url": "更新进度展示.html",
+              "children": []
+            },
+            {
+              "name": "返回版本列表",
+              "type": "Wireframe",
+              "url": "返回版本列表.html",
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "运维中心更新>>本地更新",
+          "type": "Wireframe",
+          "url": "运维中心更新__本地更新.html",
+          "children": [
+            {
+              "name": "点击更新>>更新进度展示",
+              "type": "Wireframe",
+              "url": "点击更新__更新进度展示.html",
+              "children": []
+            },
+            {
+              "name": "返回版本列表本地",
+              "type": "Wireframe",
+              "url": "返回版本列表本地.html",
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "其他账号进入",
+          "type": "Wireframe",
+          "url": "其他账号进入.html",
+          "children": []
+        },
+        {
+          "name": "更新日志",
+          "type": "Wireframe",
+          "url": "更新日志.html",
+          "children": []
+        },
+        {
+          "name": "导出版本列表H5（服务库）",
+          "type": "Wireframe",
+          "url": "导出版本列表h5（服务库）.html",
+          "children": [
+            {
+              "name": "导出版本服务",
+              "type": "Wireframe",
+              "url": "导出版本服务.html",
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "以下通过jason维护便于服务库的使用，页面不开发",
+      "type": "Folder",
+      "url": null,
+      "children": [
+        {
+          "name": "服务库维护流程",
+          "type": "Wireframe",
+          "url": "服务库维护流程.html",
+          "children": []
+        },
+        {
+          "name": "服务库列表",
+          "type": "Wireframe",
+          "url": "服务库列表.html",
+          "children": []
+        },
+        {
+          "name": "新增版本编辑版本",
+          "type": "Wireframe",
+          "url": "新增版本编辑版本.html",
+          "children": []
+        },
+        {
+          "name": "编辑服务",
+          "type": "Wireframe",
+          "url": "编辑服务.html",
+          "children": []
+        },
+        {
+          "name": "版本字典",
+          "type": "Wireframe",
+          "url": "版本字典.html",
+          "children": []
+        }
+      ]
+    }
+  ],
+  "6-B1.2.0": [
+    {
+      "name": "整体说明",
+      "type": "Wireframe",
+      "url": "整体说明.html",
+      "children": []
+    },
+    {
+      "name": "设备激活码",
+      "type": "Wireframe",
+      "url": "设备激活码.html",
+      "children": [
+        {
+          "name": "设备激活码列表",
+          "type": "Wireframe",
+          "url": "设备激活码列表.html",
+          "children": []
+        },
+        {
+          "name": "新增设备激活码",
+          "type": "Wireframe",
+          "url": "新增设备激活码.html",
+          "children": []
+        },
+        {
+          "name": "编辑设备激活码",
+          "type": "Wireframe",
+          "url": "编辑设备激活码.html",
+          "children": []
+        },
+        {
+          "name": "设备激活码操作记录",
+          "type": "Wireframe",
+          "url": "设备激活码操作记录.html",
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "设备列表",
+      "type": "Wireframe",
+      "url": "设备列表.html",
+      "children": [
+        {
+          "name": "编辑设备",
+          "type": "Wireframe",
+          "url": "编辑设备.html",
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "设备激活流程图",
+      "type": "Wireframe",
+      "url": "设备激活流程图.html",
+      "children": []
+    },
+    {
+      "name": "配置模块--      1002540",
+      "type": "Wireframe",
+      "url": "配置模块--______1002540.html",
+      "children": [
+        {
+          "name": "ip识别提示",
+          "type": "Wireframe",
+          "url": "ip识别提示.html",
+          "children": []
+        },
+        {
+          "name": "第二步设备激活",
+          "type": "Wireframe",
+          "url": "第二步设备激活.html",
+          "children": []
+        },
+        {
+          "name": "项目信息配置",
+          "type": "Wireframe",
+          "url": "项目信息配置.html",
+          "children": []
+        },
+        {
+          "name": "可选服务页面-      1002549、 1002250",
+          "type": "Wireframe",
+          "url": "可选服务页面-______1002549、_1002250.html",
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "激活模块--设备激活",
+      "type": "Wireframe",
+      "url": "激活模块--设备激活.html",
+      "children": [
+        {
+          "name": "可选服务页面",
+          "type": "Wireframe",
+          "url": "可选服务页面.html",
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "导入还原分开展示",
+      "type": "Wireframe",
+      "url": "导入还原分开展示.html",
+      "children": []
+    },
+    {
+      "name": "还原>>本地还原1002536",
+      "type": "Wireframe",
+      "url": "还原__本地还原1002536.html",
+      "children": [
+        {
+          "name": "还原>>导入还原",
+          "type": "Wireframe",
+          "url": "还原__导入还原.html",
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "备份--自动备份-- 1002537",
+      "type": "Wireframe",
+      "url": "__--____--_1002537.html",
+      "children": [
+        {
+          "name": "手动备份",
+          "type": "Wireframe",
+          "url": "手动备份.html",
+          "children": []
+        },
+        {
+          "name": "备份提示",
+          "type": "Wireframe",
+          "url": "备份提示.html",
+          "children": []
+        },
+        {
+          "name": "备份记录",
+          "type": "Wireframe",
+          "url": "备份记录.html",
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "升级--运维中心升级--1002538",
+      "type": "Wireframe",
+      "url": "__--______--1002538.html",
+      "children": []
+    },
+    {
+      "name": "修改密码-- 1002045",
+      "type": "Wireframe",
+      "url": "____--_1002045.html",
+      "children": []
+    },
+    {
+      "name": "翼飞平台升级流程--      1002284",
+      "type": "Wireframe",
+      "url": "翼飞平台升级流程--______1002284.html",
+      "children": [
+        {
+          "name": "翼飞平台更新>>在线更新",
+          "type": "Wireframe",
+          "url": "翼飞平台更新__在线更新.html",
+          "children": [
+            {
+              "name": "更新进度展示",
+              "type": "Wireframe",
+              "url": "更新进度展示.html",
+              "children": []
+            },
+            {
+              "name": "返回版本列表",
+              "type": "Wireframe",
+              "url": "返回版本列表.html",
+              "children": []
+            },
+            {
+              "name": "最新版本",
+              "type": "Wireframe",
+              "url": "最新版本.html",
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "翼飞平台更新>>本地更新",
+          "type": "Wireframe",
+          "url": "翼飞平台更新__本地更新.html",
+          "children": [
+            {
+              "name": "点击更新>>更新进度展示",
+              "type": "Wireframe",
+              "url": "点击更新__更新进度展示.html",
+              "children": []
+            },
+            {
+              "name": "返回版本列表本地",
+              "type": "Wireframe",
+              "url": "返回版本列表本地.html",
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "其他账号进入",
+          "type": "Wireframe",
+          "url": "其他账号进入.html",
+          "children": []
+        },
+        {
+          "name": "更新日志",
+          "type": "Wireframe",
+          "url": "更新日志.html",
+          "children": []
+        },
+        {
+          "name": "导出版本列表H5（服务库）",
+          "type": "Wireframe",
+          "url": "导出版本列表h5（服务库）.html",
+          "children": [
+            {
+              "name": "导出版本服务",
+              "type": "Wireframe",
+              "url": "导出版本服务.html",
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "其他修改",
+      "type": "Wireframe",
+      "url": "其他修改.html",
+      "children": []
+    }
+  ],
+  "7-B1.2.1": [
+    {
+      "name": "基础服务配置页面",
+      "type": "Wireframe",
+      "url": "基础服务配置页面.html",
+      "children": []
+    },
+    {
+      "name": "本地服务配置",
+      "type": "Wireframe",
+      "url": "本地服务配置.html",
+      "children": []
+    },
+    {
+      "name": "网络信息配置页面",
+      "type": "Wireframe",
+      "url": "网络信息配置页面.html",
+      "children": []
+    },
+    {
+      "name": "项目信息配置",
+      "type": "Wireframe",
+      "url": "项目信息配置.html",
+      "children": []
+    },
+    {
+      "name": "兼容超脑版工作",
+      "type": "Wireframe",
+      "url": "兼容超脑版工作.html",
+      "children": []
+    },
+    {
+      "name": "数据处理脚本",
+      "type": "Wireframe",
+      "url": "数据处理脚本.html",
+      "children": []
+    },
+    {
+      "name": "国际化语言支持",
+      "type": "Wireframe",
+      "url": "国际化语言支持.html",
+      "children": []
+    },
+    {
+      "name": "测试监控服务",
+      "type": "Wireframe",
+      "url": "测试监控服务.html",
+      "children": []
+    }
+  ],
+  "8-B1.3.0": [
+    {
+      "name": "需求",
+      "type": "Wireframe",
+      "url": "需求.html",
+      "children": []
+    },
+    {
+      "name": "1、增加AI识别和算图服务的内置展示",
+      "type": "Wireframe",
+      "url": "1、增加ai识别和算图服务的内置展示.html",
+      "children": [
+        {
+          "name": "独立服务器",
+          "type": "Wireframe",
+          "url": "独立服务器.html",
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "2、服务监测-增加odm服务监测",
+      "type": "Wireframe",
+      "url": "2、服务监测-增加odm服务监测.html",
+      "children": []
+    },
+    {
+      "name": "3、备份--备份失败判定",
+      "type": "Wireframe",
+      "url": "3、备份--备份失败判定.html",
+      "children": []
+    },
+    {
+      "name": "7、8、基础服务-自定义展示及NTP服务规则",
+      "type": "Wireframe",
+      "url": "7、8、基础服务-自定义展示及ntp服务规则.html",
+      "children": []
+    },
+    {
+      "name": "9、激活模块和配置模块暂存",
+      "type": "Wireframe",
+      "url": "9、激活模块和配置模块暂存.html",
+      "children": [
+        {
+          "name": "重启服务按钮变更",
+          "type": "Wireframe",
+          "url": "重启服务按钮变更.html",
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "10、项目信息配置",
+      "type": "Wireframe",
+      "url": "10、项目信息配置.html",
+      "children": []
+    }
+  ]
+}

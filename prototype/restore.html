@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>运维中心 · 还原</title>
+<style>
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; font-size: 14px; color: #333; background: #eef0f3; }
+  .topbar { height: 50px; background: #1a6cfb; color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; }
+  .topbar .logo { font-size: 18px; }
+  .topbar .right { display: flex; align-items: center; gap: 28px; }
+  .topbar .entry, .topbar .user { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+  .topbar .ico { width: 26px; height: 26px; border-radius: 50%; background: #fff; color: #1a6cfb; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; }
+  .titlebar { height: 42px; background: #fff; display: flex; align-items: center; padding: 0 22px; border-bottom: 1px solid #eee; }
+  .titlebar .back { font-size: 18px; margin-right: 14px; cursor: pointer; }
+  .titlebar h1 { font-size: 15px; font-weight: bold; }
+  .card { max-width: 1320px; min-height: 620px; margin: 20px auto 30px; background: #fff; padding: 30px 0 40px; }
+  .wrap { width: 980px; margin: 0 auto; }
+  .tabs { border-bottom: 1px solid #e6e6e6; margin-bottom: 26px; }
+  .tabs span { display: inline-block; padding: 10px 40px; margin-right: 4px; background: #f5f7fa; color: #333; border: 1px solid #e6e6e6; border-bottom: none; border-radius: 4px 4px 0 0; cursor: pointer; }
+  .tabs span.on { background: #1a6cfb; color: #fff; border-color: #1a6cfb; }
+  .btn { height: 32px; padding: 0 18px; border-radius: 4px; border: 1px solid #1a6cfb; background: #1a6cfb; color: #fff; font-size: 13px; cursor: pointer; }
+  .btn.ghost { background: #fff; color: #333; border-color: #d9d9d9; }
+  .btn.ghost:hover { color: #1a6cfb; border-color: #1a6cfb; }
+  .bar1 { display: flex; align-items: center; gap: 18px; margin-bottom: 18px; position: relative; }
+  .bar1 .lbl { font-size: 15px; }
+  .bar1 label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; position: relative; }
+  .bar1 .ops { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+  .q { width: 18px; height: 18px; border-radius: 50%; border: 1px solid #999; color: #999; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; cursor: help; position: relative; }
+  .q .tipx { display: none; position: absolute; left: -10px; top: 24px; width: 320px; background: #fffbe6; border: 1px solid #ffe58f; color: #614700; padding: 10px 12px; border-radius: 6px; font-size: 12px; line-height: 1.8; text-align: left; z-index: 30; box-shadow: 0 4px 12px rgba(0,0,0,.12); cursor: default; }
+  .q:hover .tipx { display: block; }
+  .prog { border: 1px dashed #6aa6ff; border-radius: 4px; padding: 14px 16px; display: flex; gap: 14px; align-items: center; background: #f7faff; margin-bottom: 14px; }
+  .prog.ok { border-color: #95de64; background: #f6ffed; }
+  .prog.bad { border-color: #ffa39e; background: #fff1f0; }
+  .prog .ic { width: 40px; height: 40px; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.12); display: flex; align-items: center; justify-content: center; color: #1a6cfb; font-size: 20px; }
+  .prog.ok .ic { color: #52c41a; } .prog.bad .ic { color: #e4393c; }
+  .prog .main { flex: 1; }
+  .prog .txt { font-size: 13px; margin-bottom: 8px; }
+  .prog .txt b { color: #1a6cfb; font-weight: normal; }
+  .prog .row2 { display: flex; align-items: center; gap: 8px; }
+  .prog .track { flex: 1; height: 6px; background: #e8e8e8; border-radius: 3px; overflow: hidden; }
+  .prog .fill { height: 100%; width: 0; background: #1a6cfb; transition: width .4s; }
+  .prog.ok .fill { background: #52c41a; } .prog.bad .fill { background: #e4393c; }
+  .prog .pct { font-size: 12px; color: #666; width: 40px; text-align: right; }
+  .lhead { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .lhead h3 { font-size: 15px; flex: 1; }
+  .lhead .cnt { font-size: 13px; color: #1a6cfb; background: #e8f1ff; padding: 5px 14px; border-radius: 3px; }
+  table.tb { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.tb th { background: #e8f1ff; height: 44px; font-weight: bold; border: 1px solid #e3e8f0; }
+  table.tb td { height: 44px; text-align: center; border: 1px solid #eef0f3; }
+  .lnk { color: #1a6cfb; cursor: pointer; margin: 0 6px; }
+  .lnk:hover { text-decoration: underline; }
+  .dis { color: #bbb; margin: 0 6px; cursor: not-allowed; }
+  .s-cur { color: #e4393c; } .s-run { color: #fa8c16; } .s-done { color: #389e0d; }
+  .pager { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 16px; font-size: 13px; color: #666; }
+  .pager span.on { background: #1a6cfb; color: #fff; padding: 2px 9px; border-radius: 3px; }
+  .filters { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; font-size: 13px; }
+  .filters input, .filters select { height: 30px; border: 1px solid #d9d9d9; border-radius: 4px; padding: 0 8px; font-size: 13px; }
+  .empty { text-align: center; color: #999; padding: 30px 0; }
+  /* 标注 / 弹窗 / 提示 */
+  .dot { width: 20px; height: 20px; border-radius: 50%; background: #ff7a00; color: #fff; font-size: 11px; font-weight: bold; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; border: none; vertical-align: middle; margin-left: 6px; flex-shrink: 0; }
+  .dot.open { background: #1a6cfb; }
+  body.hide-dots .dot { display: none !important; }
+  .pop { position: absolute; width: 640px; max-width: calc(100vw - 24px); background: #fff; border-radius: 6px; box-shadow: 0 6px 24px rgba(0,0,0,.18); z-index: 80; font-size: 13px; line-height: 1.7; display: none; }
+  .pop.show { display: block; }
+  .pop .hd { padding: 10px 14px; border-bottom: 1px solid #eee; font-weight: bold; display: flex; justify-content: space-between; }
+  .pop .hd .close { cursor: pointer; color: #999; font-weight: normal; }
+  .pop .bd { padding: 10px 14px 12px; max-height: 460px; overflow: auto; }
+  .note { padding: 8px 10px; border-radius: 4px; margin-bottom: 8px; background: #fff6c2; border-left: 3px solid #ffdf25; }
+  .note .tag { display: inline-block; font-size: 11px; padding: 0 6px; border-radius: 3px; margin-right: 6px; background: rgba(255,255,255,.75); }
+  .note .ver { float: right; font-size: 11px; color: #888; }
+  .mask { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none; align-items: center; justify-content: center; z-index: 100; }
+  .mask.open { display: flex; }
+  .modal { width: 420px; background: #fff; border-radius: 6px; box-shadow: 0 6px 24px rgba(0,0,0,.2); }
+  .modal .mhd { padding: 14px 20px; border-bottom: 1px solid #eee; font-weight: bold; font-size: 15px; display: flex; justify-content: space-between; }
+  .modal .mhd .close { cursor: pointer; color: #999; font-weight: normal; }
+  .modal .mbd { padding: 24px 22px; font-size: 14px; line-height: 1.8; }
+  .modal .mft { padding: 10px 20px 16px; display: flex; justify-content: flex-end; gap: 10px; }
+  .imp { text-align: center; padding: 30px 0 10px; }
+  .imp .cl { font-size: 54px; color: #1a6cfb; }
+  .ctrl-panel { position: fixed; left: 20px; bottom: 20px; background: #fff; border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,.15); padding: 10px 14px; font-size: 12px; z-index: 60; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; max-width: 560px; }
+  .ctrl-panel select { height: 24px; font-size: 12px; }
+  .ctrl-panel a { color: #1a6cfb; cursor: pointer; }
+  .switch { position: relative; width: 36px; height: 20px; background: #1a6cfb; border-radius: 10px; cursor: pointer; }
+  .switch::after { content: ""; position: absolute; left: 18px; top: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: .2s; }
+  .switch.off { background: #ccc; } .switch.off::after { left: 2px; }
+  .toast { position: fixed; top: 70px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,.78); color: #fff; padding: 9px 20px; border-radius: 4px; z-index: 300; display: none; font-size: 13px; }
+  .toast.bad { background: #e4393c; }
+
+  /* 页签：和升级页面一致 */
+  .tabs2 { display: flex; align-items: flex-end; border-bottom: 1px solid #e6e6e6; margin-bottom: 26px; }
+  .tabs2 button.tb2 { width: auto; height: auto; padding: 10px 40px; margin-right: 4px; background: #f5f7fa; color: #333; border: 1px solid #e6e6e6; border-bottom: none; border-radius: 4px 4px 0 0 !important; font-size: 14px; cursor: pointer; font-family: inherit; }
+  .tabs2 button.tb2.on { background: #1a6cfb; color: #fff; border-color: #1a6cfb; }
+  .tabs2 .dot { align-self: center; }
+  .spin { text-align: center; padding: 20px 0 6px; } .spin .cl { font-size: 54px; color: #1a6cfb; line-height: 1.2; } .spin .okc { color: #52c41a; }
+  .toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,.78); color: #fff; padding: 9px 20px; border-radius: 4px; font-size: 13px; z-index: 200; display: none; } .toast.bad { background: #e4393c; }
+  .notice1 { background: #f5f7fa !important; border: 1px solid #e6e6e6; border-radius: 4px; font-size: 14px !important; color: #555 !important; }
+  .box { border: 1px solid #e3e8f0 !important; border-radius: 4px; }
+  .boxT { background: #e8f1ff; border-bottom: 1px solid #e3e8f0 !important; font-size: 15px !important; }
+  .infobar { background: #e8f1ff !important; border: 1px solid #c6dcff !important; }
+
+  .infobar { background: #e8f4ff; border: 1px solid #91caff; padding: 8px 12px; border-radius: 4px; font-size: 13px; margin-bottom: 14px; }
+  .infobar .rf { color: #1a6cfb; cursor: pointer; margin-left: 6px; }
+  .notice { background: #fffbe6; border: 1px solid #ffe58f; padding: 10px 14px; border-radius: 4px; line-height: 1.8; font-size: 13px; margin-bottom: 18px; }
+  .center { text-align: center; }
+  .sec { width: 560px; margin: 26px auto 0; }
+  .secT { background: linear-gradient(90deg, #1a6cfb, #d6e6ff); color: #fff; font-weight: bold; padding: 10px 16px; border-radius: 4px 4px 0 0; }
+  .secB { background: #f5f7fa; padding: 20px 30px; }
+  .rlist { display: flex; gap: 12px; font-size: 13px; }
+  .rlist .lb { white-space: nowrap; line-height: 26px; } .rlist .lb i { color: #e4393c; font-style: normal; margin-right: 2px; }
+  .rlist label { display: block; line-height: 26px; cursor: pointer; }
+  .steps { display: flex; margin: 6px 0 34px; }
+  .steps .s { flex: 1; display: flex; gap: 8px; }
+  .steps .s:last-child { flex: none; }
+  .steps .n { width: 24px; height: 24px; border-radius: 50%; border: 1px solid #ccc; color: #999; display: flex; align-items: center; justify-content: center; font-size: 12px; flex: none; }
+  .steps .s.on .n { background: #1a6cfb; border-color: #1a6cfb; color: #fff; }
+  .steps .s.done .n { border-color: #1a6cfb; color: #1a6cfb; }
+  .steps .t { font-size: 14px; color: #999; white-space: nowrap; } .steps .s.on .t, .steps .s.done .t { color: #333; }
+  .steps .d { font-size: 12px; color: #999; margin-top: 2px; max-width: 120px; }
+  .steps .ln { flex: 1; height: 1px; background: #e6e6e6; margin: 12px 8px 0; } .steps .s.done .ln { background: #1a6cfb; }
+  .flow { width: 360px; margin: 0 auto; border-left: 1px solid #d6e4ff; padding: 4px 0 4px 20px; }
+  .pill { height: 36px; padding: 0 18px; border-radius: 18px; border: 1px solid #d6e4ff; background: #fff; box-shadow: 0 2px 8px rgba(26,108,251,.15); cursor: pointer; font-size: 13px; color: #333; }
+  .pill:disabled { color: #bbb; cursor: not-allowed; box-shadow: none; background: #fafafa; }
+  .fl { font-size: 13px; margin: 14px 0 6px; display: flex; justify-content: space-between; }
+  .fl .x { cursor: pointer; color: #999; } .fl .x:hover { color: #e4393c; }
+  .okt { color: #52c41a; font-size: 13px; } .badt { color: #e4393c; font-size: 13px; }
+  .meta { background: #f5f7fa; padding: 10px 14px; font-size: 13px; line-height: 2; margin: 10px 0 20px; }
+  .meta span { color: #888; display: inline-block; width: 72px; }
+  .gap { height: 22px; }
+  .nav { text-align: center; margin-top: 34px; } .nav .btn { margin: 0 6px; }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .notice1 { width: 680px; margin: 56px auto 24px; background: #f2f2f2; padding: 26px 20px; text-align: center; font-size: 16px; line-height: 1.6; color: #333; }
+  .bigb { width: 140px; height: 40px; font-size: 14px; }
+  .hint { color: #fa8c16; font-size: 13px; margin-top: 10px; } .hint a { color: #1a6cfb; }
+  .box { width: 540px; margin: 24px auto 0; border: 1px solid #999; }
+  .boxT { font-size: 16px; font-weight: bold; padding: 14px 28px; border-bottom: 1px solid #999; }
+  .boxB { padding: 24px 30px 28px 78px; }
+  .rl { font-size: 16px; margin-bottom: 14px; }
+  #rList label { display: block; line-height: 25px; padding-left: 20px; font-size: 13px; cursor: pointer; }
+  #rList label em { color: #999; font-style: normal; margin-left: 8px; }
+  .pbar { height: 8px; background: #eee; border-radius: 4px; overflow: hidden; margin: 18px 0 6px; } .pbar i { display: block; height: 100%; width: 0; background: #1a6cfb; transition: width .3s; }
+  .pop ol, .pop ul { padding-left: 18px; line-height: 1.8; }
+  .flow2 { width: 300px; margin: 10px auto 0; position: relative; padding-left: 26px; }
+  .flow2:before { content: ''; position: absolute; left: 4px; top: 18px; bottom: 30px; width: 1px; background: #e3e8f4; }
+  .fi { position: relative; padding-bottom: 40px; } .fi:last-child { padding-bottom: 0; }
+  .fi .fd { position: absolute; left: -26px; top: 14px; width: 9px; height: 9px; border-radius: 50%; border: 2px solid #1a6cfb; background: #fff; box-sizing: border-box; }
+  .fi.ok .fd { border-color: #52c41a; } .fi.wait .fd { border-color: #c9d3e6; }
+  .pill2 { height: 44px; padding: 0 22px 0 14px; border-radius: 22px; border: 1px solid #dfe5ff; background: linear-gradient(180deg, #f7f8ff, #eef1ff); box-shadow: 0 2px 10px rgba(26,108,251,.16); font-size: 13px; color: #333; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+  .pill2 .ic { width: 18px; height: 18px; border-radius: 50%; background: #1a6cfb; color: #fff; font-size: 11px; display: inline-flex; align-items: center; justify-content: center; }
+  .pill2:disabled { color: #aaa; cursor: not-allowed; box-shadow: 0 2px 8px rgba(26,108,251,.08); } .pill2:disabled .ic { background: #c4cad6; }
+  .fl2 { display: flex; align-items: center; gap: 16px; font-size: 13px; margin: 18px 0 0; white-space: nowrap; }
+  .fl2 .x { cursor: pointer; color: #666; font-size: 15px; } .fl2 .x:hover { color: #e4393c; }
+  .okt2 { color: #52c41a; font-size: 13px; margin: 14px 0 0 10px; } .okt2 b { display: inline-flex; width: 14px; height: 14px; border-radius: 50%; background: #52c41a; color: #fff; font-size: 10px; align-items: center; justify-content: center; margin-right: 6px; }
+  .meta2 { background: #f5f7fa; border-radius: 4px; padding: 12px 18px; margin-top: 14px; width: 266px; font-size: 12px; line-height: 32px; color: #333; }
+  .meta2 span { color: #888; display: inline-block; width: 80px; }
+  .nav2 { text-align: center; margin-top: 44px; }
+  .nav2 .btn:disabled { background: #f5f5f5; border-color: #d9d9d9; color: #bbb; opacity: 1; }
+  #rList tr[data-rid] { cursor: pointer; } #rList tr[data-rid]:hover td { background: #f7faff; } #rList tr.sel td { background: #eef5ff; }
+  #rList input { cursor: pointer; }
+  .pop.wide { width: 700px; } .pop.wide .bd { max-height: 76vh; }
+</style>
+</head>
+<body>
+<div class="topbar"><div class="logo">运维中心</div><div class="right"><div class="entry" id="goHome"><span class="ico">⌂</span>功能入口</div><div class="user"><span class="ico">A</span>admin ⌄</div></div></div>
+<div class="titlebar"><span class="back" id="btnBack" title="返回">←</span><h1 id="crumb">还原 &gt;&gt; 一键还原</h1></div>
+<div class="card"><div class="wrap">
+  <div class="tabs2"><button class="tb2" data-tab="one">一键还原</button><button class="tb2" data-tab="imp">导入还原</button><button class="dot" data-note="tab">1</button></div>
+  <div id="p-one">
+    <div class="notice1" style="margin-top:30px">复原会占用服务，系统数据会按照您选择的备份数据进行还原，建议您在此期间不再使用翼飞平台。复原时间会根据备份数据大小不同而不同，请您耐心等待</div>
+    <div class="lhead" style="margin-top:6px"><h3>复原数据<button class="dot" data-note="pick">3</button></h3><span class="cnt">仅显示最新 5 份备份数据</span></div>
+    <div id="secPick"><table class="tb"><thead><tr><th style="width:64px">选择</th><th style="width:64px">序号</th><th>备份名称</th><th style="width:100px">版本号</th><th style="width:140px">备份内容</th><th style="width:100px">备份方式</th><th style="width:100px">数据大小</th><th style="width:150px">备份时间</th></tr></thead><tbody id="rList"></tbody></table></div>
+    <div class="center" style="margin-top:30px"><button class="btn bigb" id="btnOpen">开始复原</button><button class="dot" data-note="one">2</button><button class="dot" data-note="go">4</button></div>
+    <div class="center hint" id="autoHint" style="display:none">当前有备份任务正在进行中，「开始复原」暂不可用，请等待备份完成后再操作。</div>
+  </div>
+
+  <div id="p-imp" style="display:none">
+    <div class="infobar">● 当前版本：<span id="curVer"></span>；剩余空间：<span id="space"></span><span class="rf" id="btnRf" title="刷新">↻</span><button class="dot" data-note="info">5</button></div>
+    <div class="steps" id="steps"></div>
+    <div id="impBody"></div>
+  </div>
+</div></div>
+<input type="file" id="fileIn" accept=".zip" style="display:none">
+<div class="pop" id="pop"><div class="hd"><span id="popT"></span><span class="close" id="popX">✕</span></div><div class="bd" id="popB"></div></div>
+<div class="mask" id="mask"><div class="modal">
+  <div class="mhd"><span id="mT"></span><span class="close" id="mX">✕</span></div>
+  <div class="mbd" id="mB"></div>
+  <div class="mft" id="mF"></div>
+</div></div>
+<div class="ctrl-panel">
+  <span>PRD 标注</span><div class="switch" id="swDots"></div>
+  <span class="c-imp">上传结果 <select id="selUp"><option value="ok">成功</option><option value="bad">文件损坏</option><option value="ver">版本不一致</option><option value="type">备份类型不符</option></select></span>
+  <span class="c-imp">执行结果 <select id="selRun"><option value="ok">成功</option><option value="fail">失败</option></select></span>
+  <span class="c-one">可复原数据 <select id="selData"><option value="has">有可复原的数据</option><option value="none">没有可复原的数据</option></select></span>
+  <span class="c-one">备份状态 <select id="selAuto"><option value="0">无备份任务</option><option value="1">备份进行中</option></select></span>
+  <span class="c-one">复原结果 <select id="selOne"><option value="ok">成功</option><option value="proj">项目数据不存在</option><option value="space">空间不足</option><option value="up">上传失败</option><option value="bad">文件损坏</option><option value="ver">版本不兼容</option><option value="mod">模块不一致</option><option value="exec">执行失败</option></select></span>
+  <a id="reset">重置演示</a>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+function $(id) { return document.getElementById(id); }
+var BK = 'yw_backup', KEY = 'yw_restore', VER = 'P1.5.0', PRJ = 'xhz';
+var PARTS = ['基础数据', '飞行数据', '成果数据'];
+var SIZE = { '基础数据': 1.2, '飞行数据': 36.5, '成果数据': 58.3 };
+function pad(n) { return (n < 10 ? '0' : '') + n; }
+function fmtD(t) { var d = new Date(t); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+function stamp(t) { var d = new Date(t); return '' + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + '_' + pad(d.getHours()) + pad(d.getMinutes()); }
+function isFull(c) { return PARTS.every(function (p) { return c.indexOf(p) >= 0; }); }
+function cName(c) { return isFull(c) ? '全量数据' : c.join('+'); }
+function sizeOf(c) { return Math.round(c.reduce(function (a, p) { return a + SIZE[p]; }, 0) * 10) / 10; }
+
+/* ---------- 备份数据（读取备份页面的数据；没有时用演示数据） ---------- */
+function demoRecs() {
+  var n = Date.now(), D = 86400000, a = [[9, PARTS], [7, ['基础数据', '飞行数据']], [5, ['基础数据']], [3, PARTS], [1, PARTS]];
+  return a.map(function (x, i) { var t = n - x[0] * D; return { id: 'd' + i, time: t, content: x[1], size: sizeOf(x[1]), ok: true, status: '存在', way: i === 1 ? '自动备份' : '手动备份', name: VER + '小盒子项目' + cName(x[1]) + stamp(t).slice(0, 8) }; });
+}
+function loadBk() { try { var b = JSON.parse(localStorage.getItem(BK)); return b && Array.isArray(b.recs) ? b : null; } catch (e) { return null; } }
+function bkRecs() {
+  var b = loadBk(), a = b ? b.recs.filter(function (r) { return r.ok !== false && (r.status || '存在') === '存在'; }) : demoRecs();
+  if (localStorage.getItem('yw_rs_data') === 'none') return [];
+  if (!a.length) a = demoRecs();
+  return a.slice(-5).reverse();
+}
+function bkSpace() { var b = loadBk(); return b && typeof b.space === 'number' ? b.space : 186.4; }
+function esc(x) { return String(x).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+function bkBusy() { var b = loadBk(); return !!(b && b.run && Date.now() - (b.run.t0 || 0) < 600000); }
+
+/* ---------- 还原页面自己的状态 ---------- */
+function initState() { return { imp: { v: 2, step: 1, files: {}, done: [] } }; }
+var st; try { st = JSON.parse(localStorage.getItem(KEY)) || initState(); } catch (e) { st = initState(); }
+if (!st.imp || typeof st.imp.step !== 'number' || st.imp.v !== 2) { var keepRun = st && st.run; st = initState(); if (keepRun) st.run = keepRun; }
+function save() { localStorage.setItem(KEY, JSON.stringify(st)); }
+function toast(msg, bad) { var t = $('toast'); t.textContent = msg; t.className = 'toast' + (bad ? ' bad' : ''); t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(function () { t.style.display = 'none'; }, 2200); }
+
+/* ---------- 弹窗 ---------- */
+var restoring = false; localStorage.removeItem('yw_restoring');
+function modal(t, b, btns) {
+  $('mT').textContent = t; $('mB').innerHTML = b; $('mF').innerHTML = '';
+  (btns || []).forEach(function (x) { var e = document.createElement('button'); e.className = 'btn' + (x.ghost ? ' ghost' : ''); e.textContent = x.t; e.onclick = function () { closeM(); if (x.fn) x.fn(); }; $('mF').appendChild(e); });
+  $('mask').classList.add('open');
+}
+var progOpen = false;
+function closeM() { progOpen = false; $('mask').classList.remove('open'); }
+$('mX').onclick = function () { if (restoring || progOpen) return; closeM(); if (typeof oneRun === 'function' && oneRun()) showProg(); };
+function spinHtml(txt, pct) { return '<div class="spin"><div class="cl">◌</div><div>' + txt + '</div><div class="prog" style="margin:14px 0 0"><div class="main"><div class="row2"><div class="track"><div class="fill" id="spFill" style="width:' + pct + '%"></div></div><span class="pct" id="spPct">' + pct + '%</span></div></div></div></div>'; }
+
+/* 进度：done(ok) 在结束时调用；结果取演示栏的「执行结果」 */
+function runProg(title, txt, done) {
+  restoring = true; localStorage.setItem('yw_restoring', Date.now()); var pct = 0, res = $('selRun').value;
+  modal(title, spinHtml(txt, 0), []);
+  var h = setInterval(function () {
+    pct = Math.min(100, pct + 7 + Math.floor(Math.random() * 9));
+    if (res === 'fail' && pct >= 63) pct = 63;
+    if ($('spFill')) { $('spFill').style.width = pct + '%'; $('spPct').textContent = pct + '%'; }
+    if (pct >= 100 || (res === 'fail' && pct === 63 && Math.random() < .35)) { clearInterval(h); restoring = false; localStorage.removeItem('yw_restoring'); closeM(); done(res === 'ok'); }
+  }, 350);
+}
+
+/* ---------- 页签 / 顶部信息 ---------- */
+var tab = 'one';
+function setTab(t, force) {
+  if (!force && (restoring || oneRun())) { toast('还原进行中，请稍后', 1); return; }
+  tab = t; if ($('crumb')) $('crumb').innerHTML = '还原 &gt;&gt; ' + (t === 'imp' ? '导入还原' : '一键还原');
+  document.querySelectorAll('.tb2').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-tab') === t); });
+  $('p-one').style.display = t === 'one' ? '' : 'none'; $('p-imp').style.display = t === 'imp' ? '' : 'none';
+  document.querySelectorAll('.c-one').forEach(function (e) { e.style.display = t === 'one' ? '' : 'none'; }); document.querySelectorAll('.c-imp').forEach(function (e) { e.style.display = t === 'imp' ? '' : 'none'; });
+  if (t === 'one') renderOne();
+  if (t === 'imp') renderImp();
+}
+function renderInfo() { $('curVer').textContent = VER; $('space').textContent = bkSpace().toFixed(2) + 'GB'; }
+
+/* ---------- 一键还原 ---------- */
+var STEPS1 = [[0, '正在上传备份数据'], [30, '正在解压文件、获取文件信息'], [42, '正在导入文件'], [55, '正在校验文件是否损坏'], [68, '正在校验数据版本'], [78, '正在校验数据对应的模块'], [88, '正在执行复原']];
+var FAILAT = { space: 12, up: 22, bad: 60, ver: 72, mod: 82, exec: 93 }, DUR1 = 24000, autoLocal = false;
+function autoOn() { return autoLocal || bkBusy(); }
+function setAuto(v) { var b = loadBk(); if (b) { b.auto = b.auto || {}; b.auto.on = v; localStorage.setItem(BK, JSON.stringify(b)); } else autoLocal = v; }
+function oneRun() { return st.run && st.run.t0 ? st.run : null; }
+function renderOne() {
+  renderPick();
+}
+function renderPick() {
+  var a = bkRecs();
+  $('rList').innerHTML = a.length ? a.map(function (r, i) {
+    var v = ((r.name || '').match(/^[A-Z]?d+.d+.d+/) || [VER])[0];
+    return '<tr data-rid="' + esc(r.id) + '"' + '' + '><td><input type="radio" name="rp" value="' + esc(r.id) + '"' + '' + '></td><td>' + (i + 1) + '</td><td>' + esc(r.name) + '</td><td>' + esc(v) + '</td><td>' + cName(r.content) + '</td><td>' + (r.way || '手动备份') + '</td><td>' + r.size + 'GB</td><td>' + fmtD(r.time) + '</td></tr>';
+  }).join('') : '<tr><td colspan="8" class="empty">暂无可复原的数据，请先到「<a href="backup.html" style="color:#1a6cfb">备份</a>」页面备份</td></tr>';
+  syncGo();
+}
+function syncGo() { var on = autoOn(); $('btnOpen').disabled = on || !!oneRun() || !document.querySelector('input[name=rp]:checked');
+  $('autoHint').style.display = on ? '' : 'none'; $('selAuto').value = autoLocal ? '1' : '0';
+}
+function goRestore() {
+  if (restoring || oneRun()) return;
+  if (autoOn()) { toast('备份任务进行中，请稍后再复原', 1); syncGo(); return; }
+  var el = document.querySelector('input[name=rp]:checked'); if (!el) { toast('请选择复原数据', 1); return; }
+  var r = bkRecs().filter(function (x) { return String(x.id) === el.value; })[0]; if (!r) { toast('该备份数据已不存在，请重新选择', 1); renderPick(); return; }
+  var res = $('selOne').value;
+  if (res === 'proj') { modal('数据上传失败', '<div class="center" style="font-size:15px;padding:12px 0">数据上传失败</div><div style="color:#888;font-size:12px">原因：系统项目数据不存在，不支持上传。请先完成激活，配置项目信息。</div>', [{ t: '知道了' }]); return; }
+  var n = Date.now();
+  st.run = { t0: n, end: n + DUR1 * (FAILAT[res] || 100) / 100, res: res, name: r.name, size: r.size };
+  save(); renderOne(); showProg();
+}
+function showProg() {
+  var r = oneRun(); if (!r) return;
+  modal('导入复原中', '<div style="text-align:center;font-size:15px;line-height:1.7">导入复原中，复原会占用服务，建议您在此期间不再使用翼飞平台</div>' +
+    '<div class="pbar"><i id="opFill"></i></div><div style="display:flex;justify-content:space-between;font-size:12px;color:#888"><span id="opStep"></span><span id="opPct"></span></div>' +
+    '<div style="font-size:12px;color:#888;margin-top:6px">复原数据：' + esc(r.name) + '</div>', [{ t: '取消复原', ghost: true, fn: askCancel }]);
+  progOpen = true; tickOne();
+}
+function askCancel() {
+  modal('取消复原', '确定取消复原吗？取消后系统数据保持复原前的状态。',
+    [{ t: '继续复原', ghost: true, fn: showProg }, { t: '确定取消', fn: function () { if (!oneRun()) return; st.run = null; save(); renderOne(); toast('已取消复原'); } }]);
+}
+function tickOne() {
+  var r = oneRun(); if (!r) return;
+  var now = Date.now(); if (now >= r.end) { finishOne(r); return; }
+  if (progOpen && $('opFill')) {
+    var p = Math.min(99, Math.floor((now - r.t0) / DUR1 * 100)), sp = STEPS1.filter(function (x) { return p >= x[0]; }).pop();
+    $('opFill').style.width = p + '%'; $('opPct').textContent = p + '%'; $('opStep').textContent = sp[1] + '…';
+  }
+}
+function failBox(t, why) { modal(t, '<div class="center" style="font-size:15px;padding:12px 0">' + t + '</div><div style="color:#888;font-size:12px">原因：' + why + '系统数据未改动。</div>', [{ t: '知道了' }]); }
+function finishOne(r) {
+  st.run = null; save(); closeM(); renderOne();
+  var x = r.res;
+  if (x === 'ok') modal('复原成功', '<div class="spin"><div class="cl okc">✔</div><div>导入成功，系统已按「' + esc(r.name) + '」复原</div></div>', [{ t: '确定' }]);
+  else if (x === 'space') modal('空间不足', '<div class="center" style="font-size:15px;padding:16px 0">您的空间不足，请前往处理</div><div class="center" style="color:#888;font-size:12px">剩余空间 ' + bkSpace().toFixed(2) + 'GB，这份备份数据需要 ' + r.size + 'GB。可以到「备份」页面删除不需要的备份数据。</div>', [{ t: '知道了' }]);
+  else if (x === 'up') failBox('数据上传失败', '上传过程中网络中断。');
+  else failBox('数据导入执行失败', { bad: '文件损坏。', ver: '导入数据版本不兼容。', mod: '导入数据对应模块不一致。', exec: '执行复原时出错。' }[x] || '');
+}
+/* ---------- 导入还原 ---------- */
+if (!st.imp.files) st.imp.files = {};
+if (!Array.isArray(st.imp.done)) st.imp.done = [];
+var upFor = null, PRJN = '小盒子项目';
+var S4 = [['基础数据', '要求必须导入基础数据，否则系统无法正常展示数据'], ['飞行数据', '可跳过直接下一步'], ['成果数据', '可跳过直接下一步'], ['执行成功', '']];
+function renderSteps() {
+  var k = st.imp.step;
+  $('steps').innerHTML = S4.map(function (x, i) {
+    var c = i + 1 < k ? 'done' : i + 1 === k ? 'on' : '';
+    return '<div class="s ' + c + '"><div class="n">' + (i + 1 < k ? '✔' : i + 1) + '</div><div><div class="t">' + x[0] + '</div>' + (x[1] ? '<div class="d">' + x[1] + '</div>' : '') + '</div>' + (i < 3 ? '<div class="ln"></div>' : '') + '</div>';
+  }).join('');
+}
+function fileOf(p) { return st.imp.files[p]; }
+function isDone(p) { return st.imp.done.indexOf(p) >= 0; }
+function renderImp() {
+  renderSteps(); var k = st.imp.step, h;
+  if (k <= 3) {
+    var p = PARTS[k - 1], f = fileOf(p), ex = isDone(p);
+    h = '<div class="flow2"><div class="fi ' + (f ? 'ok' : '') + '"><i class="fd"></i><button class="pill2" data-up="' + p + '"' + (f ? ' disabled' : '') + '><span class="ic">⇪</span>上传备份' + p + '</button> <button class="dot" data-note="s' + k + '">' + (5 + k) + '</button>' +
+      (f ? '<div class="fl2"><span>' + esc(f.name) + '</span>' + (ex ? '' : '<span class="x" data-rm="' + p + '" title="移除">✕</span>') + '</div><div class="okt2"><b>✔</b>上传成功</div>' +
+        '<div class="meta2"><div><span>导入版本：</span>' + f.ver + '</div><div><span>项目信息：</span><b>' + PRJN + '</b></div><div><span>备份时间：</span>' + fmtD(f.time) + '</div><div><span>上传时间：</span>' + fmtD(f.up) + '</div></div>' : '') +
+      '</div><div class="fi ' + (ex ? 'ok' : f ? '' : 'wait') + '"><i class="fd"></i><button class="pill2" data-act="exec"' + (f && !ex ? '' : ' disabled') + '><span class="ic">' + (ex ? '✔' : '▣') + '</span>' + (ex ? '已导入系统' : '导入系统并执行') + '</button></div></div>' +
+      '<div class="nav2"><button class="btn" data-act="next"' + (k === 1 && !ex ? ' disabled' : '') + '>下一步</button></div>';
+  } else {
+    var miss = PARTS.filter(function (x) { return !isDone(x); });
+    h = '<div class="spin" style="margin-top:20px"><div class="cl okc">✔</div><div style="font-size:16px">执行成功</div><div style="color:#888;font-size:13px;margin-top:6px">数据已导入，可以进入系统使用</div></div>' +
+      '<div class="meta2" style="margin:18px auto"><div><span>已导入：</span>' + st.imp.done.join('、') + '</div>' +
+      (miss.length ? '<div><span>未导入：</span><span style="width:auto;color:#fa8c16">' + miss.join('、') + '</span></div><div style="color:#888;line-height:20px;padding-bottom:6px">未导入的数据，对应业务没有历史数据</div>' : '') + '</div>' +
+      '<div class="nav2"><button class="btn ghost" data-act="again">重新导入</button> <button class="btn" data-act="enter">进入系统</button> <button class="dot" data-note="s4">9</button></div>';
+  }
+  $('impBody').innerHTML = h; syncDots();
+}
+function parseT(name, f) {
+  var m = name.match(/(\d{8})(?:_?(\d{4}))?/);
+  if (!m) return f.lastModified || Date.now();
+  var s = m[1] + (m[2] || '0000'); return new Date(+s.slice(0, 4), +s.slice(4, 6) - 1, +s.slice(6, 8), +s.slice(8, 10), +s.slice(10, 12)).getTime();
+}
+function doUpload(p, f) {
+  var r = $('selUp').value, fv = (f.name.match(/[A-Z]?(\d+\.\d+\.\d+)/i) || [])[1], cv = VER.replace(/^[^\d]+/, '');
+  if (!/\.zip$/i.test(f.name)) { toast('只支持 .zip 格式的备份数据', 1); return; }
+  if (r === 'ok' && fv && fv !== cv) r = 'ver';
+  var bv = fv && fv !== cv ? VER.replace(/[\d.]+$/, '') + fv : 'P1.4.0';
+  if (r === 'bad') { modal('数据上传失败', '<div class="center" style="font-size:15px;padding:12px 0">数据上传失败</div><div style="color:#888;font-size:12px">原因：「' + esc(f.name) + '」文件损坏，无法解析，请重新上传。</div>', [{ t: '知道了' }]); return; }
+  if (r === 'ver') { modal('版本不一致', '这份备份数据对应的系统版本是 ' + bv + '，当前系统版本是 ' + VER + '，不能导入。<br>请先把系统升级到相同版本，或换一份同版本的备份数据。', [{ t: '知道了' }]); return; }
+  if (r === 'type') { toast('这份文件不是「' + p + '」备份数据，请重新上传', 1); return; }
+  st.imp.files[p] = { name: f.name, ver: VER, time: parseT(f.name, f), up: Date.now(), size: Math.round(f.size / 1073741824 * 100) / 100 || SIZE[p] };
+  save(); renderImp(); toast(p + '上传成功');
+}
+$('fileIn').onchange = function () { var f = this.files[0]; this.value = ''; if (f && upFor) doUpload(upFor, f); upFor = null; };
+function goNext() { st.imp.step++; save(); renderImp(); }
+function act(a) {
+  if (restoring) return;
+  var k = st.imp.step, p = PARTS[k - 1];
+  if (a === 'exec') {
+    if (autoOn()) { toast('备份任务进行中，请稍后再导入', 1); return; }
+    if (!fileOf(p) || isDone(p)) return;
+    runProg('导入复原中', '正在导入「' + p + '」并执行，复原会占用服务，建议您在此期间不再使用翼飞平台…', function (ok) {
+      if (!ok) { modal('数据导入执行失败', '<div class="center" style="font-size:15px;padding:12px 0">数据导入执行失败</div><div style="color:#888;font-size:12px">原因：「' + p + '」数据校验未通过' + (k === 1 ? '，系统数据未改动' : '，已导入的数据不受影响') + '。请重新上传或换一份备份数据。</div>', [{ t: '知道了' }]); return; }
+      st.imp.done.push(p); save(); renderImp(); toast(p + '导入成功');
+    });
+  }
+  if (a === 'next') {
+    if (k === 1 && !isDone(p)) { toast('请先导入基础数据', 1); return; }
+    if (k > 1 && fileOf(p) && !isDone(p)) modal('跳过确认', '已上传的「' + p + '」还没有导入系统，跳过后不会导入，对应业务没有历史数据。确定跳过吗？', [{ t: '取消', ghost: true }, { t: '确定跳过', fn: goNext }]);
+    else goNext();
+  }
+  if (a === 'again') { st.imp = initState().imp; save(); renderImp(); }
+  if (a === 'enter') location.href = 'home.html';
+}
+/* ---------- PRD 标注 ---------- */
+var NOTES = {
+  tab: ['页签', '还原分「一键还原」和「导入还原」。复原进行中不能切换页签。'],
+  info: ['当前版本 / 剩余空间', '导入还原时显示当前系统版本和磁盘剩余空间，点 ↻ 刷新。剩余空间与备份页面一致。'],
+  one: ['开始复原', '<ol><li>进入页面先检测当前是否有备份任务正在进行（自动备份或手动备份）。<b>有备份进行中时置灰</b>，按钮下方提示「当前有备份任务正在进行中，「开始复原」暂不可用，请等待备份完成后再操作。」备份完成后自动恢复。</li><li>自动备份开关是否开启不影响复原。</li><li>没有备份进行中时：默认置灰。</li><li>在列表中选中一份复原数据后变为可点击（蓝色），点击进入复原流程。</li><li>没有可复原的数据时一直置灰。</li><li>复原进行中不能再次点击。</li></ol>'],
+  pick: ['复原数据', '<b>有可复原的数据：</b>以列表展示最新的 5 份备份数据，按备份时间倒序。列：选择、序号、备份名称、版本号、备份内容、备份方式、数据大小、备份时间。单选，默认不选中，点单选框或整行都可以选中。<br><b>没有可复原的数据：</b>列表显示「暂无可复原的数据，请先到「备份」页面备份」，点「备份」跳到备份页面；「开始复原」置灰。<br>（演示栏「可复原数据」可切换这两种情况；「备份状态」可切换无备份任务 / 备份进行中。）'],
+  go: ['开始复原流程', '<svg viewBox="0 0 620 870" width="100%" style="display:block;font-family:Microsoft YaHei,sans-serif"><defs><marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#2f54eb"/></marker><marker id="ac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#1a9cd8"/></marker></defs><polygon points="70,16 134,40 70,64 6,40" fill="#fff" stroke="#999"/><text x="70" y="37.75" font-size="10.5" text-anchor="middle" fill="#333">是否有备份</text><text x="70" y="50.25" font-size="10.5" text-anchor="middle" fill="#333">任务进行中</text><rect x="158" y="22" width="104" height="36" fill="#fff" stroke="#999"/><text x="210" y="37.5" font-size="11" text-anchor="middle" fill="#333">开始复原</text><text x="210" y="50.5" font-size="11" text-anchor="middle" fill="#333">按钮置灰</text><polyline points="134,40 158,40" fill="none" stroke="#1a9cd8" stroke-width="1.5" marker-end="url(#ac)"/><rect x="128" y="17" width="36" height="15" fill="#fff"/><text x="146" y="29" font-size="11" text-anchor="middle" fill="#333">是</text><rect x="18" y="97" width="104" height="36" fill="#fff" stroke="#999"/><text x="70" y="119" font-size="11" text-anchor="middle" fill="#333">点击开始复原</text><polyline points="70,64 70,95" fill="none" stroke="#1a9cd8" stroke-width="1.5" marker-end="url(#ac)"/><rect x="52" y="71" width="36" height="15" fill="#fff"/><text x="70" y="83" font-size="11" text-anchor="middle" fill="#333">否</text><rect x="18" y="167" width="104" height="36" fill="#fff" stroke="#999"/><text x="70" y="189" font-size="11" text-anchor="middle" fill="#333">上传备份的数据</text><polyline points="70,133 70,165" fill="none" stroke="#1a9cd8" stroke-width="1.5" marker-end="url(#ac)"/><rect x="18" y="237" width="104" height="36" fill="#fff" stroke="#999"/><text x="70" y="259" font-size="11" text-anchor="middle" fill="#333">导入系统并执行</text><polyline points="70,203 70,235" fill="none" stroke="#1a9cd8" stroke-width="1.5" marker-end="url(#ac)"/><rect x="18" y="307" width="104" height="36" fill="#c5f08a" stroke="#999"/><text x="70" y="329" font-size="11" text-anchor="middle" fill="#333">复原成功</text><polyline points="70,273 70,305" fill="none" stroke="#1a9cd8" stroke-width="1.5" marker-end="url(#ac)"/><polyline points="122,185 280,185 280,40 346,40" fill="none" stroke="#1a9cd8" stroke-width="1.5" marker-end="url(#ac)"/><text x="280" y="200" font-size="10" text-anchor="middle" fill="#1a9cd8">展开</text><rect x="348" y="22" width="104" height="36" fill="#fff" stroke="#999"/><text x="400" y="44" font-size="11" text-anchor="middle" fill="#333">上传云端备份</text><polygon points="400,86 464,110 400,134 336,110" fill="#fff" stroke="#999"/><text x="400" y="107.75" font-size="10.5" text-anchor="middle" fill="#333">系统项目数据</text><text x="400" y="120.25" font-size="10.5" text-anchor="middle" fill="#333">是否存在</text><polyline points="400,58 400,84" fill="none" stroke="#2f54eb" stroke-width="1.5" marker-end="url(#ab)"/><rect x="500" y="92" width="104" height="36" fill="#fff" stroke="#999"/><text x="552" y="107.5" font-size="11" text-anchor="middle" fill="#333">提示：不支持</text><text x="552" y="120.5" font-size="11" text-anchor="middle" fill="#333">上传</text><polyline points="464,110 498,110" fill="none" stroke="#2f54eb" stroke-width="1.5" marker-end="url(#ab)"/><rect x="464" y="87" width="36" height="15" fill="#fff"/><text x="482" y="99" font-size="11" text-anchor="middle" fill="#333">不存在</text><rect x="348" y="162" width="104" height="36" fill="#fff" stroke="#999"/><text x="400" y="184" font-size="11" text-anchor="middle" fill="#333">上传数据</text><polyline points="400,134 400,160" fill="none" stroke="#2f54eb" stroke-width="1.5" marker-end="url(#ab)"/><rect x="402" y="139" width="36" height="15" fill="#fff"/><text x="420" y="151" font-size="11" text-anchor="middle" fill="#333">存在</text><polygon points="400,226 464,250 400,274 336,250" fill="#fff" stroke="#999"/><text x="400" y="254" font-size="10.5" text-anchor="middle" fill="#333">内存是否足够</text><polyline points="400,198 400,224" fill="none" stroke="#2f54eb" stroke-width="1.5" marker-end="url(#ab)"/><rect x="500" y="232" width="104" height="36" fill="#fff" stroke="#999"/><text x="552" y="254" font-size="11" text-anchor="middle" fill="#333">上传失败</text><polyline points="464,250 498,250" fill="none" stroke="#2f54eb" stroke-width="1.5" marker-end="url(#ab)"/><rect x="464" y="227" width="36" height="15" fill="#fff"/><text x="482" y="239" font-size="11" text-anchor="middle" fill="#333">不足</text><rect x="500" y="292" width="104" height="36" fill="#fff" stroke="#999"/><text x="552" y="314" font-size="11" text-anchor="middle" fill="#333">提示：空间不够</text><polyline points="552,268 552,290" fill="none" stroke="#2f54eb" stroke-width="1.5" marker-end="url(#ab)"/><rect x="348" y="302" width="104" height="36" fill="#c5f08a" stroke="#999"/><text x="400" y="324" font-size="11" text-anchor="middle" fill="#333">上传成功</text><polyline points="400,274 400,300" fill="none" stroke="#2f54eb" stroke-width="1.5" marker-end="url(#ab)"/><rect x="402" y="279" width="36" height="15" fill="#fff"/><text x="420" y="291" font-size="11" text-anchor="middle" fill="#333">足够</text><rect x="348" y="367" width="104" height="36" fill="#c5f08a" stroke="#999"/><text x="400" y="382.5" font-size="11" text-anchor="middle" fill="#333">解压文件</text><text x="400" y="395.5" font-size="11" text-anchor="middle" fill="#333">获取文件信息</text><polyline points="400,338 400,365" fill="none" stroke="#2f54eb" stroke-width="1.5" marker-end="url(#ab)"/><rect x="348" y="432" width="104" height="36" fill="#c5f08a" stroke="#999"/><text x="400" y="454" font-size="11" text-anchor="middle" fill="#333">导入文件</text><polyline points="400,403 400,430" fill="none" stroke="#2f54eb" stroke-width="1.5" marker-end="url(#ab)"/><polygon points="400,501 464,525 400,549 336,525" fill="#7ff" stroke="#999"/><text x="400" y="522.75" font-size="10.5" text-anchor="middle" fill="#333">验证文件</text><text x="400" y="535.25" font-size="10.5" text-anchor="middle" fill="#333">是否损坏</text><polyline points="400,468 400,499" fill="none" stroke="#2f54eb" stroke-width="1.5" marker-end="url(#ab)"/><rect x="500" y="507" width="104" height="36" fill="#fff" stroke="#999"/><text x="552" y="529" font-size="11" text-anchor="middle" fill="#333">导入失败</text><polyline points="464,525 498,525" fill="none" stroke="#2f54eb" stroke-width="1.5" marker-end="url(#ab)"/><rect x="464" y="502" width="36" height="15" fill="#fff"/><text x="482" y="514" font-size="11" text-anchor="middle" fill="#333">损坏</text><rect x="500" y="567" width="104" height="36" fill="#fff" stroke="#999"/><text x="552" y="589" font-size="11" text-anchor="middle" fill="#333">提示：文件损坏</text><polyline points="552,543 552,565" fill="none" stroke="#2f54eb" stroke-width="1.5" marker-end="url(#ab)"/><polygon points="400,616 464,640 400,664 336,640" fill="#7ff" stroke="#999"/><text x="400" y="637.75" font-size="10.5" text-anchor="middle" fill="#333">导入数据版本</text><text x="400" y="650.25" font-size="10.5" text-anchor="middle" fill="#333">是否一致</text><polyline points="400,549 400,614" fill="none" stroke="#2f54eb" stroke-width="1.5" marker-end="url(#ab)"/><rect x="382" y="576" width="36" height="15" fill="#fff"/><text x="400" y="588" font-size="11" text-anchor="middle" fill="#333">未损坏</text><rect x="500" y="622" width="104" height="36" fill="#fff" stroke="#999"/><text x="552" y="644" font-size="11" text-anchor="middle" fill="#333">导入失败</text><polyline points="464,640 498,640" fill="none" stroke="#2f54eb" stroke-width="1.5" marker-end="url(#ab)"/><rect x="464" y="617" width="36" height="15" fill="#fff"/><text x="482" y="629" font-size="11" text-anchor="middle" fill="#333">不一致</text><rect x="500" y="682" width="104" height="36" fill="#fff" stroke="#999"/><text x="552" y="697.5" font-size="11" text-anchor="middle" fill="#333">提示：导入数据</text><text x="552" y="710.5" font-size="11" text-anchor="middle" fill="#333">版本不兼容</text><polyline points="552,658 552,680" fill="none" stroke="#2f54eb" stroke-width="1.5" marker-end="url(#ab)"/><polygon points="400,736 464,760 400,784 336,760" fill="#7ff" stroke="#999"/><text x="400" y="757.75" font-size="10.5" text-anchor="middle" fill="#333">版本对应的模块</text><text x="400" y="770.25" font-size="10.5" text-anchor="middle" fill="#333">是否一致</text><polyline points="400,664 400,734" fill="none" stroke="#2f54eb" stroke-width="1.5" marker-end="url(#ab)"/><rect x="382" y="691" width="36" height="15" fill="#fff"/><text x="400" y="703" font-size="11" text-anchor="middle" fill="#333">一致</text><rect x="500" y="742" width="104" height="36" fill="#fff" stroke="#999"/><text x="552" y="757.5" font-size="11" text-anchor="middle" fill="#333">提示：导入数据</text><text x="552" y="770.5" font-size="11" text-anchor="middle" fill="#333">对应模块不一致</text><polyline points="464,760 498,760" fill="none" stroke="#2f54eb" stroke-width="1.5" marker-end="url(#ab)"/><rect x="464" y="737" width="36" height="15" fill="#fff"/><text x="482" y="749" font-size="11" text-anchor="middle" fill="#333">不一致</text><rect x="348" y="817" width="104" height="36" fill="#c5f08a" stroke="#999"/><text x="400" y="839" font-size="11" text-anchor="middle" fill="#333">提示导入成功</text><polyline points="400,784 400,815" fill="none" stroke="#2f54eb" stroke-width="1.5" marker-end="url(#ab)"/><rect x="402" y="791" width="36" height="15" fill="#fff"/><text x="420" y="803" font-size="11" text-anchor="middle" fill="#333">一致</text></svg><div style="font-size:12px;color:#666;margin-top:6px">绿色：成功节点；青色菱形：文件校验；任何一步失败，系统数据都不改动。</div>'],
+  s1: ['第 1 步：基础数据', '<ol><li>必填，否则系统无法正常展示数据。</li><li>点「上传备份基础数据」，只支持 .zip。上传后显示文件名、上传成功，以及导入版本、项目信息、备份时间、上传时间。导入前点 ✕ 可以移除重新上传，导入后不能移除。</li><li>上传失败时弹窗「数据上传失败」；版本和当前系统不一致时不能导入。</li><li>上传后「导入系统并执行」才可点，执行中弹窗显示进度：导入复原中，复原会占用服务，建议您在此期间不再使用翼飞平台。失败时弹窗「数据导入执行失败」。</li><li>导入成功后「下一步」才可点。</li></ol>'],
+  s2: ['第 2 步：飞行数据', '可选，上传和导入规则同第 1 步。可以不上传，直接点「下一步」跳过。已上传但没导入就点「下一步」，会先确认是否跳过。不导入的话，飞行业务没有历史数据。'],
+  s3: ['第 3 步：成果数据', '可选，规则同第 2 步。不导入的话，成果业务没有历史数据。'],
+  s4: ['第 4 步：执行成功', '显示已导入和未导入的数据。点「进入系统」回到首页，点「重新导入」从第 1 步重新开始。']
+};
+var dotsOn = localStorage.getItem('yw_dots') !== '0';
+function syncDots() { $('swDots').classList.toggle('off', !dotsOn); document.querySelectorAll('.dot').forEach(function (d) { d.style.display = dotsOn ? '' : 'none'; }); if (!dotsOn) $('pop').style.display = 'none'; }
+function openNote(btn) {
+  var n = NOTES[btn.getAttribute('data-note')] || ['说明', '（待补充）'], p = $('pop'), rc = btn.getBoundingClientRect();
+  $('popT').textContent = n[0]; $('popB').innerHTML = n[1]; p.classList.toggle('wide', btn.getAttribute('data-note') === 'go'); p.style.display = 'block';
+  var left = Math.min(window.innerWidth - p.offsetWidth - 10, rc.right + 8);
+  p.style.position = 'fixed'; p.style.left = Math.max(10, left) + 'px'; p.style.top = Math.min(window.innerHeight - p.offsetHeight - 10, rc.top) + 'px';
+}
+
+/* ---------- 事件 ---------- */
+document.addEventListener('click', function (e) {
+  var t = e.target, a;
+  if (t.classList.contains('dot')) { e.stopPropagation(); openNote(t); return; }
+  if (!t.closest('#pop')) $('pop').style.display = 'none';
+  if ((a = t.getAttribute('data-tab'))) { setTab(a); return; }
+  var eu = t.closest('[data-up]'), er = t.closest('[data-rm]'), ea = t.closest('[data-act]');
+  if (eu && (a = eu.getAttribute('data-up'))) { if (restoring || eu.disabled || fileOf(a)) return; upFor = a; $('fileIn').click(); return; }
+  if (er && (a = er.getAttribute('data-rm'))) { if (restoring || isDone(a)) return; delete st.imp.files[a]; save(); renderImp(); return; }
+  if (ea && (a = ea.getAttribute('data-act'))) { if (ea.disabled) return; act(a); return; }
+});
+$('popX').onclick = function () { $('pop').style.display = 'none'; };
+$('swDots').onclick = function () { dotsOn = !dotsOn; localStorage.setItem('yw_dots', dotsOn ? '1' : '0'); syncDots(); };
+$('btnOpen').onclick = function () { if (!this.disabled) goRestore(); };
+$('rList').onclick = function (e) { var tr = e.target.closest('tr[data-rid]'); if (!tr) return; tr.querySelector('input').checked = true; this.querySelectorAll('tr').forEach(function (x) { x.classList.toggle('sel', x === tr); }); syncGo(); };
+$('btnRf').onclick = function () { renderInfo(); renderOne(); renderPick(); toast('已刷新'); };
+$('goHome').onclick = $('btnBack').onclick = function () { if (restoring || oneRun()) { toast('还原进行中，请勿离开页面', 1); return; } location.href = 'home.html'; };
+$('reset').onclick = function () {
+  if (restoring || oneRun()) { toast('还原进行中，请稍后重置', 1); return; }
+  localStorage.removeItem(KEY); st = initState(); st.imp.files = {}; save();
+  renderInfo(); setTab(tab); toast('已重置演示数据');
+};
+
+/* ---------- 初始化 ---------- */
+window.addEventListener('beforeunload', function (e) { if (restoring) { e.preventDefault(); e.returnValue = ''; } });
+renderInfo();
+setTab(!oneRun() && /tab=imp/.test(location.search) ? 'imp' : 'one', true);
+$('selData').value = localStorage.getItem('yw_rs_data') === 'none' ? 'none' : 'has';
+$('selAuto').onchange = function () { autoLocal = this.value === '1'; syncGo(); toast(autoLocal ? '演示：备份任务进行中' : '演示：无备份任务'); };
+setInterval(syncGo, 2000);
+$('selData').onchange = function () { localStorage.setItem('yw_rs_data', this.value); renderPick(); toast(this.value === 'none' ? '已切换为：没有可复原的数据' : '已切换为：有可复原的数据'); };
+setInterval(tickOne, 300);
+if (oneRun() && Date.now() < oneRun().end) showProg(); else tickOne();
+syncDots();
+</script>
+</body>
+</html>

@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>运维中心 · 升级</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; font-size: 14px; color: #333; background: #eef0f3; }
+  .topbar { height: 50px; background: #1a6cfb; color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; }
+  .topbar .logo { font-size: 18px; }
+  .topbar .right { display: flex; align-items: center; gap: 28px; }
+  .topbar .entry, .topbar .user { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+  .topbar .ico { width: 26px; height: 26px; border-radius: 50%; background: #fff; color: #1a6cfb; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; }
+  .titlebar { height: 42px; background: #fff; display: flex; align-items: center; padding: 0 22px; border-bottom: 1px solid #eee; }
+  .titlebar .back { font-size: 18px; margin-right: 14px; cursor: pointer; }
+  .titlebar h1 { font-size: 15px; font-weight: bold; }
+  .card { max-width: 1320px; min-height: 620px; margin: 20px auto 30px; background: #fff; padding: 30px 0 40px; }
+  .wrap { width: 980px; margin: 0 auto; }
+  .tabs { border-bottom: 1px solid #e6e6e6; margin-bottom: 26px; }
+  .tabs span { display: inline-block; padding: 10px 40px; margin-right: 4px; background: #f5f7fa; color: #333; border: 1px solid #e6e6e6; border-bottom: none; border-radius: 4px 4px 0 0; cursor: pointer; }
+  .tabs span.on { background: #1a6cfb; color: #fff; border-color: #1a6cfb; }
+  .btn { height: 32px; padding: 0 18px; border-radius: 4px; border: 1px solid #1a6cfb; background: #1a6cfb; color: #fff; font-size: 13px; cursor: pointer; }
+  .btn.ghost { background: #fff; color: #333; border-color: #d9d9d9; }
+  .btn.ghost:hover { color: #1a6cfb; border-color: #1a6cfb; }
+  .bar1 { display: flex; align-items: center; gap: 18px; margin-bottom: 18px; position: relative; }
+  .bar1 .lbl { font-size: 15px; }
+  .bar1 label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; position: relative; }
+  .bar1 .ops { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+  .q { width: 18px; height: 18px; border-radius: 50%; border: 1px solid #999; color: #999; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; cursor: help; position: relative; }
+  .q .tipx { display: none; position: absolute; left: -10px; top: 24px; width: 320px; background: #fffbe6; border: 1px solid #ffe58f; color: #614700; padding: 10px 12px; border-radius: 6px; font-size: 12px; line-height: 1.8; text-align: left; z-index: 30; box-shadow: 0 4px 12px rgba(0,0,0,.12); cursor: default; }
+  .q:hover .tipx { display: block; }
+  .prog { border: 1px dashed #6aa6ff; border-radius: 4px; padding: 14px 16px; display: flex; gap: 14px; align-items: center; background: #f7faff; margin-bottom: 14px; }
+  .prog.ok { border-color: #95de64; background: #f6ffed; }
+  .prog.bad { border-color: #ffa39e; background: #fff1f0; }
+  .prog .ic { width: 40px; height: 40px; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.12); display: flex; align-items: center; justify-content: center; color: #1a6cfb; font-size: 20px; }
+  .prog.ok .ic { color: #52c41a; } .prog.bad .ic { color: #e4393c; }
+  .prog .main { flex: 1; }
+  .prog .txt { font-size: 13px; margin-bottom: 8px; }
+  .prog .txt b { color: #1a6cfb; font-weight: normal; }
+  .prog .row2 { display: flex; align-items: center; gap: 8px; }
+  .prog .track { flex: 1; height: 6px; background: #e8e8e8; border-radius: 3px; overflow: hidden; }
+  .prog .fill { height: 100%; width: 0; background: #1a6cfb; transition: width .4s; }
+  .prog.ok .fill { background: #52c41a; } .prog.bad .fill { background: #e4393c; }
+  .prog .pct { font-size: 12px; color: #666; width: 40px; text-align: right; }
+  .lhead { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .lhead h3 { font-size: 15px; flex: 1; }
+  .lhead .cnt { font-size: 13px; color: #1a6cfb; background: #e8f1ff; padding: 5px 14px; border-radius: 3px; }
+  table.tb { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.tb th { background: #e8f1ff; height: 44px; font-weight: bold; border: 1px solid #e3e8f0; }
+  table.tb td { height: 44px; text-align: center; border: 1px solid #eef0f3; }
+  .lnk { color: #1a6cfb; cursor: pointer; margin: 0 6px; }
+  .lnk:hover { text-decoration: underline; }
+  .dis { color: #bbb; margin: 0 6px; cursor: not-allowed; }
+  .s-cur { color: #e4393c; } .s-run { color: #fa8c16; } .s-done { color: #389e0d; }
+  .pager { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 16px; font-size: 13px; color: #666; }
+  .pager span.on { background: #1a6cfb; color: #fff; padding: 2px 9px; border-radius: 3px; }
+  .filters { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; font-size: 13px; }
+  .filters input, .filters select { height: 30px; border: 1px solid #d9d9d9; border-radius: 4px; padding: 0 8px; font-size: 13px; }
+  .empty { text-align: center; color: #999; padding: 30px 0; }
+  /* 标注 / 弹窗 / 提示 */
+  .dot { width: 20px; height: 20px; border-radius: 50%; background: #ff7a00; color: #fff; font-size: 11px; font-weight: bold; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; border: none; vertical-align: middle; margin-left: 6px; flex-shrink: 0; }
+  .dot.open { background: #1a6cfb; }
+  body.hide-dots .dot { display: none !important; }
+  .pop { position: absolute; width: 640px; max-width: calc(100vw - 24px); background: #fff; border-radius: 6px; box-shadow: 0 6px 24px rgba(0,0,0,.18); z-index: 80; font-size: 13px; line-height: 1.7; display: none; }
+  .pop.show { display: block; }
+  .pop .hd { padding: 10px 14px; border-bottom: 1px solid #eee; font-weight: bold; display: flex; justify-content: space-between; }
+  .pop .hd .close { cursor: pointer; color: #999; font-weight: normal; }
+  .pop .bd { padding: 10px 14px 12px; max-height: 460px; overflow: auto; }
+  .note { padding: 8px 10px; border-radius: 4px; margin-bottom: 8px; background: #fff6c2; border-left: 3px solid #ffdf25; }
+  .note .tag { display: inline-block; font-size: 11px; padding: 0 6px; border-radius: 3px; margin-right: 6px; background: rgba(255,255,255,.75); }
+  .note .ver { float: right; font-size: 11px; color: #888; }
+  .mask { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none; align-items: center; justify-content: center; z-index: 100; }
+  .mask.open { display: flex; }
+  .modal { width: 420px; background: #fff; border-radius: 6px; box-shadow: 0 6px 24px rgba(0,0,0,.2); }
+  .modal .mhd { padding: 14px 20px; border-bottom: 1px solid #eee; font-weight: bold; font-size: 15px; display: flex; justify-content: space-between; }
+  .modal .mhd .close { cursor: pointer; color: #999; font-weight: normal; }
+  .modal .mbd { padding: 24px 22px; font-size: 14px; line-height: 1.8; }
+  .modal .mft { padding: 10px 20px 16px; display: flex; justify-content: flex-end; gap: 10px; }
+  .imp { text-align: center; padding: 30px 0 10px; }
+  .imp .cl { font-size: 54px; color: #1a6cfb; }
+  .ctrl-panel { position: fixed; left: 20px; bottom: 20px; background: #fff; border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,.15); padding: 10px 14px; font-size: 12px; z-index: 60; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; max-width: 560px; }
+  .ctrl-panel select { height: 24px; font-size: 12px; }
+  .ctrl-panel a { color: #1a6cfb; cursor: pointer; }
+  .switch { position: relative; width: 36px; height: 20px; background: #1a6cfb; border-radius: 10px; cursor: pointer; }
+  .switch::after { content: ""; position: absolute; left: 18px; top: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: .2s; }
+  .switch.off { background: #ccc; } .switch.off::after { left: 2px; }
+  .toast { position: fixed; top: 70px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,.78); color: #fff; padding: 9px 20px; border-radius: 4px; z-index: 300; display: none; font-size: 13px; }
+  .toast.bad { background: #e4393c; }
+</style>
+</head>
+<body>
+<div class="topbar"><div class="logo">运维中心</div><div class="right"><div class="entry" id="goHome"><span class="ico">⌂</span>功能入口</div><div class="user"><span class="ico">A</span>admin ⌄</div></div></div>
+<div class="titlebar"><span class="back" id="btnBack" title="返回">←</span><h1 id="crumb">升级 &gt;&gt; 版本列表</h1></div>
+<div class="card"><div class="wrap">
+  <!-- ===== 版本列表 / 更新服务列表 ===== -->
+  <div id="vMain">
+    <div class="tabs" id="tabs"><span data-p="yf">翼飞平台更新</span><span data-p="yw">运维中心更新</span><button class="dot" data-note="tab">1</button></div>
+    <div class="bar1">
+      <span class="lbl">更新方式：</span>
+      <label><input type="radio" name="way" value="online" checked>在线更新</label>
+      <span class="q">?<div class="tipx">在线更新操作步骤：<br>1、下载升级安装包<br>2、执行更新操作<br><br>注：升级过程受更新服务版本的差异性以及下载速度不一样，升级时间有所差异，请耐心等待。</div></span>
+      <label style="margin-left:24px"><input type="radio" name="way" value="local">本地更新</label>
+      <span class="q">?<div class="tipx">本地更新操作步骤：<br>1、记录当前版本号发送给商务人员<br>2、下载商务人员给的升级安装包<br>3、导入升级安装包<br>4、页面点击更新<br><br>注：升级过程受更新服务版本的差异性以及导入速度不一样，升级时间有所差异，请耐心等待。</div></span>
+      <button class="dot" data-note="way">2</button>
+      <div class="ops">
+        <button class="btn" id="btnStop" style="display:none">结束进程</button>
+        <button class="btn ghost" id="btnProg" style="display:none">查看更新进度</button>
+        <button class="btn ghost" id="btnBackList" style="display:none">返回版本列表</button>
+        <button class="btn ghost" id="btnImport" style="display:none">导入版本服务</button>
+        <button class="btn ghost" id="btnLog">更新日志</button>
+        <button class="dot" data-note="ops">3</button>
+      </div>
+    </div>
+    <!-- 更新进度（更新中 / 更新成功 / 更新失败） -->
+    <div class="prog" id="prog" style="display:none"><div class="ic" id="pIc">☁</div><div class="main">
+      <div class="txt" id="pTxt"></div>
+      <div class="row2"><div class="track"><div class="fill" id="pFill"></div></div><span class="pct" id="pPct">0%</span></div>
+    </div><button class="dot" data-note="prog">4</button></div>
+    <!-- 版本列表 -->
+    <div id="vList">
+      <table class="tb"><thead><tr><th style="width:120px">版本号</th><th>版本描述</th><th style="width:160px">升级状态<button class="dot" data-note="state">5</button></th><th style="width:200px">操作<button class="dot" data-note="act">6</button></th></tr></thead><tbody id="tbList"></tbody></table>
+      <div class="pager">共 <span id="total">0</span> 条数据 <span class="on">1</span> 10 条/页</div>
+    </div>
+    <!-- 更新服务列表 -->
+    <div id="vSvc" style="display:none">
+      <div class="lhead"><h3>更新服务列表<button class="dot" data-note="svc">7</button></h3><span class="cnt" id="svcCnt">更新服务：0/0</span></div>
+      <table class="tb"><thead><tr><th style="width:80px">序号</th><th>服务名称</th><th>当前版本</th><th>更新后版本</th><th>更新进度</th></tr></thead><tbody id="tbSvc"></tbody></table>
+    </div>
+  </div>
+  <!-- ===== 更新日志 ===== -->
+  <div id="vLog" style="display:none">
+    <div class="filters">更新时间：<input type="date" id="fFrom"> ~ <input type="date" id="fTo">
+      更新版本：<select id="fVer"><option value="">全部</option></select>
+      <button class="btn" id="btnQ">查询</button><button class="btn ghost" id="btnR">重置</button><button class="dot" data-note="logq">8</button></div>
+    <table class="tb"><thead><tr><th style="width:80px">序号</th><th>更新时间</th><th>更新前版本</th><th>更新后版本</th><th>结果</th><th>操作<button class="dot" data-note="logt">9</button></th></tr></thead><tbody id="tbLog"></tbody></table>
+    <div class="pager">共 <span id="logTotal">0</span> 条数据 <span class="on">1</span> 10 条/页</div>
+  </div>
+</div></div>
+
+<div class="pop" id="pop"><div class="hd"><span id="popT"></span><span class="close" id="popX">✕</span></div><div class="bd" id="popB"></div></div>
+<div class="mask" id="mask"><div class="modal">
+  <div class="mhd"><span id="mT"></span><span class="close" id="mX">✕</span></div>
+  <div class="mbd" id="mB"></div>
+  <div class="mft" id="mF"></div>
+</div></div>
+<input type="file" id="picker" style="display:none" accept=".zip,.tar,.gz,.tgz">
+<div class="ctrl-panel">
+  <span>PRD 标注</span><div class="switch" id="swDots"></div>
+  <span>网络环境 <select id="selNet"><option value="1">已联网</option><option value="0">无网</option></select></span>
+  <span>更新结果 <select id="selRes"><option value="ok">成功</option><option value="fail">失败</option></select></span>
+  <span>导入结果 <select id="selImp"><option value="ok">成功</option><option value="mem">内存不足</option><option value="bad">文件损坏</option><option value="part">安装包不完整</option></select></span>
+  <span>速度 <select id="selSpd"><option value="1">正常</option><option value="4">快进</option></select></span>
+  <a id="reset">重置演示</a>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+function $(id) { return document.getElementById(id); }
+function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+var PLAT = {
+  yf: { name: '翼飞平台', key: 'yf_upgrade', cur: 'B1.1.0', log: { t: '2026-10-08 09:12:45', from: 'B1.0.0', to: 'B1.1.0' },
+    online: [
+      { v: 'B1.4.0', d: '新增航线模板库；优化在线更新功能' },
+      { v: 'B1.3.0', d: '支持多机协同作业；修复已知问题' },
+      { v: 'B1.2.0', d: '优化了在线更新功能' },
+      { v: 'B1.1.0', d: '新增成果数据管理' },
+      { v: 'B1.0.0', d: '首个正式版本' }
+    ],
+    svc: ['翼飞平台前端', '用户中心服务', '设备接入服务', '航线任务服务', '媒体流服务', '成果管理服务'] },
+  yw: { name: '运维中心', key: 'yw_upgrade', cur: 'V1.2.0', log: { t: '2026-10-12 10:20:31', from: 'V1.1.0', to: 'V1.2.0' },
+    online: [
+  { v: 'V1.4.0', d: '新增 AI 比对服务；优化三维建模性能' },
+  { v: 'V1.3.0', d: '新增 IP 变更提醒；修复已知问题' },
+  { v: 'V1.2.0', d: '支持独立服务部署方式' },
+  { v: 'V1.1.0', d: '首个正式版本' }
+],
+    svc: ['运维中心', '基础平台服务', 'AI识别服务', '二维建图服务', '三维建模服务', 'AI比对服务'] }
+};
+var plat = localStorage.getItem('up_plat') === 'yw' ? 'yw' : 'yf';
+['yf', 'yw'].forEach(function (p) { try { var x = JSON.parse(localStorage.getItem(PLAT[p].key)); if (x && x.run && x.run.state === 'run') plat = p; } catch (e) {} });
+var KEY, ONLINE, SVC, st, run, view = 'list', impTok = 0, dlIng = null;
+function initState() { var P = PLAT[plat]; return { way: 'online', cur: P.cur, local: [], dl: [], failed: [], logs: [{ t: P.log.t, from: P.log.from, to: P.log.to, r: '成功', way: '在线更新', svc: SVC.map(function (n) { return { n: n, s: '成功' }; }) }] }; }
+function loadPlat(p) {
+  plat = p; localStorage.setItem('up_plat', p);
+  var P = PLAT[p]; KEY = P.key; ONLINE = P.online; SVC = P.svc;
+  try { st = JSON.parse(localStorage.getItem(KEY)) || initState(); } catch (e) { st = initState(); }
+  run = st.run || null; if (run && run.state !== 'run') { run = null; st.run = null; } st.dl = st.dl || []; st.failed = st.failed || []; st.local = st.local || []; st.logs = st.logs || [];
+  document.querySelectorAll('#tabs span[data-p]').forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-p') === p); });
+}
+loadPlat(plat);
+function fmtT(x) { x = Math.round(x || 0); return Math.floor(x / 60) + '分' + (x % 60) + '秒'; }
+function save() { st.run = run; localStorage.setItem(KEY, JSON.stringify(st)); }
+function net() { return $('selNet').value === '1'; }
+function cmpV(a, b) { var x = a.slice(1).split('.'), y = b.slice(1).split('.'); for (var i = 0; i < 3; i++) { if (+x[i] !== +y[i]) return +x[i] - +y[i]; } return 0; }
+function now() { var d = new Date(), p = function (n) { return (n < 10 ? '0' : '') + n; }; return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds()); }
+function toast(msg, bad) { var t = $('toast'); t.textContent = msg; t.className = 'toast' + (bad ? ' bad' : ''); t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(function () { t.style.display = 'none'; }, 2200); }
+function busy() { return run && run.state === 'run'; }
+
+/* ---------- 版本列表 ---------- */
+function renderList() {
+  var rows = st.way === 'online' ? ONLINE.slice() : st.local.slice().sort(function (a, b) { return cmpV(b.v, a.v); }), h = '';
+  if (!rows.length) h = '<tr><td colspan="4" class="empty">暂无版本，请点击右上角「导入版本服务」导入升级安装包</td></tr>';
+  rows.forEach(function (r) {
+    var c = cmpV(r.v, st.cur), s, a, has = st.way === 'local' || st.dl.indexOf(r.v) >= 0;
+    if (run && run.state === 'run' && run.v === r.v) { s = '<span class="s-run">更新中</span>'; a = '<span class="dis">更新</span><span class="lnk" data-prog="1">查看进度</span>'; }
+    else if (c === 0) { s = '<span class="s-cur">当前版本</span>'; a = '<span class="dis">更新</span>'; }
+    else if (c < 0) { s = '<span class="s-done">已更新</span>'; a = '<span class="dis">更新</span>'; }
+    else if (!has) { s = '待更新'; a = dlIng === r.v ? '<span class="s-run">下载中…</span>' : (busy() || dlIng) ? '<span class="dis">下载</span>' : '<span class="lnk" data-dl="' + r.v + '">下载</span>'; }
+    else { s = '待更新'; a = busy() ? '<span class="dis">更新</span>' : '<span class="lnk" data-up="' + r.v + '">更新</span>'; if (st.failed.indexOf(r.v) >= 0) a += '<span class="lnk" data-lv="' + r.v + '">日志</span>'; }
+    if (st.way === 'local' && !(busy() && run.v === r.v)) a += '<span class="lnk" data-del="' + r.v + '">删除</span>';
+    h += '<tr><td>' + r.v + '</td><td>' + esc(r.d) + '</td><td>' + s + '</td><td>' + a + '</td></tr>';
+  });
+  $('tbList').innerHTML = h; $('total').textContent = rows.length;
+}
+function askDl(v) {
+  if (!net()) { modal('下载', '网络不可用，无法在线获取升级安装包，请使用本地更新', [{ t: '取消', ghost: 1 }, { t: '确定' }]); return; }
+  modal('下载', '是否下载远程镜像？<br>预计大小 <b>12.12GB</b><br><span style="color:#999;font-size:13px">下载内容为当前版本 ' + st.cur + ' 到 ' + v + ' 的增量镜像和数据处理脚本（通用版本）</span>',
+    [{ t: '取消', ghost: 1 }, { t: '确定', fn: function () {
+      dlIng = v; renderList(); toast('开始下载 ' + v + ' 升级安装包');
+      setTimeout(function () {
+        dlIng = null;
+        ONLINE.forEach(function (x) { if (cmpV(x.v, st.cur) > 0 && cmpV(x.v, v) <= 0 && st.dl.indexOf(x.v) < 0) st.dl.push(x.v); });
+        save(); if (view === 'list') renderList(); toast(v + ' 下载完成，可点击「更新」');
+      }, 2500 / +$('selSpd').value);
+    } }]);
+}
+function show(v) {
+  view = v;
+  $('vMain').style.display = v === 'log' ? 'none' : '';
+  $('vLog').style.display = v === 'log' ? '' : 'none';
+  $('vList').style.display = v === 'list' ? '' : 'none';
+  $('vSvc').style.display = v === 'svc' ? '' : 'none';
+  $('crumb').innerHTML = '升级 &gt;&gt; ' + (v === 'log' ? '更新日志' : v === 'svc' ? '更新服务列表' : '版本列表');
+  $('btnProg').style.display = v === 'list' && run ? '' : 'none';
+  $('btnBackList').style.display = v === 'svc' ? '' : 'none';
+  $('btnStop').style.display = v === 'svc' && busy() ? '' : 'none';
+  $('btnImport').style.display = v === 'list' && st.way === 'local' ? '' : 'none';
+  $('btnLog').style.display = v === 'log' ? 'none' : '';
+  $('prog').style.display = run && v !== 'log' ? '' : 'none';
+  document.querySelectorAll('input[name=way]').forEach(function (i) { i.checked = i.value === st.way; i.disabled = busy(); });
+  if (v === 'list') renderList();
+  if (v === 'svc') paint();
+  if (v === 'log') renderLog();
+  closePop();
+}
+
+/* ---------- 弹窗 ---------- */
+function modal(t, b, btns) {
+  $('mT').textContent = t; $('mB').innerHTML = b; $('mF').innerHTML = '';
+  (btns || []).forEach(function (x) { var e = document.createElement('button'); e.className = 'btn' + (x.ghost ? ' ghost' : ''); e.textContent = x.t; e.onclick = function () { closeM(); if (x.fn) x.fn(); }; $('mF').appendChild(e); });
+  $('mask').classList.add('open');
+}
+function closeM() { $('mask').classList.remove('open'); impTok++; }
+$('mX').onclick = closeM;
+
+/* ---------- 更新流程 ---------- */
+function askUp(v) {
+
+  modal('更新确认', '确定将系统从 <b>' + st.cur + '</b> 更新到 <b>' + v + '</b> 吗？<br><span style="color:#999;font-size:13px">更新过程中服务会依次重启，业务可能短暂不可用，请勿关闭电源或刷新页面。</span>',
+    [{ t: '取消', ghost: 1 }, { t: '确定更新', fn: function () { startUp(v); } }]);
+}
+var tmr = null;
+function startUp(v) {
+  clearTimeout(tmr);
+  var fail = $('selRes').value === 'fail';
+  run = { v: v, from: st.cur, state: 'run', online: st.way === 'online', dl: 100, sec: 0, svc: SVC.map(function (n) { return { n: n, p: 0 }; }), failAt: fail ? 2 + Math.floor(Math.random() * 3) : -1 };
+  show('svc'); tick();
+}
+function tick() {
+  if (!run || run.state !== 'run') return;
+  var spd = +$('selSpd').value; run.sec = (run.sec || 0) + 23 * spd; save();
+  if (run.dl < 100) run.dl = Math.min(100, run.dl + 10 * spd);
+  else {
+    var i = run.svc.findIndex(function (s) { return s.p < 100; });
+    if (i < 0) { finish(true); return; }
+    if (i === run.failAt && run.svc[i].p >= 60) { finish(false, i); return; }
+    run.svc[i].p = Math.min(100, run.svc[i].p + 20 * spd);
+    if (run.svc.every(function (x) { return x.p >= 100; })) { finish(true); return; }
+  }
+  paint(); tmr = setTimeout(tick, 500);
+}
+function paint() {
+  if (!run) return;
+  var n = run.svc.length, done = run.svc.filter(function (s) { return s.p >= 100; }).length;
+  var avg = run.svc.reduce(function (a, s) { return a + s.p; }, 0) / n;
+  var pct = Math.round(run.online ? run.dl * 0.3 + avg * 0.7 : avg), txt, cls = '', ic = '☁';
+  if (run.state === 'ok') { pct = 100; cls = 'ok'; ic = '✔'; txt = '更新耗时：<b>' + fmtT(run.sec) + '</b>，更新成功！系统当前版本为 <b>' + run.v + '</b>'; }
+  else if (run.state === 'fail') { cls = 'bad'; ic = '✕'; txt = (run.stopped ? '已结束更新进程' : '更新失败：「' + run.svc[run.failAt].n + '」更新异常') + '，耗时 ' + fmtT(run.sec) + '，系统已回滚到 <b>' + run.from + '</b>。可在版本列表中继续更新或查看日志'; }
+  else if (run.dl < 100) txt = '正在下载升级安装包 <b>' + run.v + '</b>，请耐心等待…';
+  else { var i = Math.max(0, run.svc.findIndex(function (s) { return s.p < 100; })); txt = '系统更新升级耗时：<b>' + fmtT(run.sec) + '</b>，请您耐心等待。<span style="color:#999">（正在更新第 ' + (i + 1) + '/' + n + ' 个服务「' + run.svc[i].n + '」）</span>'; }
+  $('prog').className = 'prog' + (cls ? ' ' + cls : ''); $('pIc').textContent = ic;
+  $('pTxt').innerHTML = txt; $('pFill').style.width = pct + '%'; $('pPct').textContent = pct + '%';
+  $('svcCnt').textContent = '更新服务：' + done + '/' + n;
+  var h = '';
+  run.svc.forEach(function (s, k) {
+    var p;
+    if (run.state === 'fail') p = k < run.failAt ? '<span class="s-run">已回滚</span>' : k === run.failAt ? '<span class="s-cur">失败</span>' : '<span style="color:#999">未更新</span>';
+    else if (s.p >= 100) p = '<span class="s-done">成功</span>';
+    else if (s.p > 0) p = '<span class="s-run">' + s.p + '%</span>';
+    else p = '<span style="color:#999">' + (run.dl < 100 ? '等待下载' : '等待中') + '</span>';
+    var cur = run.state === 'ok' ? run.v : run.from;
+    h += '<tr><td>' + (k + 1) + '</td><td>' + s.n + '</td><td>' + cur + '</td><td>' + run.v + '</td><td>' + p + '</td></tr>';
+  });
+  $('tbSvc').innerHTML = h;
+  if (view === 'list') renderList();
+}
+function finish(ok, i) {
+  clearTimeout(tmr);
+  run.state = ok ? 'ok' : 'fail';
+  var log = { t: now(), from: run.from, to: run.v, r: ok ? '成功' : '失败', way: run.online ? '在线更新' : '本地更新',
+    svc: run.svc.map(function (s, k) { return { n: s.n, s: ok ? '成功' : k < i ? '已回滚' : k === i ? '失败' : '未更新' }; }) };
+  if (ok) { st.cur = run.v; st.failed = st.failed.filter(function (x) { return x !== run.v; }); } else if (st.failed.indexOf(run.v) < 0) st.failed.push(run.v);
+  st.logs.unshift(log); save(); paint(); show(view);
+  if (ok) modal('更新成功', '系统已成功更新到 <b>' + run.v + '</b>。', [{ t: '知道了' }]);
+  else modal(run.stopped ? '已结束进程' : '更新失败', (run.stopped ? '已结束本次更新进程' : '「' + run.svc[i].n + '」更新异常') + '，系统已自动回滚到 <b>' + run.from + '</b>。<br><span style="color:#999;font-size:13px">版本状态仍为「待更新」，可点击「更新」继续更新，或点击「日志」查看。</span>', [{ t: '知道了' }]);
+}
+$('btnStop').onclick = function () {
+  if (!busy()) return;
+  modal('结束进程', '确定结束本次更新进程吗？<br><span style="color:#999;font-size:13px">结束后已更新的服务回滚到 ' + run.from + '，版本状态仍为「待更新」，可继续更新。</span>', [{ t: '取消', ghost: 1 }, { t: '确定结束', fn: function () {
+    if (!busy()) return; var i = run.svc.findIndex(function (x) { return x.p < 100; }); if (i < 0) i = run.svc.length - 1; run.stopped = true; run.failAt = i; finish(false, i);
+  } }]);
+}
+
+/* ---------- 本地导入 / 删除 ---------- */
+var IMP_ERR = { mem: '您的内存不足，请前往处理', bad: '您导入的文件已损坏', part: '您导入的升级安装包不完整，请联系客服人员解决' };
+function nextVer() {
+  var all = st.local.map(function (r) { return r.v; }).concat([st.cur]).sort(cmpV), m = all[all.length - 1].slice(1).split('.');
+  return st.cur[0] + m[0] + '.' + (+m[1] + 1) + '.0';
+}
+function doImport(f) {
+  if (!/\.(zip|tar|gz|tgz)$/i.test(f.name)) { modal('提示', '文件格式不正确，请导入 .zip / .tar / .tar.gz 格式的升级安装包。', [{ t: '知道了' }]); return; }
+  var tok = ++impTok + 1;
+  modal('导入版本服务', '<div class="imp"><div class="cl">☁</div><p>导入进行中</p><p style="color:#999;font-size:12px">' + esc(f.name) + '</p></div>', [{ t: '取消导入', fn: function () { toast('已取消导入'); } }]);
+  impTok = tok;
+  setTimeout(function () {
+    if (impTok !== tok) return;
+    var r = $('selImp').value; closeM();
+    if (r !== 'ok') { modal('导入失败', IMP_ERR[r], [{ t: '重新导入', ghost: 1, fn: function () { $('picker').value = ''; $('picker').click(); } }, { t: '知道了' }]); return; }
+    var m = f.name.match(/[BV]?(\d+\.\d+\.\d+)/i), v = m ? st.cur[0] + m[1] : nextVer();
+    if (cmpV(v, st.cur) <= 0) { modal('提示', '安装包版本 <b>' + v + '</b> 不高于当前版本 <b>' + st.cur + '</b>，无需导入。', [{ t: '知道了' }]); return; }
+    var re = st.local.some(function (x) { return x.v === v; });
+    var add = ONLINE.filter(function (x) { return cmpV(x.v, st.cur) > 0 && cmpV(x.v, v) < 0; }).map(function (x) { return x.v; }).concat([v]).sort(function (a, b) { return cmpV(b, a); });
+    add.forEach(function (x) { var o = ONLINE.filter(function (y) { return y.v === x; })[0]; st.local = st.local.filter(function (y) { return y.v !== x; }); st.local.push({ v: x, d: o ? o.d : '本地导入：' + f.name }); });
+    save(); renderList(); toast(re ? v + ' 重复导入，已更新对应的服务内容' : add.join('、') + ' 导入成功');
+  }, 1500 / +$('selSpd').value);
+}
+function askDel(v) {
+  modal('删除确认', '确定删除本地版本 <b>' + v + '</b> 的升级安装包吗？删除后需重新导入。', [{ t: '取消', ghost: 1 }, { t: '确定删除', fn: function () { st.local = st.local.filter(function (x) { return x.v !== v; }); save(); renderList(); toast('已删除'); } }]);
+}
+
+/* ---------- 更新日志 ---------- */
+function renderLog() {
+  var f = $('fFrom').value, t = $('fTo').value, v = $('fVer').value, h = '';
+  var vs = []; st.logs.forEach(function (l) { if (vs.indexOf(l.to) < 0) vs.push(l.to); });
+  $('fVer').innerHTML = '<option value="">全部</option>' + vs.map(function (x) { return '<option' + (x === v ? ' selected' : '') + '>' + x + '</option>'; }).join('');
+  var rows = st.logs.filter(function (l) { var d = l.t.slice(0, 10); return (!f || d >= f) && (!t || d <= t) && (!v || l.to === v); });
+  rows.forEach(function (l, k) {
+    h += '<tr><td>' + (k + 1) + '</td><td>' + l.t + '</td><td>' + l.from + '</td><td>' + l.to + '</td><td class="' + (l.r === '成功' ? 's-done' : 's-cur') + '">' + l.r + '</td><td><span class="lnk" data-log="' + st.logs.indexOf(l) + '">详情</span></td></tr>';
+  });
+  $('tbLog').innerHTML = h || '<tr><td colspan="6" class="empty">暂无更新记录</td></tr>'; $('logTotal').textContent = rows.length;
+}
+/* 各服务的版本号（演示：由系统版本推算，如 V1.21.4；真实数据由研发提供） */
+function svcVer(k, sv) { var m = sv.slice(1).split('.'); return sv[0] + m[0] + '.' + (+m[1] * 10 + k) + '.' + ((k * 3 + +m[2]) % 7); }
+function logDetail(i) {
+  var l = st.logs[i], h = '<div style="font-size:13px;margin-bottom:8px">' + l.t + '　' + l.way + '　' + l.from + ' → ' + l.to + '</div><table class="tb"><tr><th>服务名称</th><th>更新后版本</th><th>结果</th></tr>';
+  l.svc.forEach(function (s, k) { h += '<tr><td>' + s.n + '</td><td>' + svcVer(k, l.to) + '</td><td class="' + (s.s === '成功' ? 's-done' : s.s === '失败' ? 's-cur' : '') + '">' + s.s + '</td></tr>'; });
+  modal('更新详情', h + '</table>', [{ t: '关闭' }]);
+}
+/* ---------- PRD 标注 ---------- */
+var NOTES = {
+  tab: { title: '更新页签', items: [
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '分「翼飞平台更新」「运维中心更新」两个页签，默认打开「翼飞平台更新」。<br>两个页签各自独立：更新方式、版本列表、下载、更新进度、更新日志互不影响，规则相同。<br>某个页签正在更新或正在下载时，不能切换到另一个页签；重新进入升级页时，自动打开正在更新的页签。<br>翼飞平台版本号以 B 开头（如 B1.1.0），运维中心以 V 开头（如 V1.2.0）。' },
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '首页点击「升级」进入本页，默认展示「版本列表」。翼飞平台和运维中心分两个页签分别更新，各页签内的服务按顺序统一更新。' }
+  ]},
+  way: { title: '更新方式', items: [
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '分<b>在线更新</b>和<b>本地更新</b>两种，默认在线更新。鼠标移到 ? 上显示对应的操作步骤。<br>更新进行中不可切换更新方式。' },
+    { cls: 'rule', tag: '在线更新', ver: 'B1.3.0', html: '设备联网时自动获取可更新的版本列表；点击「更新」后先下载升级安装包，再依次更新各服务。<br>无网时列表提示「网络异常，无法获取在线版本」，引导切换为本地更新。' },
+    { cls: 'rule', tag: '本地更新', ver: 'B1.3.0', html: '右上角显示「导入版本服务」，导入商务人员提供的升级安装包（.zip / .tar / .tar.gz）后出现在列表中，再点击「更新」。无需下载步骤。' }
+  ]},
+  ops: { title: '右上角按钮', items: [
+    { cls: 'rule', tag: '本地导入', ver: 'B1.3.0', html: '导入时弹窗「导入进行中」，可「取消导入」。流程：导入文件 → 判断内存 → 解压 → 校验文件 → 读取包内版本 → 校验服务是否完整。<br>提示：内存不足「您的内存不足，请前往处理」；文件损坏「您导入的文件已损坏」；不完整「您导入的升级安装包不完整，请联系客服人员解决」，列表不展示该版本。<br>成功：列表展示该版本及其与当前版本之间的版本，状态为待更新，提示「V1.4.0、V1.3.0 导入成功」。重复导入则更新对应的服务内容。' },
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '<b>导入版本服务</b>：仅本地更新显示。异常提示：<br>· 导入失败：设备内存不足，请清理磁盘空间后重新导入<br>· 导入失败：安装包文件已损坏，请重新获取安装包<br>· 导入失败：安装包不完整，请重新下载完整的安装包后导入<br>· 版本不高于当前版本、或版本已存在时，提示无需导入。' },
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '<b>查看更新进度</b>：有更新任务时显示，进入「更新服务列表」。<b>返回版本列表</b>：在更新服务列表中显示。<b>更新日志</b>：进入更新日志页面。' }
+  ]},
+  prog: { title: '更新进度', items: [
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '记录本次更新耗时：更新中显示「系统更新升级耗时：xx分xx秒，请您耐心等待」；成功显示「更新耗时：xx分xx秒，更新成功！」。<br>更新中可离开本页，首页显示「平台名称系统正在更新中」（如「翼飞平台系统正在更新中」「运维中心系统正在更新中」）；返回后继续显示进度。<br>更新结束后点击「返回版本列表」，进度条消失。<br><b>结束进程</b>：更新一直卡在进行中时，可在更新服务列表点击结束，系统回滚到更新前版本，版本状态仍为待更新。' },
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '显示当前更新状态和总进度：下载中（仅在线更新）→ 逐个服务更新 → 成功 / 失败。<br>成功：显示绿色，系统当前版本切换为新版本。<br>失败：显示红色，提示失败的服务，系统自动回滚到更新前版本。' }
+  ]},
+  state: { title: '升级状态', items: [
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '版本按版本号从高到低排序。状态：<br>· <span class="s-done">已更新</span>：当前版本之前的版本，不支持回溯更新<br>· <span class="s-cur">当前版本</span>：不支持更新<br>· 待更新（未下载镜像）：操作为「下载」<br>· 待更新（已下载镜像 / 本地已导入）：操作为「更新」，更新成功后变为当前版本，之前的都变为已更新<br>· 待更新（更新失败）：可「更新」继续更新，可查看「日志」；当前版本不变<br>· <span class="s-run">更新中</span>：不支持点击更新' }
+  ]},
+  act: { title: '操作', items: [
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '<b>下载</b>（在线更新）：先判断网络。无网弹窗「网络不可用，无法在线获取升级安装包，请使用本地更新」；有网弹窗「是否下载远程镜像？预计大小 xxGB」。下载内容为当前版本到该版本的增量镜像和数据处理脚本（通用版本），下载完成后中间版本同时变为可更新。<br><b>更新</b>：确认后开始更新，同一时间只能更新一个版本。<br><b>日志</b>：更新失败的版本显示，查看该版本的更新日志（日志内容研发提供）。' }
+  ]},
+  svc: { title: '更新服务列表', items: [
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '按顺序逐个更新服务，显示每个服务的当前版本、更新后版本和进度。右上角显示已完成数 / 总数。<br>某个服务失败时，已更新的服务回滚，后面的服务不再更新。' }
+  ]},
+  logq: { title: '日志查询', items: [
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '可按更新时间范围、更新后版本查询；「重置」清空条件。' }
+  ]},
+  logt: { title: '日志列表', items: [
+    { cls: 'rule', tag: '规则', ver: 'B1.3.0', html: '按时间倒序，记录每次更新的时间、更新前后版本、结果。点击「详情」查看更新方式，以及每个服务的名称、版本、更新结果。<br><b>更新后版本</b>：该服务本次要更新到的版本号，如 V1.21.4。' }
+  ]}
+};
+var popBtn = null;
+function closePop() { $('pop').classList.remove('show'); if (popBtn) popBtn.classList.remove('open'); popBtn = null; }
+function openPop(btn) {
+  if (popBtn === btn) { closePop(); return; }
+  closePop();
+  var n = NOTES[btn.getAttribute('data-note')]; if (!n) return;
+  $('popT').textContent = n.title;
+  $('popB').innerHTML = n.items.map(function (i) { return '<div class="note"><span class="tag">' + i.tag + '</span><span class="ver">' + i.ver + '</span>' + i.html + '</div>'; }).join('');
+  var r = btn.getBoundingClientRect(), p = $('pop');
+  p.classList.add('show');
+  var left = Math.min(r.left + window.scrollX, window.scrollX + document.documentElement.clientWidth - p.offsetWidth - 12);
+  p.style.left = Math.max(12, left) + 'px'; p.style.top = (r.bottom + window.scrollY + 6) + 'px';
+  btn.classList.add('open'); popBtn = btn;
+}
+$('popX').onclick = closePop;
+
+/* ---------- 事件 ---------- */
+document.addEventListener('click', function (e) {
+  var d = e.target.closest('.dot'); if (d) { e.stopPropagation(); openPop(d); return; }
+  if (!e.target.closest('#pop')) closePop();
+  var up = e.target.closest('[data-up]'); if (up) { askUp(up.getAttribute('data-up')); return; }
+  var del = e.target.closest('[data-del]'); if (del) { askDel(del.getAttribute('data-del')); return; }
+  var dl = e.target.closest('[data-dl]'); if (dl) { askDl(dl.getAttribute('data-dl')); return; }
+  var lv = e.target.closest('[data-lv]'); if (lv) { show('log'); $('fVer').value = lv.getAttribute('data-lv'); renderLog(); return; }
+  if (e.target.closest('[data-prog]')) { show('svc'); return; }
+  var lg = e.target.closest('[data-log]'); if (lg) logDetail(+lg.getAttribute('data-log'));
+});
+document.querySelectorAll('input[name=way]').forEach(function (i) {
+  i.onchange = function () { if (busy()) { toast('更新进行中，不可切换更新方式', 1); show(view); return; } st.way = i.value; save(); if (run && run.state !== 'run') run = null; show('list'); };
+});
+$('btnProg').onclick = function () { show('svc'); };
+function clearDone() { if (run && run.state !== 'run') { run = null; save(); } }
+$('btnBackList').onclick = function () { clearDone(); show('list'); };
+$('btnLog').onclick = function () { show('log'); };
+$('btnImport').onclick = function () { if (busy()) { toast('更新进行中，暂不可导入', 1); return; } $('picker').value = ''; $('picker').click(); };
+$('picker').onchange = function () { if (this.files[0]) doImport(this.files[0]); };
+$('btnQ').onclick = renderLog;
+$('btnR').onclick = function () { $('fFrom').value = ''; $('fTo').value = ''; $('fVer').value = ''; renderLog(); };
+function goHome() { location.href = 'home.html'; }
+$('btnBack').onclick = function () { if (view !== 'list') { clearDone(); show('list'); } else goHome(); };
+$('goHome').onclick = goHome;
+$('selNet').onchange = function () { if (view === 'list') renderList(); };
+$('swDots').onclick = function () { this.classList.toggle('off'); document.body.classList.toggle('hide-dots', this.classList.contains('off')); closePop(); };
+$('tabs').onclick = function (e) {
+  var x = e.target.closest('span[data-p]'); if (!x) return; var p = x.getAttribute('data-p'); if (p === plat) return;
+  if (busy()) { toast(PLAT[plat].name + '正在更新中，请稍后再切换', 1); return; }
+  if (dlIng) { toast('升级安装包下载中，请稍后再切换', 1); return; }
+  closeM(); $('fFrom').value = ''; $('fTo').value = ''; $('fVer').value = ''; loadPlat(p); show('list');
+};
+$('reset').onclick = function () { if (busy()) { toast('更新进行中，请稍后重置', 1); return; } if (dlIng) { toast('升级安装包下载中，请稍后重置', 1); return; } localStorage.removeItem(KEY); st = initState(); run = null; show('list'); toast('已重置' + PLAT[plat].name + '的演示数据'); };
+
+if (run && run.state !== 'run') { run = null; save(); }
+if (busy()) { show('svc'); tick(); } else show('list');
+</script>
+</body>
+</html>
